@@ -3,10 +3,10 @@
     <Header />
     <Separator top />
     <main>
-      <template v-if="$route.name === 'georectify'">
-        <Georectify :iiif="iiif" :connection="connection"
+      <template v-if="$route.name === 'georeference'">
+        <Georeference :iiif="iiif" :connection="connection"
           :showAnnotation="showAnnotation"
-          @update="updateGeorectifyData" />
+          @update="updateGeoreferenceData" />
       </template>
       <template v-else-if="$route.name === 'mask'">
         <EditMask :iiif="iiif" :connection="connection"
@@ -21,7 +21,7 @@
           <Annotation class="annotation"
             :iiif="iiif"
             :maskData="maskData"
-            :georectifyData="georectifyData" />
+            :georeferenceData="georeferenceData" />
         </template>
       </transition>
     </main>
@@ -38,7 +38,7 @@ import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
 import Separator from './components/Separator.vue'
 import Home from './components/Home.vue'
-import Georectify from './components/Georectify.vue'
+import Georeference from './components/Georeference.vue'
 import EditMask from './components/EditMask.vue'
 import Annotation from './components/Annotation.vue'
 
@@ -57,7 +57,7 @@ export default {
     Footer,
     Separator,
     Home,
-    Georectify,
+    Georeference,
     EditMask,
     Annotation
   },
@@ -66,15 +66,15 @@ export default {
       iiif: undefined,
       connection: undefined,
       maskData: undefined,
-      georectifyData: undefined,
+      georeferenceData: undefined,
       showAnnotation: false,
       exampleManifestUrls,
       exampleManifests: undefined
     }
   },
   methods: {
-    updateGeorectifyData: function (data) {
-      this.georectifyData = data
+    updateGeoreferenceData: function (data) {
+      this.georeferenceData = data
     },
     updateMaskData: function (data) {
       this.maskData = data

@@ -41,8 +41,8 @@ const router = new VueRouter({
       component: App
     },
     {
-      name: 'georectify',
-      path: '/georectify',
+      name: 'georeference',
+      path: '/georeference',
       component: App
     },
     {

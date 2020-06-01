@@ -25,7 +25,7 @@ import Document from './Document.vue'
 import {deleteCondition} from '../lib/openlayers'
 
 export default {
-  name: 'Georectify',
+  name: 'Georeference',
   props: {
     iiif: Object,
 		connection: Object,

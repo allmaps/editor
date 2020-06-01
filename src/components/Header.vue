@@ -8,7 +8,7 @@
       </h1>
       <ol>
         <li>
-          <router-link :to="{name: 'georectify', query: {url: $route.query.url}}">Georectify</router-link>
+          <router-link :to="{name: 'georeference', query: {url: $route.query.url}}">Georeference</router-link>
         </li>
         <li>
           <router-link :to="{name: 'mask', query: {url: $route.query.url}}">Mask</router-link>

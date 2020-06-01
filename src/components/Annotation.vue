@@ -9,13 +9,13 @@ export default {
   name: 'Annotation',
   props: {
     iiif: Object,
-    georectifyData: Array,
+    georeferenceData: Array,
     maskData: Array
   },
   computed: {
     annotation: function () {
       const url = this.iiif && this.iiif.manifestUrl
-      const annotation = createAnnotation(url, this.georectifyData, this.maskData)
+      const annotation = createAnnotation(url, this.georeferenceData, this.maskData)
       return JSON.stringify(annotation, null, 2)
     }
   },
