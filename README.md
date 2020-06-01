@@ -1,3 +1,3 @@
 # IIIF & Maps
 
-Prototype Vue app, running on bertspaan.nl/iiif-maps/
+Prototype Vue app, running on [bertspaan.nl/iiifmaps](https://bertspaan.nl/iiifmaps/).
