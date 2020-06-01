@@ -28,7 +28,8 @@ export default {
   name: 'Georectify',
   props: {
     iiif: Object,
-		connection: Object
+		connection: Object,
+		showAnnotation: Boolean
   },
   mixins: [Document],
   data () {
@@ -53,6 +54,9 @@ export default {
 		}
   },
   watch: {
+		showAnnotation: function () {
+			window.setTimeout(this.onResize, 100)
+		},
 		data: function () {
 			this.$emit('update', this.data)
 
@@ -77,6 +81,13 @@ export default {
 						type: 'Point',
 						coordinates
 				}, { featureProjection: 'EPSG:3857' })))
+
+				// TODO: Only move if no user interaction has taken place
+				const extent = this.mapSource.getExtent()
+				this.mapOl.getView().fit(extent, {
+					padding: [25, 25, 25, 25],
+					maxZoom: 18
+				})
 			}
 		},
 		iiif: function () {
@@ -86,6 +97,16 @@ export default {
 		}
 	},
   methods: {
+		round: function (num, decimals = 6) {
+			const p = 10 ** decimals
+			return Math.round((num + Number.EPSILON) * p) / p
+		},
+		onResize: function () {
+			if (this.iiifOl && this.mapOl) {
+				this.iiifOl.updateSize()
+				this.mapOl.updateSize()
+			}
+		},
     pointDifference: function () {
 			const iiifCoordinates = this.iiifCoordinates || []
 			const mapCoordinates = this.mapCoordinates || []
@@ -100,8 +121,8 @@ export default {
 					.map((feature) => {
 						const coordinate = feature.getGeometry().getCoordinates()
 						return [
-							coordinate[0],
-							-coordinate[1]
+							Math.round(coordinate[0]),
+							Math.round(-coordinate[1])
 						]
 					})
 
@@ -112,8 +133,9 @@ export default {
         const mapCoordinates = mapFeatures
           .map((feature) => {
             const geometry = feature.getGeometry().clone()
-            geometry.transform('EPSG:3857', 'EPSG:4326')
+						geometry.transform('EPSG:3857', 'EPSG:4326')
 						return geometry.getCoordinates()
+							.map((coordinate) => this.round(coordinate))
 					})
 
 				this.mapCoordinates = mapCoordinates
@@ -159,13 +181,13 @@ export default {
 			source: this.iiifSource,
 			style: new Style({
 				stroke: new Stroke({
-					color: '#E10800',
+					color: '#e10800',
 					width: 3
 				}),
 				image: new CircleStyle({
 					radius: 7,
 					fill: new Fill({
-						color: '#E10800'
+						color: '#e10800'
 					})
 				})
 			})
@@ -202,7 +224,7 @@ export default {
       target: 'map',
       view: new View({
         center: fromLonLat([-77.036667, 38.895]),
-        zoom: 8
+        zoom: 3
       })
     })
 

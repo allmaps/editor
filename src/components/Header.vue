@@ -2,12 +2,11 @@
   <header class="padding">
     <div class="menu">
       <h1>
-        <img src="https://iiif.io/img/logo-iiif-34x30.png" /> + 🗺️
+        <router-link :to="{name: 'home', query: {url: $route.query.url}}">
+          IIIF + Maps
+        </router-link>
       </h1>
       <ol>
-        <li>
-          <router-link :to="{name: 'home', query: {url: $route.query.url}}">Home</router-link>
-        </li>
         <li>
           <router-link :to="{name: 'georectify', query: {url: $route.query.url}}">Georectify</router-link>
         </li>
@@ -16,32 +15,30 @@
         </li>
       </ol>
     </div>
-    <div>
-      <form @submit.prevent="handleSubmit">
-        <label>
-          Manifest URL:
-          <input type="text" v-model="inputManifestUrl"/>
-        </label>
-      </form>
-    </div>
+    <form @submit.prevent="handleSubmit">
+      <label>
+        <input type="text" placeholder="IIIF manifest or image URL"
+          v-model="inputManifestUrl" />
+      </label>
+    </form>
   </header>
 </template>
 
 <script>
 export default {
   name: 'Header',
-  props: {
-
-  },
   data () {
     return {
       inputManifestUrl: this.$route.query.url
     }
   },
   watch: {
-    manifestUrl () {
-      this.inputManifestUrl = this.manifestUrl
+    '$route.query.url': function () {
+      this.inputManifestUrl = this.$route.query.url
     }
+    // manifestUrl () {
+    //   this.inputManifestUrl = this.manifestUrl
+    // }
   },
   methods: {
     handleSubmit () {
@@ -67,9 +64,12 @@ header {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 }
 
 h1 {
+  font-size: 100%;
+  font-weight: bold;
   margin: 0;
   display: inline;
   line-height: 0;
@@ -77,7 +77,6 @@ h1 {
 
 ol {
   list-style: none;
-  font-weight: bold;
 }
 
 ol, ol li {
@@ -86,15 +85,23 @@ ol, ol li {
   padding: 0;
 }
 
-ol li {
+ol li, form {
   padding-left: 1em;
 }
 
-ol li a, ol li a:visited {
+h1 a, ol li a, ol li a:visited {
   text-decoration: none;
 }
 
-ol li a.router-link-exact-active  {
+a.router-link-exact-active  {
   text-decoration: underline;
+}
+
+form, form input {
+  width: 100%;
+}
+
+input {
+  font-size: 100%;
 }
 </style>

@@ -4,7 +4,7 @@
     </div>
     <div>
       <button @click="$emit('update:showAnnotation', !showAnnotation)">
-        Show Annotation
+        {{ showAnnotation ? 'Hide Annotation' : 'Show Annotation' }}
       </button>
     </div>
   </footer>

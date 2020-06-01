@@ -24,7 +24,8 @@ export default {
   name: 'EditMask',
   props: {
 		iiif: Object,
-		connection: Object
+		connection: Object,
+		showAnnotation: Boolean
 	},
 	mixins: [Document],
 	data () {
@@ -41,9 +42,11 @@ export default {
 		}
 	},
 	watch: {
+		showAnnotation: function () {
+			window.setTimeout(this.onResize, 100)
+		},
 		data: function () {
 			this.$emit('update', this.data)
-			console.log(this.data)
 			this.iiifSource.clear()
 			if (this.data && this.data.length) {
 				this.iiifSource.addFeature(new Feature({
@@ -59,9 +62,12 @@ export default {
 		}
 	},
 	methods: {
+		onResize: function () {
+			if (this.iiifOl) {
+				this.iiifOl.updateSize()
+			}
+		},
 		updateMask: function () {
-			console.log('updateMask')
-
 			const features = this.iiifVector.getSource().getFeatures()
 
 			let data

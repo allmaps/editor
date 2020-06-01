@@ -1,17 +1,20 @@
 <template>
   <div id="app">
     <Header />
+    <Separator top />
     <main>
       <template v-if="$route.name === 'georectify'">
         <Georectify :iiif="iiif" :connection="connection"
+          :showAnnotation="showAnnotation"
           @update="updateGeorectifyData" />
       </template>
       <template v-else-if="$route.name === 'mask'">
         <EditMask :iiif="iiif" :connection="connection"
+          :showAnnotation="showAnnotation"
           @update="updateMaskData" />
       </template>
       <template v-else>
-        <Home class="padding" />
+        <Home class="padding" :exampleManifests="exampleManifests" />
       </template>
       <transition name="slide">
         <template v-if="showAnnotation">
@@ -22,6 +25,7 @@
         </template>
       </transition>
     </main>
+    <Separator />
     <Footer :showAnnotation.sync="showAnnotation" />
   </div>
 </template>
@@ -32,14 +36,18 @@
 <script>
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
+import Separator from './components/Separator.vue'
 import Home from './components/Home.vue'
 import Georectify from './components/Georectify.vue'
 import EditMask from './components/EditMask.vue'
 import Annotation from './components/Annotation.vue'
 
-import {getManifest, getImageInfo} from './lib/iiif'
-import connect from './lib/sharedb'
+import {getManifest, getImageInfo, getLabel} from './lib/iiif'
 
+import connect from './lib/sharedb'
+import {zipWith} from 'ramda'
+
+const exampleManifestUrls = require('./lib/example-manifests.json')
 const serverUrl = process.env.VUE_APP_SERVER_URL
 
 export default {
@@ -47,6 +55,7 @@ export default {
   components: {
     Header,
     Footer,
+    Separator,
     Home,
     Georectify,
     EditMask,
@@ -58,7 +67,9 @@ export default {
       connection: undefined,
       maskData: undefined,
       georectifyData: undefined,
-      showAnnotation: false
+      showAnnotation: false,
+      exampleManifestUrls,
+      exampleManifests: undefined
     }
   },
   methods: {
@@ -77,14 +88,27 @@ export default {
         manifest,
         imageInfo
       }
+    },
+    getManifestLabels: async function (manifestUrls) {
+      let labels = []
+
+      for (let manifestUrls of manifestUrls) {
+        const label = await getLabel(manifestUrls)
+        labels.push(label)
+      }
+
+      return labels
     }
   },
-  mounted: function () {
+  mounted: async function () {
     if (this.$route.query.url) {
       this.updateIiif(this.$route.query.url)
     }
 
     this.connection = connect(serverUrl)
+
+    const manifestLabels = await this.getManifestLabels(this.exampleManifestUrls)
+    this.exampleManifests = zipWith((url, label) => ({url, label}), this.exampleManifestUrls, manifestLabels)
   },
   watch: {
     '$route.query.url': function (url) {
@@ -101,6 +125,7 @@ body {
   width: 100%;
   height: 100%;
   position: absolute;
+  overflow: hidden;
 }
 
 main p a, main ul a, main ol a {
@@ -147,7 +172,8 @@ main > * {
 }
 
 header, footer {
-  background: linear-gradient(145deg, #46cf75, #3bae62);
+  /* background: linear-gradient(145deg, #46cf75, #3bae62); */
+  /* background: linear-gradient(145deg, #e9e9e9, #f79390); */
 }
 
 header, footer,
@@ -156,11 +182,11 @@ header a:visited, footer a:visited {
   color: black;
 }
 
-/* .slide-enter-active, .slide-leave-active {
-  transition: width .5s;
+.slide-enter-active, .slide-leave-active {
+  transition: width .05s;
 }
 .slide-enter, .slide-leave-to {
   width: 0;
-} */
+}
 
 </style>

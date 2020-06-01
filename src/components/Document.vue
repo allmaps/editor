@@ -31,15 +31,12 @@ export default {
         throw new Error('Document not initialized')
       }
 
-      console.log('Committing', data)
-
       const diff = jsondiff(
         this.document.data || [],
         data
       )
 
       if (diff.length) {
-        console.log('Submitting data')
         try {
           this.document.submitOp(diff)
         } catch (err) {
@@ -57,7 +54,6 @@ export default {
       }
 
       const newData = this.document.data || []
-      console.log('Received data:', newData)
       if (!this.data) {
         this.data = []
       } else {

@@ -14,3 +14,8 @@ export function getImageInfo (manifest) {
   const imageInfoUrl = `${imageId}/info.json`
   return getJson(imageInfoUrl)
 }
+
+export function getLabel (manifestUrl) {
+  return getManifest(manifestUrl)
+    .then((manifest) => manifest.label)
+}
