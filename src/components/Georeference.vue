@@ -1,5 +1,5 @@
 <template>
-  <div id="georectify">
+  <div id="georeference">
     <div id="iiif" class="iiif"></div>
     <div id="map" class="map"></div>
   </div>
@@ -277,12 +277,12 @@ export default {
 </script>
 
 <style scoped>
-#georectify {
+#georeference {
   display: flex;
-  flex-direction: row;
+	flex-direction: row;
 }
 
-#georectify > * {
+#georeference > * {
   width: 50%;
   padding: 2px;
   box-sizing: border-box;

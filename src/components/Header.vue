@@ -54,7 +54,6 @@ export default {
 header {
   display: flex;
   flex-direction: row;
-  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
 }
@@ -99,9 +98,5 @@ a.router-link-exact-active  {
 
 form, form input {
   width: 100%;
-}
-
-input {
-  font-size: 100%;
 }
 </style>

@@ -25,7 +25,7 @@
         </template>
       </transition>
     </main>
-    <Separator />
+    <Separator :top="false" />
     <Footer :showAnnotation.sync="showAnnotation" />
   </div>
 </template>
@@ -119,13 +119,16 @@ export default {
 </script>
 
 <style>
+html {
+  height: 100%;
+}
+
 body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   position: absolute;
-  overflow: hidden;
 }
 
 main p a, main ul a, main ol a {
@@ -151,19 +154,27 @@ main p a, main ul a, main ol a {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
+  max-height: 100%;
+  min-height: 100%;
+}
+
+header, footer {
+  flex: none;
 }
 
 main {
-  height: 100%;
+  height: 0px;
+  min-height: auto;
+
   display: flex;
+  flex: 1 0 auto;
   flex-direction: row;
 }
 
 main > * {
-	height: 100%;
 	width: 100%;
   box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .annotation {
@@ -171,9 +182,8 @@ main > * {
   flex-shrink: 0;
 }
 
-header, footer {
-  /* background: linear-gradient(145deg, #46cf75, #3bae62); */
-  /* background: linear-gradient(145deg, #e9e9e9, #f79390); */
+button, input {
+  font-size: 100%;
 }
 
 header, footer,
@@ -182,11 +192,23 @@ header a:visited, footer a:visited {
   color: black;
 }
 
-.slide-enter-active, .slide-leave-active {
+button {
+  border: none;
+  background:linear-gradient(to bottom, #007dc1 5%, #0061a7 100%);
+	background-color:#007dc1;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	padding:6px 24px;
+	text-decoration:none;
+}
+
+/* .slide-enter-active, .slide-leave-active {
   transition: width .05s;
 }
+
 .slide-enter, .slide-leave-to {
   width: 0;
-}
+} */
 
 </style>
