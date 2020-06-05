@@ -4,7 +4,9 @@
     </div>
     <div>
       <button @click="$emit('copyToClipboard')">Copy Annotation to clipboard</button>
-      <button @click="$emit('update:showAnnotation', !showAnnotation)">
+      <button :style="{
+        width: '150px'
+      }" class="primary" @click="$emit('update:showAnnotation', !showAnnotation)">
         {{ showAnnotation ? 'Hide Annotation' : 'Show Annotation' }}
       </button>
     </div>

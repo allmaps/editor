@@ -126,15 +126,12 @@ export default {
         imageInfo
       }
 
-      const id = this.iiif.url
-
       if (this.documents) {
-        for (let key of this.documents) {
-          const document = this.documents[key]
-          document.destroy()
-        }
+        Object.values(this.documents)
+          .forEach((document) => document.destroy())
       }
 
+      const id = this.iiif.url
       this.documents = {
         pixelMask: document(this.connection, 'masks', id, this.pixelMaskReceived),
         gcps: document(this.connection, 'gcps', id, this.gcpsReceived)
@@ -273,12 +270,18 @@ a, a:visited {
 
 button {
   border: none;
+  display: inline-block;
+	cursor: pointer;
+  background-color: white;
+  text-decoration: underline;
+  padding: 6px 12px;
+}
+
+button.primary {
+  border: none;
   background: linear-gradient(to bottom, #007dc1 5%, #0061a7 100%);
 	background-color: #007dc1;
-	display: inline-block;
-	cursor: pointer;
 	color: #ffffff;
-	padding: 6px 12px;
 	text-decoration: none;
 }
 

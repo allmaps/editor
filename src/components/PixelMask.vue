@@ -33,6 +33,7 @@ export default {
 			iiifLayer: undefined,
 			iiifVector: undefined,
 
+			pixelMask: undefined,
 			dimensions: undefined
 		}
 	},
@@ -59,6 +60,7 @@ export default {
 					geometry: new Polygon(this.maskToPolygon(pixelMask))
 				}))
 			}
+			this.pixelMask = pixelMask
 		},
 		onEdited: function () {
 			const features = this.iiifVector.getSource().getFeatures()
@@ -72,6 +74,7 @@ export default {
 			}
 
 			this.bus.$emit('pixel-mask-edited', pixelMask)
+			this.pixelMask = pixelMask
 		},
 		updateIiif: function (iiif) {
 			const options = new IIIFInfo(iiif.imageInfo).getTileSourceOptions()
@@ -114,7 +117,7 @@ export default {
 		// 	updateMask()
 		// }
 		emptyMask: function () {
-			return this.data === undefined || this.data.length === 0
+			return this.pixelMask === undefined || this.pixelMask.length === 0
 		}
 	},
 	created: function () {
