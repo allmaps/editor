@@ -4,7 +4,6 @@ const apiUrl = 'https://georectify-service-q26jk7mh3q-uc.a.run.app'
 
 export default function georeference (iiif, gcps, mask) {
   const data = apiData(iiif, gcps, mask)
-console.log(data)
   const url = `${apiUrl}/json/geojson`
 
   return axios.post(url, data)

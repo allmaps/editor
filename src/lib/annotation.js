@@ -1,10 +1,19 @@
-function gcpsAnnotation (url, dimensions, gcps) {
+function svgSelector (dimensions, mask) {
+  const width = dimensions && dimensions[0]
+  const height = dimensions && dimensions[1]
+
+  return {
+    type: 'SvgSelector',
+    value: `<svg width="${width}" height="${height}"><polygon points="${mask.map((point) => point.join(',')).join(' ')}" /></svg>`
+  }
+}
+
+function createGcpsAnnotation (url, dimensions, gcps) {
   if (gcps) {
     return {
       type: 'Annotation',
-      '@context': 'http://www.w3.org/ns/anno.jsonld',
-      motivation: 'georeference',
-      // target: manifestUrl,
+      motivation: 'georeference-ground-control-points',
+      target: url,
       body: {
         type: 'FeatureCollection',
         features: gcps.map((gcp) => ({
@@ -22,40 +31,35 @@ function gcpsAnnotation (url, dimensions, gcps) {
   }
 }
 
-function maskAnnotation (url, dimensions, mask) {
+function createPixelMaskAnnotation (url, dimensions, mask) {
   if (mask) {
-    const width = dimensions && dimensions[0]
-    const height = dimensions && dimensions[1]
-
     return {
       type: 'Annotation',
-      motivation: 'mask',
+      motivation: 'georeference-pixel-mask',
       target: {
         source: url,
-        selector: {
-          type: 'SvgSelector',
-          value: `<svg width="${width}" height="${height}"><polygon points="${mask.map((point) => point.join(',')).join(' ')}" /></svg>`
-        }
+        selector: svgSelector(dimensions, mask)
       },
       body: mask
     }
   }
 }
 
-function apiAnnotation (url, dimensions, data) {
+function createGeoMaskAnnotation (url, dimensions, mask, data) {
   if (data) {
     return {
       type: 'Annotation',
-      motivation: 'geo',
+      motivation: 'georeference-geo-mask',
       target: {
-        source: url
+        source: url,
+        selector: svgSelector(dimensions, mask)
       },
       body: data
     }
   }
 }
 
-export function createAnnotation (iiif, gcps, mask, apiData) {
+export function createAnnotation (iiif, gcps, pixelMask, geoMask) {
   const url = iiif && iiif.manifestUrl
 
   const dimensions = iiif && iiif.imageInfo &&
@@ -64,11 +68,11 @@ export function createAnnotation (iiif, gcps, mask, apiData) {
   return {
     '@id': `https://bertspaan.nl/iiifmaps?url=${url}`,
     type: 'AnnotationPage',
-    '@context': 'http://www.w3.org/ns/anno.jsonld',
+    '@context': ['http://geojson.org/geojson-ld/geojson-context.jsonld', 'http://iiif.io/api/presentation/3/context.json'],
     items: [
-      gcpsAnnotation(url, dimensions, gcps),
-      maskAnnotation(url, dimensions, mask),
-      apiAnnotation(url, dimensions, apiData)
+      createGcpsAnnotation(url, dimensions, gcps),
+      createPixelMaskAnnotation(url, dimensions, pixelMask),
+      createGeoMaskAnnotation(url, dimensions, pixelMask, geoMask)
     ].filter((annotation) => annotation)
   }
 }

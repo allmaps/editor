@@ -15,8 +15,6 @@ import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style'
 import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 
-import Document from './Document.vue'
-
 import {round} from '../lib/functions'
 import {deleteCondition} from '../lib/openlayers'
 
@@ -24,15 +22,12 @@ export default {
   name: 'EditMask',
   props: {
 		iiif: Object,
-		connection: Object,
+		bus: Object,
+		initialPixelMask: Array,
 		showAnnotation: Boolean
 	},
-	mixins: [Document],
 	data () {
     return {
-			data: [],
-			docType: 'masks',
-
 			iiifOl: undefined,
 			iiifSource: undefined,
 			iiifLayer: undefined,
@@ -44,16 +39,6 @@ export default {
 	watch: {
 		showAnnotation: function () {
 			window.setTimeout(this.onResize, 100)
-		},
-		data: function () {
-			this.$emit('update', this.data)
-			this.iiifSource.clear()
-			if (this.data && this.data.length) {
-				this.iiifSource.addFeature(new Feature({
-					// geometry: new Polygon(this.maskToPolygon(this.data, this.dimensions))
-					geometry: new Polygon(this.maskToPolygon(this.data))
-				}))
-			}
 		},
 		iiif: function () {
 			if (this.iiif) {
@@ -67,18 +52,26 @@ export default {
 				this.iiifOl.updateSize()
 			}
 		},
-		updateMask: function () {
+		updatePixelMask: function (pixelMask) {
+			this.iiifSource.clear()
+			if (pixelMask && pixelMask.length) {
+				this.iiifSource.addFeature(new Feature({
+					geometry: new Polygon(this.maskToPolygon(pixelMask))
+				}))
+			}
+		},
+		onEdited: function () {
 			const features = this.iiifVector.getSource().getFeatures()
 
-			let data
+			let pixelMask
 			if (features && features.length) {
 				const polygon = features[0].getGeometry().getCoordinates()
-				data = this.polygonToMask(polygon) //, this.dimensions)
+				pixelMask = this.polygonToMask(polygon) //, this.dimensions)
 			} else {
-				data = []
+				pixelMask = []
 			}
 
-			this.commit(data)
+			this.bus.$emit('pixel-mask-edited', pixelMask)
 		},
 		updateIiif: function (iiif) {
 			const options = new IIIFInfo(iiif.imageInfo).getTileSourceOptions()
@@ -123,6 +116,9 @@ export default {
 		emptyMask: function () {
 			return this.data === undefined || this.data.length === 0
 		}
+	},
+	created: function () {
+		this.bus.$on('pixel-mask-received', this.updatePixelMask)
 	},
 	mounted: function () {
 		this.iiifLayer = new TileLayer()
@@ -170,11 +166,16 @@ export default {
 		const iiifSnap = new Snap({source: this.iiifSource})
 		this.iiifOl.addInteraction(iiifSnap)
 
-		this.iiifSource.on('addfeature', this.updateMask)
-		iiifModify.on('modifyend', this.updateMask)
+		this.iiifSource.on('addfeature', this.onEdited)
+		iiifModify.on('modifyend', this.onEdited)
 
 		if (this.iiif) {
+			// TODO: add check in function instead of here
 			this.updateIiif(this.iiif)
+		}
+
+		if (this.initialPixelMask) {
+			this.updatePixelMask(this.initialPixelMask)
 		}
 	}
 }

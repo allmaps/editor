@@ -49,6 +49,11 @@ const router = new VueRouter({
       name: 'mask',
       path: '/mask',
       component: App
+    },
+    {
+      name: 'map',
+      path: '/map',
+      component: App
     }
   ]
 })

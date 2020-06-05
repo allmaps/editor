@@ -20,25 +20,20 @@ import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 import {fromLonLat, toLonLat} from 'ol/proj'
 
-import Document from './Document.vue'
-
 import {deleteCondition} from '../lib/openlayers'
 
 export default {
   name: 'Georeference',
   props: {
-    iiif: Object,
-		connection: Object,
+		iiif: Object,
+		bus: Object,
+		initialGCPs: Array,
 		showAnnotation: Boolean
   },
-  mixins: [Document],
   data () {
     return {
-      data: [],
       iiifCoordinates: [],
       mapCoordinates: [],
-
-      docType: 'gcps',
 
       iiifOl: undefined,
 			iiifSource: undefined,
@@ -57,11 +52,31 @@ export default {
 		showAnnotation: function () {
 			window.setTimeout(this.onResize, 100)
 		},
-		data: function () {
-			this.$emit('update', this.data)
-
-			const iiifCoordinates = this.data.map((gcp) => gcp.pixel)
-			const mapCoordinates = this.data.map((gcp) => gcp.world)
+		iiif: function () {
+			if (this.iiif) {
+				this.updateIiif(this.iiif)
+			}
+		}
+	},
+  methods: {
+		round: function (num, decimals = 6) {
+			const p = 10 ** decimals
+			return Math.round((num + Number.EPSILON) * p) / p
+		},
+		onResize: function () {
+			if (this.iiifOl && this.mapOl) {
+				this.iiifOl.updateSize()
+				this.mapOl.updateSize()
+			}
+		},
+    pointDifference: function () {
+			const iiifCoordinates = this.iiifCoordinates || []
+			const mapCoordinates = this.mapCoordinates || []
+			return iiifCoordinates.length - mapCoordinates.length
+		},
+		updateGCPs: function (gcps) {
+			const iiifCoordinates = gcps.map((gcp) => gcp.pixel)
+			const mapCoordinates = gcps.map((gcp) => gcp.world)
 
 			this.iiifCoordinates = iiifCoordinates
 			this.mapCoordinates = mapCoordinates
@@ -90,29 +105,7 @@ export default {
 				})
 			}
 		},
-		iiif: function () {
-			if (this.iiif) {
-				this.updateIiif(this.iiif)
-			}
-		}
-	},
-  methods: {
-		round: function (num, decimals = 6) {
-			const p = 10 ** decimals
-			return Math.round((num + Number.EPSILON) * p) / p
-		},
-		onResize: function () {
-			if (this.iiifOl && this.mapOl) {
-				this.iiifOl.updateSize()
-				this.mapOl.updateSize()
-			}
-		},
-    pointDifference: function () {
-			const iiifCoordinates = this.iiifCoordinates || []
-			const mapCoordinates = this.mapCoordinates || []
-			return iiifCoordinates.length - mapCoordinates.length
-    },
-    updateGcps: function () {
+    onEdited: function () {
       const iiifFeatures = this.iiifVector.getSource().getFeatures()
 			const mapFeatures = this.mapVector.getSource().getFeatures()
 
@@ -142,12 +135,12 @@ export default {
 			}
 
 			if (this.pointDifference() === 0) {
-				const data = this.iiifCoordinates.map((iiifCoordinate, index) => ({
+				const gcps = this.iiifCoordinates.map((iiifCoordinate, index) => ({
           pixel: iiifCoordinate,
           world: this.mapCoordinates[index]
 				}))
 
-				this.commit(data)
+				this.bus.$emit('gcps-edited', gcps)
 			}
     },
     updateIiif: function (iiif) {
@@ -172,7 +165,10 @@ export default {
 
 			this.iiifOl.getView().fit(iiifTileSource.getTileGrid().getExtent())
 		}
-  },
+	},
+	created: function () {
+		this.bus.$on('gcps-received', this.updateGCPs)
+	},
   mounted: function () {
 		this.iiifLayer = new TileLayer()
 		this.iiifSource = new VectorSource()
@@ -263,14 +259,18 @@ export default {
 		const mapSnap = new Snap({source: this.mapSource})
 		this.mapOl.addInteraction(mapSnap)
 
-		this.iiifSource.on('addfeature', this.updateGcps)
-    iiifModify.on('modifyend', this.updateGcps)
+		this.iiifSource.on('addfeature', this.onEdited)
+    iiifModify.on('modifyend', this.onEdited)
 
-    this.mapSource.on('addfeature', this.updateGcps)
-		mapModify.on('modifyend', this.updateGcps)
+    this.mapSource.on('addfeature', this.onEdited)
+		mapModify.on('modifyend', this.onEdited)
 
 		if (this.iiif) {
 			this.updateIiif(this.iiif)
+		}
+
+		if (this.initialGCPs) {
+			this.updateGCPs(this.initialGCPs)
 		}
 	}
 }

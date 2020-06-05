@@ -13,11 +13,14 @@
         <li>
           <router-link :to="{name: 'mask', query: {url: $route.query.url}}">Mask</router-link>
         </li>
+        <li>
+          <router-link :to="{name: 'map', query: {url: $route.query.url}}">Map</router-link>
+        </li>
       </ol>
     </div>
     <form @submit.prevent="handleSubmit">
       <label>
-        <input type="text" placeholder="IIIF manifest or image URL"
+        <input type="text" placeholder="IIIF manifest URL"
           v-model="inputManifestUrl" />
       </label>
     </form>

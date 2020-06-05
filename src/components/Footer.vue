@@ -3,7 +3,7 @@
     <div>
     </div>
     <div>
-      <a>Copy Annotation to clipboard</a>
+      <button @click="$emit('copyToClipboard')">Copy Annotation to clipboard</button>
       <button @click="$emit('update:showAnnotation', !showAnnotation)">
         {{ showAnnotation ? 'Hide Annotation' : 'Show Annotation' }}
       </button>
@@ -16,16 +16,6 @@ export default {
   name: 'Footer',
   props: {
     showAnnotation: Boolean
-  },
-  methods: {
-    copyToClipboard: function (str) {
-      const textArea = document.createElement('textarea')
-      textArea.value = str
-      document.body.appendChild(textArea)
-      textArea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textArea)
-    }
   }
 }
 </script>

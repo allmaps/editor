@@ -1,11 +1,18 @@
 <template>
   <div class="text">
     <p>
-      This is a prototype of a IIIF-based map georeferencing tool. Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat fugit non et rem sed necessitatibus sunt sint nemo saepe, veritatis ducimus enim quis? Nihil ad obcaecati dignissimos delectus. Voluptate, ratione! Lorem, ipsum dolor sit amet consectetur adipisicing elit. Consequatur obcaecati ducimus suscipit repellat maiores minima. Delectus, tempora vel tenetur eligendi nulla illo architecto repudiandae accusantium iure, cum, eaque sit nemo. Lorem ipsum dolor sit amet consectetur adipisicing elit. Cum itaque quaerat minus et laboriosam quam veniam nihil harum ex sunt asperiores recusandae, rem possimus esse ullam fugiat placeat odit! Ut. Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolores illo eos labore! Eum excepturi accusantium tenetur aspernatur repellendus mollitia recusandae facilis dolore, porro, adipisci nobis, eaque aperiam cumque. Dolorem, similique. Lorem ipsum dolor sit amet consectetur adipisicing elit. Reprehenderit, reiciendis, maxime quaerat illum inventore non qui omnis, vero quas eaque ea sed eius nisi aliquam quisquam ratione hic. Odio, qui? Lorem ipsum dolor sit, amet consectetur adipisicing elit. Obcaecati ex numquam impedit ipsam nihil nesciunt illum quidem illo mollitia. Eos atque dolore aspernatur esse maiores consequuntur expedita corrupti ipsum ad.
+      This is a prototype of a IIIF-based map georeferencing tool.
     </p>
+    <div v-if="iiif">
+      <p>Selected image:</p>
+      <img :src="imageUrl" />
+    </div>
+    <div v-else>
+      Select a map image by typing its IIIF manifest URL in the input box, or select one of the example maps from the list below.
+    </div>
     <div v-if="exampleManifests">
       <p>
-        Some example IIIF manifests:
+        Example IIIF manifests:
       </p>
       <ul>
         <li v-for="{label, url} in exampleManifests" :key="url">
@@ -23,7 +30,14 @@
 export default {
   name: 'Home',
   props: {
-    exampleManifests: Array
+    exampleManifests: Array,
+    iiif: Object
+  },
+  computed: {
+    imageUrl: function () {
+      const id = this.iiif.imageInfo['@id']
+      return `${id}/full/500,/0/default.jpg`
+    }
   }
 }
 </script>
@@ -36,5 +50,9 @@ export default {
 
 .text > *:first-child {
   margin-top: 0;
+}
+
+img {
+  width: 50%;
 }
 </style>
