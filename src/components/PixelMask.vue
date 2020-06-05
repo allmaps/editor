@@ -42,9 +42,7 @@ export default {
 			window.setTimeout(this.onResize, 100)
 		},
 		iiif: function () {
-			if (this.iiif) {
-				this.updateIiif(this.iiif)
-			}
+			this.updateIiif(this.iiif)
 		}
 	},
 	methods: {
@@ -77,6 +75,10 @@ export default {
 			this.pixelMask = pixelMask
 		},
 		updateIiif: function (iiif) {
+			if (!iiif) {
+				return
+			}
+
 			const options = new IIIFInfo(iiif.imageInfo).getTileSourceOptions()
 			if (options === undefined || options.version === undefined) {
 				throw new Error('Data seems to be no valid IIIF image information.')
@@ -172,10 +174,7 @@ export default {
 		this.iiifSource.on('addfeature', this.onEdited)
 		iiifModify.on('modifyend', this.onEdited)
 
-		if (this.iiif) {
-			// TODO: add check in function instead of here
-			this.updateIiif(this.iiif)
-		}
+		this.updateIiif(this.iiif)
 
 		if (this.initialPixelMask) {
 			this.updatePixelMask(this.initialPixelMask)
