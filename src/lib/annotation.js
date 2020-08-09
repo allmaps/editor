@@ -60,7 +60,7 @@ function createGeoMaskAnnotation (url, dimensions, mask, data) {
 }
 
 export function createAnnotation (iiif, gcps, pixelMask, geoMask) {
-  const url = iiif && iiif.manifestUrl
+  const url = iiif && iiif.url
 
   const dimensions = iiif && iiif.imageInfo &&
     [iiif.imageInfo.width, iiif.imageInfo.height]
