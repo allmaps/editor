@@ -66,7 +66,7 @@ export function createAnnotation (iiif, gcps, pixelMask, geoMask) {
     [iiif.imageInfo.width, iiif.imageInfo.height]
 
   return {
-    '@id': `https://bertspaan.nl/iiifmaps?url=${url}`,
+    '@id': `https://bertspaan.nl/iiifmaps/#/?url=${url}`,
     type: 'AnnotationPage',
     '@context': ['http://geojson.org/geojson-ld/geojson-context.jsonld', 'http://iiif.io/api/presentation/3/context.json'],
     items: [
