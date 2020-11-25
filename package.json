@@ -11,7 +11,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "core-js": "^3.4.4",
-    "highlight.js": "^9.18.1",
+    "highlight.js": "^10.1.2",
     "json0-ot-diff": "^1.0.5",
     "lodash": "^4.17.15",
     "ol": "^6.3.1",
