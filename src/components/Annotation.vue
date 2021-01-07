@@ -1,13 +1,14 @@
 <template>
+  <!-- TODO: codemirror!!! -->
   <pre v-highlightjs="annotationString"><code class="json"></code></pre>
 </template>
 
 <script>
-
 export default {
   name: 'Annotation',
   props: {
     annotation: Object,
+    image: Object
   },
   computed: {
     annotationString: function () {

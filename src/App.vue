@@ -2,36 +2,54 @@
   <div id="app">
     <Header />
     <Separator top />
+    <!-- TODO: check ERROR -->
     <main>
-      <template v-if="$route.name === 'georeference'">
-        <Georeference :iiif="iiif"
-          :initialGCPs="gcps" :bus="bus"
+      <template v-if="$route.name === 'preview'">
+        <Preview :image="image"
           :showAnnotation="showAnnotation" />
       </template>
       <template v-else-if="$route.name === 'mask'">
-        <PixelMask :iiif="iiif"
-          :initialPixelMask="pixelMask" :bus="bus"
+        <PixelMask :bus="bus"
+          :image="image" :maps="mapsForSelectedImage"
+          :lastMapsUpdateSource="lastMapsUpdateSource"
+          :selectedMapId="selectedMapId"
           :showAnnotation="showAnnotation" />
       </template>
-      <template v-else-if="$route.name === 'map'">
-        <ViewMap :iiif="iiif"
-          :gcps="gcps" :geoMask="geoMask"
+      <template v-else-if="$route.name === 'georeference'">
+        <Georeference :bus="bus"
+          :image="image" :maps="mapsForSelectedImage"
+          :lastMapsUpdateSource="lastMapsUpdateSource"
+          :selectedMapId="selectedMapId"
+          :showAnnotation="showAnnotation" />
+      </template>
+      <template v-else-if="$route.name === 'results'">
+        <Results :bus="bus"
+          :images="images" :maps="maps"
+          :selectedImageId="selectedImageId"
+          :selectedMapId="selectedMapId"
           :showAnnotation="showAnnotation" />
       </template>
       <template v-else>
         <Home class="padding"
-          :iiif="iiif"
-          :exampleManifests="exampleManifests" />
+          :images="images" :maps="maps"
+          :sortedImageIds="sortedImageIds"
+          :selectedImageId="selectedImageId" />
       </template>
       <transition name="slide">
         <template v-if="showAnnotation">
           <Annotation class="annotation"
+            :image="image"
             :annotation="annotation" />
         </template>
       </transition>
     </main>
     <Separator :top="false" />
-    <Footer :showAnnotation.sync="showAnnotation" @copyToClipboard="copyToClipboard" />
+    <Footer :showAnnotation.sync="showAnnotation"
+      @copy-annotation="copyAnnotation"
+      @download-annotation="downloadAnnotation"
+      @save-annotation="saveAnnotation"
+      :images="images"
+      :selectedImageId="selectedImageId" />
   </div>
 </template>
 
@@ -46,21 +64,18 @@ import Footer from './components/Footer.vue'
 import Separator from './components/Separator.vue'
 
 import Home from './components/Home.vue'
+import Preview from './components/Preview.vue'
 import Georeference from './components/Georeference.vue'
 import PixelMask from './components/PixelMask.vue'
-import ViewMap from './components/ViewMap.vue'
+import Results from './components/Results.vue'
 import Annotation from './components/Annotation.vue'
 
-import {getManifest, getImageInfo, getLabel} from './lib/iiif'
-
+import {getIIIF} from './lib/iiif'
 import {createAnnotation} from './lib/annotation'
-import connect from './lib/sharedb'
-import document from './lib/document'
-import georeference from './lib/api'
-import {zipWith} from 'ramda'
-import {throttle} from 'lodash'
+import {fetch, save} from './lib/api'
 
-const exampleManifestUrls = require('./lib/example-manifests.json')
+const createTransformer = require('georeference-js')
+
 const serverUrl = process.env.VUE_APP_SERVER_URL
 
 export default {
@@ -70,127 +85,230 @@ export default {
     Footer,
     Separator,
     Home,
+    Preview,
     Georeference,
     PixelMask,
-    ViewMap,
+    Results,
     Annotation
   },
   data () {
     return {
-      iiif: undefined,
+      iiifType: undefined,
+      manifest: undefined,
+      images: {},
+      maps: {},
+      sortedImageIds: [],
 
-      connection: undefined,
-      documents: undefined,
+      selectedImageId: undefined,
+      selectedMapId: undefined,
 
       bus: new Vue(),
-
-      pixelMask: undefined,
-      gcps: undefined,
-      geoMask: undefined,
+      lastMapsUpdateSource: undefined,
 
       showAnnotation: false,
-      exampleManifestUrls,
-      exampleManifests: undefined
+      error: undefined
     }
   },
   methods: {
-    gcpsEdited: function (gcps) {
-      this.gcps = gcps
-      this.documents.gcps.commit(gcps)
+    goToRoute: function (name) {
+      this.$router.push({name, query: this.$route.query})
     },
-    pixelMaskEdited: function (pixelMask) {
-      this.pixelMask = pixelMask
-      this.documents.pixelMask.commit(pixelMask)
-    },
-    pixelMaskReceived: function (pixelMask, source) {
-      this.pixelMask = pixelMask
-      if (!source) {
-        // Operation generated remotely, send new mask to components
-        this.bus.$emit('pixel-mask-received', pixelMask)
-      }
-    },
-    gcpsReceived: function (gcps, source) {
-      this.gcps = gcps
-      if (!source) {
-        // Operation generated remotely, send new mask to components
-        this.bus.$emit('gcps-received', gcps)
-      }
-    },
-    updateIiif: async function (manifestUrl) {
-      const manifest = await getManifest(manifestUrl)
-      const imageInfo = await getImageInfo(manifest)
+    mapsUpdate: function ({source, maps}) {
+      this.lastMapsUpdateSource = source
 
-      this.iiif = {
-        url: manifestUrl,
-        manifest,
-        imageInfo
-      }
+      Object.entries(maps)
+        .forEach(([id, map]) => {
+          const updatedMap = {
+            ...this.maps[id],
+            ...map
+          }
 
-      if (this.documents) {
-        Object.values(this.documents)
-          .forEach((document) => document.destroy())
-      }
+          let geoMask
+          if (map.gcps || map.pixelMask) {
+            geoMask = this.computeGeoMask(updatedMap)
+          }
 
-      const id = this.iiif.url
-      this.documents = {
-        pixelMask: document(this.connection, 'masks', id, this.pixelMaskReceived),
-        gcps: document(this.connection, 'gcps', id, this.gcpsReceived)
-      }
+          Vue.set(this.maps, id, {
+            id,
+            ...updatedMap,
+            geoMask
+          })
+        })
 
+      const editedMapIds = Object.keys(maps)
+      this.selectedMapId = editedMapIds[0]
     },
-    getManifestLabels: async function (manifestUrls) {
-      let labels = []
-
-      for (let manifestUrls of manifestUrls) {
-        const label = await getLabel(manifestUrls)
-        labels.push(label)
-      }
-
-      return labels
+    mapDelete: function ({source, id}) {
+      this.lastMapsUpdateSource = source
+      Vue.delete(this.maps, id)
     },
-    throttledCallGeoreferenceApi: throttle(function () {
-      this.callGeoreferenceApi()
-    }, 2500, {leading: false}),
-    callGeoreferenceApi: async function () {
-      // TODO: check if API is not called too often!
-      if (this.iiif && this.gcps && this.pixelMask) {
-        this.geoMask = await georeference(this.iiif, this.gcps, this.pixelMask)
+    mapSelect: function ({source, id}) {
+      this.lastMapsUpdateSource = source
+      this.selectedMapId = id
+    },
+    updateIiif: async function (url) {
+      try {
+        const {iiifType, manifest, images, maps} = await getIIIF(url)
+
+        this.iiifType = iiifType
+        this.manifest = manifest
+        this.images = images
+        this.lastMapsUpdateSource = undefined
+        this.maps = maps
+
+        this.sortedImageIds = Object.values(this.images)
+          .map(({id, index}) => ({id, index}))
+          .sort((a, b) => a.index - b.index)
+
+        if (this.$route.query.image) {
+          this.selectedImageId = this.$route.query.image
+        } else {
+          this.selectedImageId = this.sortedImageIds[0].id
+        }
+
+        this.selectedMapId = Object.keys(this.maps)[0]
+
+      } catch (err) {
+        // TODO: fix!
+        console.error(err)
+        this.error = err.message
       }
     },
-    copyToClipboard: function () {
-      const annotation = JSON.stringify(this.annotation, null, 2)
-      navigator.clipboard.writeText(annotation)
+    computeGeoMask: function (map) {
+      if (map.gcps && map.pixelMask) {
+        const gcps = {
+          type: 'FeatureCollection',
+          features: map.gcps.map((gcp) => ({
+            type: 'Feature',
+            properties: {
+              pixel: gcp.pixel
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: gcp.world
+            }
+          }))
+        }
+
+        try {
+          const transformer = createTransformer(gcps)
+          const points = transformer.toWorld(map.pixelMask)
+
+          const geoMask = {
+            type: 'Polygon',
+            coordinates: [points.coordinates]
+          }
+
+          return geoMask
+        } catch (err) {
+          // TODO: catch error!
+        }
+      }
+    },
+    copyAnnotation: function () {
+      navigator.clipboard.writeText(this.annotationString)
+    },
+    downloadAnnotation: function () {
+      const blob = new Blob([this.annotationString], {type : 'application/json'})
+      const dataUrl = window.URL.createObjectURL(blob)
+
+      const a = document.createElement('a')
+      document.body.appendChild(a)
+      a.style = 'display: none'
+
+      a.href = dataUrl
+
+      // TODO: proper filename
+      // image.id
+      a.download = 'annotation.json'
+      a.click()
+      window.URL.revokeObjectURL(dataUrl)
+    },
+    saveAnnotation: async function () {
+      try {
+        await save(this.manifest, this.images, this.maps)
+      } catch (err) {
+        console.error(err)
+      }
+    },
+    keyPressHandler: function (event) {
+      if (event.key === '[') {
+        if (!this.images[this.selectedImageId] || !this.images[this.selectedImageId].previousImageId) {
+          return
+        }
+
+        this.$router.push({name: this.$route.name, query: {
+          ...this.$route.query,
+          image: this.images[this.selectedImageId].previousImageId
+        }})
+      } else if (event.key === ']') {
+        if (!this.images[this.selectedImageId] || !this.images[this.selectedImageId].nextImageId) {
+          return
+        }
+
+        this.$router.push({name: this.$route.name, query: {
+          ...this.$route.query,
+          image: this.images[this.selectedImageId].nextImageId
+        }})
+      } else if (event.key === '1') {
+        this.goToRoute('home')
+      } else if (event.key === '2') {
+        this.goToRoute('preview')
+      } else if (event.key === '3') {
+        this.goToRoute('mask')
+      } else if (event.key === '4') {
+        this.goToRoute('georeference')
+      } else if (event.key === '5') {
+        this.goToRoute('results')
+      } else if (event.key === 'a') {
+        this.showAnnotation = !this.showAnnotation
+      }
     }
   },
   computed: {
     annotation: function () {
-      return createAnnotation(this.iiif, this.gcps, this.pixelMask, this.geoMask)
+      return createAnnotation(this.manifest, this.images, this.maps)
+    },
+    annotationString: function () {
+      return JSON.stringify(this.annotation, null, 2)
+    },
+    image: function () {
+      return this.images[this.selectedImageId]
+    },
+    mapsForSelectedImage: function () {
+      return Object.keys(this.maps)
+        .filter((id) => this.maps[id].imageId === this.selectedImageId)
+        .reduce((maps, id) => ({
+          ...maps,
+          [id]: this.maps[id]
+        }), {})
     }
   },
   watch: {
-    gcps: function () {
-      this.throttledCallGeoreferenceApi()
-    },
-    pixelMask: function () {
-      this.throttledCallGeoreferenceApi()
-    },
     '$route.query.url': function (url) {
       this.updateIiif(url)
+    },
+    '$route.query.image': function (imageId) {
+      this.selectedImageId = imageId
+
+      const mapsForImage = Object.values(this.maps).filter((map) => map.imageId === imageId)
+      this.selectedMapId = mapsForImage[0] && mapsForImage[0].id
     }
   },
   created: function () {
-    this.bus.$on('gcps-edited', this.gcpsEdited)
-    this.bus.$on('pixel-mask-edited', this.pixelMaskEdited)
-	},
+    this.bus.$on('maps-update', this.mapsUpdate)
+    this.bus.$on('map-delete', this.mapDelete)
+    this.bus.$on('map-select', this.mapSelect)
+  },
   mounted: async function () {
     if (this.$route.query.url) {
       this.updateIiif(this.$route.query.url)
     }
 
-    this.connection = connect(serverUrl)
-
-    const manifestLabels = await this.getManifestLabels(this.exampleManifestUrls)
-    this.exampleManifests = zipWith((url, label) => ({url, label}), this.exampleManifestUrls, manifestLabels)
+    window.addEventListener('keypress', this.keyPressHandler)
+  },
+  beforeDestroy: function () {
+    window.removeEventListener('keypress', this.keyPressHandler)
   }
 }
 </script>
@@ -226,6 +344,7 @@ main p a, main ul a, main ol a {
     sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-size: 18px;
 
   color: #2c3e50;
   display: flex;
@@ -249,7 +368,7 @@ main {
 }
 
 main > * {
-	width: 100%;
+  width: 100%;
   box-sizing: border-box;
   overflow-y: auto;
 }
@@ -271,7 +390,7 @@ a, a:visited {
 button {
   border: none;
   display: inline-block;
-	cursor: pointer;
+  cursor: pointer;
   background-color: white;
   text-decoration: underline;
   padding: 6px 12px;
@@ -280,9 +399,9 @@ button {
 button.primary {
   border: none;
   background: linear-gradient(to bottom, #007dc1 5%, #0061a7 100%);
-	background-color: #007dc1;
-	color: #ffffff;
-	text-decoration: none;
+  background-color: #007dc1;
+  color: #ffffff;
+  text-decoration: none;
 }
 
 .slide-enter-active, .slide-leave-active {

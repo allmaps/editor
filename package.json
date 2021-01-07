@@ -10,16 +10,20 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "codemirror": "^5.58.3",
     "core-js": "^3.4.4",
+    "d3-geo": "^2.0.1",
+    "d3-scale-chromatic": "^2.0.0",
+    "d3-tile": "^1.0.0",
     "highlight.js": "^9.18.1",
-    "json0-ot-diff": "^1.0.5",
-    "lodash": "^4.17.15",
-    "ol": "^6.3.1",
-    "ramda": "^0.27.0",
-    "reconnecting-websocket": "^4.3.0",
-    "sharedb": "^1.1.0",
+    "ol": "^6.4.3",
+    "perma": "^2.0.1",
+    "potpack": "^1.0.1",
+    "ramda": "^0.27.1",
+    "regl": "^2.0.1",
     "vue": "^2.6.10",
-    "vue-router": "^3.1.5"
+    "vue-router": "^3.1.5",
+    "vuex": "^3.6.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.1.0",

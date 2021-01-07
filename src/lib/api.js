@@ -1,41 +1,58 @@
 import axios from 'axios'
 
-const apiUrl = 'https://georectify-service-q26jk7mh3q-uc.a.run.app'
+// const API_URL = 'https://allmaps.herokuapp.com'
+const API_URL = 'http://localhost:8338'
 
-export default function georeference (iiif, gcps, mask) {
-  const data = apiData(iiif, gcps, mask)
-  const url = `${apiUrl}/json/geojson`
-
-  return axios.post(url, data)
-    .then((response) => response.data)
+export async function fetchManifest (id) {
+  const url = `${API_URL}/manifest/${id}`
+  const res = await axios.get(url)
+  return res.data
 }
 
-function apiData (iiif, gcps, mask) {
-  const url = iiif && iiif.manifestUrl
+export async function fetchImage (id) {
+  const url = `${API_URL}/image/${id}`
+  const res = await axios.get(url)
+  return res.data
+}
 
-  const dimensions = iiif && iiif.imageInfo &&
-    [iiif.imageInfo.width, iiif.imageInfo.height]
-
-  return {
-    sources: [{
-      type: 'iiif',
-      url,
-      dimensions
-    }],
-    maps: [
-      {
-        mask: mask.map((point) => ([
-          point[0] / dimensions[0],
-          point[1] / dimensions[1]
-        ])),
-        gcps: gcps.map(({pixel, world}) => ({
-          image: ([
-            pixel[0] / dimensions[0],
-            pixel[1] / dimensions[1]
-          ]),
-          world: [world[1], world[0]]
+export async function save (manifest, images, maps) {
+  const apiImages = Object.values(images)
+    .map((image) => ({
+      id: image.id,
+      uri: image.uri,
+      canvasUri: image.canvasUri,
+      width: image.width,
+      height: image.height,
+      label: image.label,
+      iiif: image.iiif,
+      maps: Object.values(maps)
+        .filter((map) => map.imageId === image.id)
+        .map((map) => ({
+          id: map.id,
+          uri: map.id,
+          pixelMask: map.pixelMask,
+          gcps: map.gcps,
+          geoMask: map.geoMask
         }))
-      }
-    ]
+    }))
+
+  let url
+  let apiData
+
+  if (manifest) {
+    url = `${API_URL}/manifest`
+    apiData = {
+      id: manifest.id,
+      uri: manifest.uri,
+      label: manifest.label,
+      iiif: manifest.iiif,
+      images: apiImages
+    }
+  } else {
+    url = `${API_URL}/image`
+    apiData = apiImages[0]
   }
+
+  const res = await axios.post(url, apiData)
+  return res.data
 }

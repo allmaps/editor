@@ -1,42 +1,56 @@
 <template>
   <div class="text">
-    <p>
-      This is a prototype of a IIIF-based map georeferencing tool.
-    </p>
-    <div v-if="iiif">
-      <p>Selected image:</p>
-      <img :src="imageUrl" />
+    <div v-if="Object.keys(images).length">
+      <ol class="images">
+        <li v-for="(image, id) in images" :key="id"
+          :class="{
+            selected: selectedImageId === id
+          }">
+          <router-link :to="{
+            name: 'home',
+            query: {
+              url: $route.query.url,
+              image: id
+            }}">
+            <img class="image" :src="getThumbnailUrls(image.iiif, 250)" />
+          </router-link>
+          <div class="icons">
+            <img :class="{present: hasGcps(id)}" src="../assets/icon-georeferenced.svg" />
+            <img :class="{present: hasPixelMask(id)}" src="../assets/icon-masked.svg" />
+          </div>
+        </li>
+      </ol>
     </div>
     <div v-else>
-      Select a map image by typing its IIIF manifest URL in the input box, or select one of the example maps from the list below.
-    </div>
-    <div v-if="exampleManifests">
-      <p>
-        Example IIIF manifests:
-      </p>
-      <ul>
-        <li v-for="{label, url} in exampleManifests" :key="url">
-          <router-link :to="{name: 'home', query: {url}}">
-            {{ label }}
-          </router-link>
-        </li>
-      </ul>
+      Select a map image by typing its IIIF manifest or image URL in the input box.
     </div>
   </div>
 </template>
 
 <script>
+import {getThumbnailUrls} from '../lib/iiif'
 
 export default {
   name: 'Home',
   props: {
-    exampleManifests: Array,
-    iiif: Object
+    images: Object,
+    maps: Object,
+    selectedImageId: String,
+    sortedImageIds: Array
   },
-  computed: {
-    imageUrl: function () {
-      const id = this.iiif.imageInfo['@id']
-      return `${id}/full/500,/0/default.jpg`
+  methods: {
+    getThumbnailUrls: getThumbnailUrls,
+    mapsForImage: function (imageId) {
+      return Object.values(this.maps)
+        .filter((map) => map.imageId === imageId)
+    },
+    hasGcps: function (imageId) {
+      const maps = this.mapsForImage(imageId)
+      return maps.some((map) => map.gcps && map.gcps.length)
+    },
+    hasPixelMask: function (imageId) {
+      const maps = this.mapsForImage(imageId)
+      return maps.some((map) => map.pixelMask && map.pixelMask.length)
     }
   }
 }
@@ -52,7 +66,65 @@ export default {
   margin-top: 0;
 }
 
-img {
-  width: 50%;
+.images {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-gap: 10px;
+}
+
+.images li {
+  position: relative;
+  box-sizing: border-box;
+  border-width: 3px;
+  border-color: white;
+  border-style: solid;
+  transition: border-color 0.08s;
+}
+
+.images li::before {
+  content: "";
+  padding-bottom: 100%;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.images li.selected {
+  border-color: #e10800;
+  border-style: solid;
+  border-width: 3px;
+}
+
+.images li a {
+  width: 100%;
+  height: 100%;
+}
+
+.images li img.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.icons {
+  position: absolute;
+  bottom: 0;
+  height: 2rem;
+  padding: 2px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.icons img {
+  width: 32px;
+  opacity: 0.15;
+}
+
+.icons img.present {
+  opacity: 1;
 }
 </style>

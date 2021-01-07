@@ -2,26 +2,29 @@
   <header class="padding">
     <div class="menu">
       <h1>
-        <router-link :to="{name: 'home', query: {url: $route.query.url}}">
-          IIIF + Maps
+        <router-link :to="{name: 'home', query}">
+          allmaps
         </router-link>
       </h1>
       <ol>
         <li>
-          <router-link :to="{name: 'georeference', query: {url: $route.query.url}}">Georeference</router-link>
+          <router-link :to="{name: 'preview', query}">preview</router-link>
         </li>
         <li>
-          <router-link :to="{name: 'mask', query: {url: $route.query.url}}">Mask</router-link>
+          <router-link :to="{name: 'mask', query}">select &amp; mask</router-link>
         </li>
         <li>
-          <router-link :to="{name: 'map', query: {url: $route.query.url}}">Map</router-link>
+          <router-link :to="{name: 'georeference', query}">georeference</router-link>
+        </li>
+        <li>
+          <router-link :to="{name: 'results', query}">results</router-link>
         </li>
       </ol>
     </div>
     <form @submit.prevent="handleSubmit">
       <label>
-        <input type="text" placeholder="IIIF manifest URL"
-          v-model="inputManifestUrl" />
+        <input type="text" placeholder="IIIF manifest or image URL"
+          v-model="inputUrl" />
       </label>
     </form>
   </header>
@@ -32,21 +35,26 @@ export default {
   name: 'Header',
   data () {
     return {
-      inputManifestUrl: this.$route.query.url
+      inputUrl: this.$route.query.url
+    }
+  },
+  computed: {
+    query: function () {
+      return {
+        url: this.$route.query.url,
+        image: this.$route.query.image
+      }
     }
   },
   watch: {
     '$route.query.url': function () {
-      this.inputManifestUrl = this.$route.query.url
+      this.inputUrl = this.$route.query.url
     }
-    // manifestUrl () {
-    //   this.inputManifestUrl = this.manifestUrl
-    // }
   },
   methods: {
     handleSubmit () {
       this.$router.push({ name: this.$route.name, query: {
-        url: this.inputManifestUrl
+        url: this.inputUrl
       }})
     }
   }

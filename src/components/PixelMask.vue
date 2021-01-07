@@ -1,13 +1,18 @@
 <template>
-  <div id="iiif" class="iiif"></div>
+  <div class="container">
+    <Maps :maps="maps" :bus="bus" :selectedMapId="selectedMapId" />
+    <div id="iiif" class="iiif"></div>
+  </div>
 </template>
 
 <script>
+import Maps from './Maps.vue'
+
 import Map from 'ol/Map'
 import Feature from 'ol/Feature'
 import View from 'ol/View'
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer'
-import {Draw, Modify, Snap} from 'ol/interaction'
+import {Draw, Modify} from 'ol/interaction'
 import {Polygon} from 'ol/geom'
 import {shiftKeyOnly} from 'ol/events/condition'
 import {Vector as VectorSource} from 'ol/source'
@@ -16,175 +21,222 @@ import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 
 import {round} from '../lib/functions'
+import {randomId} from '../lib/id'
 import {deleteCondition} from '../lib/openlayers'
 
 export default {
-  name: 'EditMask',
+  name: 'PixelMask',
   props: {
-		iiif: Object,
-		bus: Object,
-		initialPixelMask: Array,
-		showAnnotation: Boolean
-	},
-	data () {
+    image: Object,
+    maps: Object,
+    bus: Object,
+    showAnnotation: Boolean,
+    selectedMapId: String,
+    lastMapsUpdateSource: String
+  },
+  components: {
+    Maps
+  },
+  data () {
     return {
-			iiifOl: undefined,
-			iiifSource: undefined,
-			iiifLayer: undefined,
-			iiifVector: undefined,
+      iiifOl: undefined,
+      iiifSource: undefined,
+      iiifLayer: undefined,
+      iiifVector: undefined,
 
-			pixelMask: undefined,
-			dimensions: undefined
-		}
-	},
-	watch: {
-		showAnnotation: function () {
-			window.setTimeout(this.onResize, 100)
-		},
-		iiif: function () {
-			this.updateIiif(this.iiif)
-		}
-	},
-	methods: {
-		onResize: function () {
-			if (this.iiifOl) {
-				this.iiifOl.updateSize()
-			}
-		},
-		updatePixelMask: function (pixelMask) {
-			this.iiifSource.clear()
-			if (pixelMask && pixelMask.length) {
-				this.iiifSource.addFeature(new Feature({
-					geometry: new Polygon(this.maskToPolygon(pixelMask))
-				}))
-			}
-			this.pixelMask = pixelMask
-		},
-		onEdited: function () {
-			const features = this.iiifVector.getSource().getFeatures()
+      pixelMasks: undefined,
+      dimensions: undefined
+    }
+  },
+  watch: {
+    showAnnotation: function () {
+      window.setTimeout(this.onResize, 100)
+    },
+    image: function () {
+      this.updateImage(this.image)
+    },
+    maps: function () {
+      if (this.differentSource()) {
+        this.updatePixelMasks(this.maps)
+      }
+    }
+  },
+  methods: {
+    differentSource: function () {
+      return this.lastMapsUpdateSource !== this.$options.name
+    },
+    onResize: function () {
+      if (this.iiifOl) {
+        this.iiifOl.updateSize()
+      }
+    },
+    updatePixelMasks: function (maps) {
+      this.iiifSource.clear()
 
-			let pixelMask
-			if (features && features.length) {
-				const polygon = features[0].getGeometry().getCoordinates()
-				pixelMask = this.polygonToMask(polygon) //, this.dimensions)
-			} else {
-				pixelMask = []
-			}
+      if (maps && Object.keys(maps).length) {
+        Object.entries(maps)
+          .forEach(([id, map]) => {
+            const feature = new Feature({
+              geometry: new Polygon(this.maskToPolygon(map.pixelMask))
+            })
 
-			this.bus.$emit('pixel-mask-edited', pixelMask)
-			this.pixelMask = pixelMask
-		},
-		updateIiif: function (iiif) {
-			if (!iiif) {
-				return
-			}
+            feature.setId(id)
 
-			const options = new IIIFInfo(iiif.imageInfo).getTileSourceOptions()
-			if (options === undefined || options.version === undefined) {
-				throw new Error('Data seems to be no valid IIIF image information.')
-			}
+            this.iiifSource.addFeature(feature)
+          })
+      }
+    },
+    createMap: function (feature) {
+      const id = feature.getId()
+      const polygon = feature.getGeometry().getCoordinates()
+      const pixelMask = this.polygonToMask(polygon)
 
-			options.zDirection = -1
-			const iiifTileSource = new IIIF(options)
-			this.iiifLayer.setSource(iiifTileSource)
+      return {
+        id,
+        map: {
+          imageId: this.image.id,
+          pixelMask
+        }
+      }
+    },
+    onEdited: function (event) {
+      const maps = {}
 
-			const extent = iiifTileSource.getTileGrid().getExtent()
+      if (event.type === 'addfeature') {
+        const feature = event.feature
 
-			this.dimensions = [extent[2], -extent[1]]
+        if (feature.getId()) {
+          return
+        }
 
-			this.iiifOl.setView(new View({
-				resolutions: iiifTileSource.getTileGrid().getResolutions(),
-				extent,
-				constrainOnlyCenter: true
-			}))
+        feature.setId(randomId())
 
-			this.iiifOl.getView().fit(iiifTileSource.getTileGrid().getExtent())
-		},
-		polygonToMask: function (polygon, dimensions = [1, 1]) {
-			return polygon[0].map((coordinate) => ([
-				coordinate[0] / dimensions[0],
-				-coordinate[1] / dimensions[1]
-			].map((coordinate) => round(coordinate, 0))))
-		},
-		maskToPolygon: function (mask, dimensions = [1, 1]) {
-			return [
-				mask.map((coordinate) => ([
-					coordinate[0] * dimensions[0],
-					-coordinate[1] * dimensions[1]
-				]))
-			]
-		},
-		// clearMask: function () {
-		// 	source.clear()
-		// 	updateMask()
-		// }
-		emptyMask: function () {
-			return this.pixelMask === undefined || this.pixelMask.length === 0
-		}
-	},
-	created: function () {
-		this.bus.$on('pixel-mask-received', this.updatePixelMask)
-	},
-	mounted: function () {
-		this.iiifLayer = new TileLayer()
-		this.iiifSource = new VectorSource()
+        const {id, map} = this.createMap(feature)
+        maps[id] = map
+      } else if (event.type === 'modifyend') {
+        event.features.forEach((feature) => {
+          const {id, map} = this.createMap(feature)
+          maps[id] = map
+        })
+      }
 
-		this.iiifVector = new VectorLayer({
-			source: this.iiifSource,
-			style: new Style({
-				stroke: new Stroke({
-					color: '#E10800',
-					width: 3
-				}),
-				image: new CircleStyle({
-					radius: 7,
-					fill: new Fill({
-						color: '#E10800'
-					})
-				})
-			})
-		})
+      this.bus.$emit('maps-update', {
+        source: this.$options.name,
+        maps
+      })
+    },
+    updateImage: function (image) {
+      if (!image) {
+        return
+      }
 
-		this.iiifOl = new Map({
-			layers: [this.iiifLayer, this.iiifVector],
-			target: 'iiif'
-		})
+      const options = new IIIFInfo(image.iiif).getTileSourceOptions()
+      if (options === undefined || options.version === undefined) {
+        throw new Error('Data seems to be no valid IIIF image information.')
+      }
 
-		const iiifModify = new Modify({
-			source: this.iiifSource,
-			deleteCondition
-		})
-		this.iiifOl.addInteraction(iiifModify)
+      options.zDirection = -1
+      const iiifTileSource = new IIIF(options)
+      this.iiifLayer.setSource(iiifTileSource)
 
-		const iiifDraw = new Draw({
-			source: this.iiifSource,
-			type: 'Polygon',
-			freehandCondition: (event) => {
-				return this.emptyMask() && shiftKeyOnly(event)
-			},
-			condition: () => {
-				return this.emptyMask()
-			}
-		})
+      const extent = iiifTileSource.getTileGrid().getExtent()
 
-		this.iiifOl.addInteraction(iiifDraw)
-		const iiifSnap = new Snap({source: this.iiifSource})
-		this.iiifOl.addInteraction(iiifSnap)
+      this.dimensions = [extent[2], -extent[1]]
 
-		this.iiifSource.on('addfeature', this.onEdited)
-		iiifModify.on('modifyend', this.onEdited)
+      this.iiifOl.setView(new View({
+        resolutions: iiifTileSource.getTileGrid().getResolutions(),
+        extent,
+        constrainOnlyCenter: true
+      }))
 
-		this.updateIiif(this.iiif)
+      this.iiifOl.getView().fit(iiifTileSource.getTileGrid().getExtent())
+    },
+    polygonToMask: function (polygon, dimensions = [1, 1]) {
+      return polygon[0].map((coordinate) => ([
+        coordinate[0] / dimensions[0],
+        -coordinate[1] / dimensions[1]
+      ].map((coordinate) => round(coordinate, 0))))
+    },
+    maskToPolygon: function (mask, dimensions = [1, 1]) {
+      return [
+        mask.map((coordinate) => ([
+          coordinate[0] * dimensions[0],
+          -coordinate[1] * dimensions[1]
+        ]))
+      ]
+    },
+    // clearMask: function () {
+    //   source.clear()
+    //   updateMask()
+    // }
+    emptyMask: function () {
+      // return this.pixelMask === undefined || this.pixelMask.length === 0
+    }
+  },
+  mounted: function () {
+    this.iiifLayer = new TileLayer()
+    this.iiifSource = new VectorSource()
 
-		if (this.initialPixelMask) {
-			this.updatePixelMask(this.initialPixelMask)
-		}
-	}
+    this.iiifVector = new VectorLayer({
+      source: this.iiifSource,
+      style: new Style({
+        stroke: new Stroke({
+          color: '#E10800',
+          width: 3
+        }),
+        image: new CircleStyle({
+          radius: 7,
+          fill: new Fill({
+            color: '#E10800'
+          })
+        })
+      })
+    })
+
+    this.iiifOl = new Map({
+      layers: [this.iiifLayer, this.iiifVector],
+      target: 'iiif'
+    })
+
+    const iiifModify = new Modify({
+      source: this.iiifSource,
+      deleteCondition
+    })
+    this.iiifOl.addInteraction(iiifModify)
+
+    const iiifDraw = new Draw({
+      source: this.iiifSource,
+      type: 'Polygon',
+      freehandCondition: (event) => {
+        return this.emptyMask() && shiftKeyOnly(event)
+      },
+      // condition: () => {
+      //   return this.emptyMask()
+      // }
+    })
+
+    this.iiifOl.addInteraction(iiifDraw)
+
+    this.iiifSource.on('addfeature', this.onEdited)
+    iiifModify.on('modifyend', this.onEdited)
+
+    this.updateImage(this.image)
+    this.updatePixelMasks(this.maps)
+  }
 }
 </script>
 
 <style scoped>
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
 #iiif {
-	padding: 2px;
+  width: 100%;
+  height: 100%;
+  padding: 2px;
 }
 </style>
