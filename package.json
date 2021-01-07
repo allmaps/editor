@@ -15,7 +15,7 @@
     "d3-geo": "^2.0.1",
     "d3-scale-chromatic": "^2.0.0",
     "d3-tile": "^1.0.0",
-    "highlight.js": "^9.18.1",
+    "highlight.js": "^10.4.1",
     "ol": "^6.4.3",
     "perma": "^2.0.1",
     "potpack": "^1.0.1",
