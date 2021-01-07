@@ -72,7 +72,7 @@ import Annotation from './components/Annotation.vue'
 
 import {getIIIF} from './lib/iiif'
 import {createAnnotation} from './lib/annotation'
-import {fetch, save} from './lib/api'
+import {save} from './lib/api'
 
 const createTransformer = require('georeference-js')
 

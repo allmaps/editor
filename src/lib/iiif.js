@@ -26,7 +26,7 @@ async function getMapsFromManifestApi (id) {
 
     return toObjectById(maps)
   } catch (err) {
-    // Always return empty maps object
+    console.log(`Can't connect to allmaps API`)
   }
 
   return {}
@@ -41,7 +41,7 @@ async function getMapsFromImageApi (id) {
 
     return toObjectById(maps)
   } catch (err) {
-    // Always return empty maps object
+    console.log(`Can't connect to allmaps API`)
   }
 
   return {}
@@ -169,8 +169,11 @@ export function getDimensions (image) {
 }
 
 export function getProfileLevel (profileUri) {
-  const { groups: { level } } = /(?<level>\d+).json$/.exec(profileUri)
-  return parseInt(level)
+  const match = profileUri.match(/level(?<level>\d+)/)
+
+  if (match && match.groups && match.groups.level) {
+    return parseInt(match.groups.level)
+  }
 }
 
 export function getSizes (image, width = 100) {
@@ -184,7 +187,7 @@ export function getSizes (image, width = 100) {
   }
 
   const anySize = profiles.some((profile, index) => {
-    if (index === 0 || typeof profile === 'string' ) {
+    if (index === 0 || typeof profile === 'string') {
       const profileUri = profile
       return getProfileLevel(profileUri) >= 1
     } else {
@@ -192,9 +195,8 @@ export function getSizes (image, width = 100) {
       const supports = profile.supports
 
       return (supports && supports.includes('sizeByWhListed')) ||
-        (profileUri && getProfileLevel (profileUri) >= 1)
+        (profileUri && getProfileLevel(profileUri) >= 1)
     }
-
   })
 
   return {
