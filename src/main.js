@@ -1,37 +1,37 @@
-import Vue from 'vue'
-import App from './App.vue'
-import VueRouter from 'vue-router'
-import hljs from 'highlight.js'
+import Vue from "vue";
+import App from "./App.vue";
+import VueRouter from "vue-router";
+import hljs from "highlight.js";
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 
-Vue.directive('highlightjs', {
+Vue.directive("highlightjs", {
   deep: true,
-  bind: function (el, binding) {
+  bind: function(el, binding) {
     // on first bind, highlight all targets
-    let targets = el.querySelectorAll('code')
-    targets.forEach((target) => {
+    let targets = el.querySelectorAll("code");
+    targets.forEach(target => {
       // if a value is directly assigned to the directive, use this
       // instead of the element content.
       if (binding.value) {
-        target.textContent = binding.value
+        target.textContent = binding.value;
       }
-      hljs.highlightBlock(target)
-    })
+      hljs.highlightBlock(target);
+    });
   },
-  componentUpdated: function (el, binding) {
+  componentUpdated: function(el, binding) {
     // after an update, re-fill the content and then highlight
-    let targets = el.querySelectorAll('code')
-    targets.forEach((target) => {
+    let targets = el.querySelectorAll("code");
+    targets.forEach(target => {
       if (binding.value) {
-        target.textContent = binding.value
-        hljs.highlightBlock(target)
+        target.textContent = binding.value;
+        hljs.highlightBlock(target);
       }
-    })
+    });
   }
-})
+});
 
 // TODO: New routes:
 // ?uri=uri, redirect to /i or /m
@@ -42,49 +42,51 @@ Vue.directive('highlightjs', {
 // /m/:id/i/:id/georeference
 
 const router = new VueRouter({
+  mode: "history",
   routes: [
     {
-      name: 'home',
-      path: '/',
+      name: "home",
+      path: "/",
       component: App
     },
     {
-      name: 'preview',
-      path: '/preview',
+      name: "preview",
+      path: "/preview",
       component: App
     },
     {
-      name: 'georeference',
-      path: '/georeference',
+      name: "georeference",
+      path: "/georeference",
       component: App
     },
     {
-      name: 'mask',
-      path: '/mask',
+      name: "mask",
+      path: "/mask",
       component: App
     },
     {
-      name: 'results',
-      path: '/results',
+      name: "results",
+      path: "/results",
       component: App
     }
   ]
-})
+});
 
 router.beforeEach((to, from, next) => {
   if (from.query.token && !to.query.token) {
-    next({path: to.path,
+    next({
+      path: to.path,
       query: {
         ...to.query,
         token: from.query.token
       }
-    })
+    });
   }
 
-  next()
-})
+  next();
+});
 
 new Vue({
   render: h => h(App),
   router
-}).$mount('#app')
+}).$mount("#app");

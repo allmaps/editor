@@ -2,63 +2,72 @@
   <header class="padding">
     <div class="menu">
       <h1>
-        <router-link :to="{name: 'home', query}">
-          allmaps
-        </router-link>
+        <router-link :to="{ name: 'home', query }"> allmaps </router-link>
       </h1>
       <ol>
         <li>
-          <router-link :to="{name: 'preview', query}">preview</router-link>
+          <router-link :to="{ name: 'preview', query }"> preview </router-link>
         </li>
         <li>
-          <router-link :to="{name: 'mask', query}">select &amp; mask</router-link>
+          <router-link :to="{ name: 'mask', query }">
+            select &amp; mask
+          </router-link>
         </li>
         <li>
-          <router-link :to="{name: 'georeference', query}">georeference</router-link>
+          <router-link :to="{ name: 'georeference', query }">
+            georeference
+          </router-link>
         </li>
         <li>
-          <router-link :to="{name: 'results', query}">results</router-link>
+          <router-link :to="{ name: 'results', query }"> results </router-link>
         </li>
       </ol>
     </div>
     <form @submit.prevent="handleSubmit">
-      <label>
-        <input type="text" placeholder="IIIF manifest or image URL"
-          v-model="inputUrl" />
-      </label>
+      <input
+        v-model.trim="inputUrl"
+        type="text"
+        placeholder="IIIF manifest or image URL"
+      />
+
+      <button>Load</button>
     </form>
   </header>
 </template>
 
 <script>
 export default {
-  name: 'Header',
-  data () {
+  name: "Header",
+  data() {
     return {
       inputUrl: this.$route.query.url
-    }
+    };
   },
   computed: {
-    query: function () {
+    query: function() {
       return {
         url: this.$route.query.url,
         image: this.$route.query.image
-      }
+      };
     }
   },
   watch: {
-    '$route.query.url': function () {
-      this.inputUrl = this.$route.query.url
+    "$route.query.url": function() {
+      this.inputUrl = this.$route.query.url;
     }
   },
   methods: {
-    handleSubmit () {
-      this.$router.push({ name: this.$route.name, query: {
-        url: this.inputUrl
-      }})
+    handleSubmit() {
+      if (!this.inputUrl || this.inputUrl === "") return;
+      this.$router.push({
+        name: this.$route.name,
+        query: {
+          url: this.inputUrl
+        }
+      });
     }
   }
-}
+};
 </script>
 
 <style scoped>
@@ -89,25 +98,34 @@ ol {
   list-style: none;
 }
 
-ol, ol li {
+ol,
+ol li {
   display: inline;
   margin: 0;
   padding: 0;
 }
 
-ol li, form {
+ol li,
+form {
   padding-left: 1em;
 }
 
-h1 a, ol li a, ol li a:visited {
+h1 a,
+ol li a,
+ol li a:visited {
   text-decoration: none;
 }
 
-a.router-link-exact-active  {
+a.router-link-exact-active {
   text-decoration: underline;
 }
 
-form, form input {
+form,
+form input {
   width: 100%;
+}
+
+form {
+  display: flex;
 }
 </style>
