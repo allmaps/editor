@@ -2,36 +2,49 @@
   <div class="text">
     <div v-if="Object.keys(images).length">
       <ol class="images">
-        <li v-for="(image, id) in images" :key="id"
+        <li
+          v-for="(image, id) in images"
+          :key="id"
           :class="{
             selected: selectedImageId === id
-          }">
-          <router-link :to="{
-            name: 'home',
-            query: {
-              url: $route.query.url,
-              image: id
-            }}">
+          }"
+        >
+          <router-link
+            :to="{
+              name: 'home',
+              query: {
+                url: $route.query.url,
+                image: id
+              }
+            }"
+          >
             <img class="image" :src="getThumbnailUrls(image.iiif, 250)" />
           </router-link>
           <div class="icons">
-            <img :class="{present: hasGcps(id)}" src="../assets/icon-georeferenced.svg" />
-            <img :class="{present: hasPixelMask(id)}" src="../assets/icon-masked.svg" />
+            <img
+              :class="{ present: hasGcps(id) }"
+              src="../assets/icon-georeferenced.svg"
+            />
+            <img
+              :class="{ present: hasPixelMask(id) }"
+              src="../assets/icon-masked.svg"
+            />
           </div>
         </li>
       </ol>
     </div>
     <div v-else>
-      Select a map image by typing its IIIF manifest or image URL in the input box.
+      Select a map image by typing its IIIF manifest or image URL in the input
+      box.
     </div>
   </div>
 </template>
 
 <script>
-import {getThumbnailUrls} from '../lib/iiif'
+import { getThumbnailUrls } from "../lib/iiif";
 
 export default {
-  name: 'Home',
+  name: "Home",
   props: {
     images: Object,
     maps: Object,
@@ -40,20 +53,19 @@ export default {
   },
   methods: {
     getThumbnailUrls: getThumbnailUrls,
-    mapsForImage: function (imageId) {
-      return Object.values(this.maps)
-        .filter((map) => map.imageId === imageId)
+    mapsForImage: function(imageId) {
+      return Object.values(this.maps).filter(map => map.imageId === imageId);
     },
-    hasGcps: function (imageId) {
-      const maps = this.mapsForImage(imageId)
-      return maps.some((map) => map.gcps && map.gcps.length)
+    hasGcps: function(imageId) {
+      const maps = this.mapsForImage(imageId);
+      return maps.some(map => map.gcps && map.gcps.length);
     },
-    hasPixelMask: function (imageId) {
-      const maps = this.mapsForImage(imageId)
-      return maps.some((map) => map.pixelMask && map.pixelMask.length)
+    hasPixelMask: function(imageId) {
+      const maps = this.mapsForImage(imageId);
+      return maps.some(map => map.pixelMask && map.pixelMask.length);
     }
   }
-}
+};
 </script>
 
 <style scoped>
