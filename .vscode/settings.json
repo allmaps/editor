@@ -1,0 +1,51 @@
+{
+  "javascript.format.enable": true,
+  "eslint.validate": [
+    "vue",
+    "javascript",
+    "javascriptreact",
+  ],
+  "vetur.validation.template": false,
+  "eslint.alwaysShowStatus": true,
+  "eslint.options": {
+    "extensions": [
+      ".html",
+      ".js",
+      ".json",
+      ".vue",
+      ".jsx"
+    ]
+  },
+  "eslint.format.enable": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.renderWhitespace": "all",
+  "search.seedOnFocus": true,
+  "editor.tabSize": 2,
+  "editor.defaultFormatter": "octref.vetur",
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#9ce4b9",
+    "activityBar.activeBorder": "#a682dd",
+    "activityBar.background": "#9ce4b9",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#a682dd",
+    "activityBarBadge.foreground": "#15202b",
+    "statusBar.background": "#74d99c",
+    "statusBar.foreground": "#15202b",
+    "statusBarItem.hoverBackground": "#4cce7f",
+    "titleBar.activeBackground": "#74d99c",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveBackground": "#74d99c99",
+    "titleBar.inactiveForeground": "#15202b99"
+  },
+  "peacock.color": "#74d99c",
+  "[vue]": {
+    "editor.defaultFormatter": "octref.vetur"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "editor.formatOnSave": false,
+}
