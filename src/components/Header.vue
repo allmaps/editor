@@ -47,33 +47,33 @@ export default {
   data() {
     return {
       inputUrl: this.$route.query.url,
-    };
+    }
   },
   computed: {
     query: function () {
       return {
         url: this.$route.query.url,
         image: this.$route.query.image,
-      };
+      }
     },
   },
   watch: {
     "$route.query.url": function () {
-      this.inputUrl = this.$route.query.url;
+      this.inputUrl = this.$route.query.url
     },
   },
   methods: {
     handleSubmit() {
-      if (!this.inputUrl || this.inputUrl === "") return;
+      if (!this.inputUrl || this.inputUrl === "") return
       this.$router.push({
         name: this.$route.name,
         query: {
           url: this.inputUrl,
         },
-      });
+      })
     },
   },
-};
+}
 </script>
 
 <style scoped>

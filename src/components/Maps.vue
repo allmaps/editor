@@ -1,18 +1,32 @@
 <template>
   <div class="maps">
     <ol>
-      <li v-for="(map, id, index) in maps" :key="id"
-        @click="selectMap(id)" :class="{
+      <li
+        v-for="(map, id, index) in maps"
+        :key="id"
+        :class="{
           selected: selectedMapId === id
-        }">
+        }"
+        @click="selectMap(id)"
+      >
         <div class="header">
           <span>Map {{ index + 1 }}</span>
-          <button v-if="!showGcps" @click="removeMap(id)">Delete</button>
+          <button
+            v-if="!showGcps"
+            @click="removeMap(id)"
+          >
+            Delete
+          </button>
         </div>
         <ol v-if="showGcps && map.gcps && map.gcps.length">
-          <li v-for="(gcp, index) in map.gcps" :key="index">
+          <li
+            v-for="(gcp, iindex) in map.gcps"
+            :key="iindex"
+          >
             <span>{{ gcp.pixel }} {{ gcp.world }}</span>
-            <button @click="removeGcp(id, index)">Delete</button>
+            <button @click="removeGcp(id, iindex)">
+              Delete
+            </button>
           </li>
         </ol>
       </li>
@@ -24,10 +38,10 @@
 export default {
   name: 'Maps',
   props: {
-    maps: Object,
-    bus: Object,
-    showGcps: Boolean,
-    selectedMapId: String
+    maps: {type:Object, default:null},
+    bus: {type:Object, default:null},
+    showGcps: {type:Boolean, default:null},
+    selectedMapId: {type:String, default:null}
   },
   methods: {
     removeMap: function (id) {

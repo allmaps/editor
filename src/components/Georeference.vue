@@ -1,8 +1,19 @@
 <template>
   <div id="georeference">
-    <Maps :maps="maps" :bus="bus" :selectedMapId="selectedMapId" showGcps />
-    <div id="iiif" class="iiif"></div>
-    <div id="map" class="map"></div>
+    <Maps
+      :maps="maps"
+      :bus="bus"
+      :selected-map-id="selectedMapId"
+      show-gcps
+    />
+    <div
+      id="iiif"
+      class="iiif"
+    />
+    <div
+      id="map"
+      class="map"
+    />
   </div>
 </template>
 
@@ -16,28 +27,28 @@ import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer'
 import {Draw, Modify} from 'ol/interaction'
 import {Point} from 'ol/geom'
 import {GeoJSON} from 'ol/format'
-import {getRenderPixel} from 'ol/render'
+// import {getRenderPixel} from 'ol/render'
 // import {shiftKeyOnly, singleClick, primaryAction} from 'ol/events/condition'
 import {OSM, Vector as VectorSource} from 'ol/source'
 import {Circle as CircleStyle, Fill, Stroke, Style, Text} from 'ol/style'
 import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
-import {fromLonLat, toLonLat} from 'ol/proj'
+import {fromLonLat} from 'ol/proj'
 
 import {deleteCondition} from '@lib/openlayers'
 
 export default {
   name: 'Georeference',
-  props: {
-    image: Object,
-    maps: Object,
-    bus: Object,
-    showAnnotation: Boolean,
-    selectedMapId: String,
-    lastMapsUpdateSource: String
-  },
   components: {
     Maps
+  },
+  props: {
+    image: {type:Object, default:null},
+    maps: {type:Object, default:null},
+    bus: {type:Object, default:null},
+    showAnnotation: {type:Boolean, default:null},
+    selectedMapId: {type:String, default:null},
+    lastMapsUpdateSource: {type:String, default:null}
   },
   data () {
     return {
@@ -57,6 +68,15 @@ export default {
       dimensions: undefined
     }
   },
+  computed: {
+    selectedMap: function () {
+      return this.maps[this.selectedMapId]
+    },
+    pixelMasks: function () {
+      return Object.values(this.maps).map((map) => map.pixelMask)
+        .filter((pixelMask) => pixelMask.length)
+    }
+  },
   watch: {
     selectedMapId: function () {
       this.iiifSource.changed()
@@ -73,6 +93,82 @@ export default {
         this.updateGCPs(this.maps)
       }
     }
+  },
+  mounted: function () {
+    this.iiifLayer = new TileLayer()
+    this.iiifSource = new VectorSource()
+
+    this.iiifVector = new VectorLayer({
+      source: this.iiifSource,
+      style: this.gcpStyle
+    })
+
+    this.iiifOl = new Map({
+      layers: [this.iiifLayer, this.iiifVector],
+      target: 'iiif'
+    })
+
+    this.mapLayer = new TileLayer({
+      source: new OSM()
+    })
+    this.mapSource = new VectorSource()
+
+    this.mapVector = new VectorLayer({
+      source: this.mapSource,
+      style: this.gcpStyle
+    })
+
+    this.mapOl = new Map({
+      layers: [this.mapLayer, this.mapVector],
+      target: 'map',
+      view: new View({
+        center: fromLonLat([-77.036667, 38.895]),
+        zoom: 3
+      })
+    })
+
+    const iiifModify = new Modify({
+      source: this.iiifSource,
+      deleteCondition
+    })
+
+    const mapModify = new Modify({
+      source: this.mapSource,
+      deleteCondition
+    })
+
+    this.iiifOl.addInteraction(iiifModify)
+    this.mapOl.addInteraction(mapModify)
+
+    const iiifDraw = new Draw({
+      source: this.iiifSource,
+      type: 'Point',
+      condition: () =>
+        this.pointDifference() === 0 || this.pointDifference() === -1
+    })
+
+    const mapDraw = new Draw({
+      source: this.mapSource,
+      type: 'Point',
+      condition: () =>
+        this.pointDifference() === 0 || this.pointDifference() === 1
+    })
+
+    this.iiifOl.addInteraction(iiifDraw)
+
+    this.mapOl.addInteraction(mapDraw)
+
+    this.iiifSource.on('addfeature', this.onEdited)
+    iiifModify.on('modifyend', this.onEdited)
+
+    this.mapSource.on('addfeature', this.onEdited)
+    mapModify.on('modifyend', this.onEdited)
+
+    this.iiifLayer.on('prerender', this.prerender)
+    this.iiifLayer.on('postrender', this.postrender)
+
+    this.updateImage(this.image)
+    this.updateGCPs(this.maps)
   },
   methods: {
     prerender: function (event) {
@@ -118,7 +214,7 @@ export default {
 
       return iiifCoordinates.length - mapCoordinates.length
     },
-    updateGCPs: function (maps) {
+    updateGCPs: function () {
       this.mapSource.clear()
       this.iiifSource.clear()
 
@@ -281,91 +377,6 @@ export default {
       const properties = feature.getProperties()
       return String(properties.index + 1)
     }
-  },
-  computed: {
-    selectedMap: function () {
-      return this.maps[this.selectedMapId]
-    },
-    pixelMasks: function () {
-      return Object.values(this.maps).map((map) => map.pixelMask)
-        .filter((pixelMask) => pixelMask.length)
-    }
-  },
-  mounted: function () {
-    this.iiifLayer = new TileLayer()
-    this.iiifSource = new VectorSource()
-
-    this.iiifVector = new VectorLayer({
-      source: this.iiifSource,
-      style: this.gcpStyle
-    })
-
-    this.iiifOl = new Map({
-      layers: [this.iiifLayer, this.iiifVector],
-      target: 'iiif'
-    })
-
-    this.mapLayer = new TileLayer({
-      source: new OSM()
-    })
-    this.mapSource = new VectorSource()
-
-    this.mapVector = new VectorLayer({
-      source: this.mapSource,
-      style: this.gcpStyle
-    })
-
-    this.mapOl = new Map({
-      layers: [this.mapLayer, this.mapVector],
-      target: 'map',
-      view: new View({
-        center: fromLonLat([-77.036667, 38.895]),
-        zoom: 3
-      })
-    })
-
-    const iiifModify = new Modify({
-      source: this.iiifSource,
-      deleteCondition
-    })
-
-    const mapModify = new Modify({
-      source: this.mapSource,
-      deleteCondition
-    })
-
-    this.iiifOl.addInteraction(iiifModify)
-    this.mapOl.addInteraction(mapModify)
-
-    const iiifDraw = new Draw({
-      source: this.iiifSource,
-      type: 'Point',
-      condition: () =>
-        this.pointDifference() === 0 || this.pointDifference() === -1
-    })
-
-    const mapDraw = new Draw({
-      source: this.mapSource,
-      type: 'Point',
-      condition: () =>
-        this.pointDifference() === 0 || this.pointDifference() === 1
-    })
-
-    this.iiifOl.addInteraction(iiifDraw)
-
-    this.mapOl.addInteraction(mapDraw)
-
-    this.iiifSource.on('addfeature', this.onEdited)
-    iiifModify.on('modifyend', this.onEdited)
-
-    this.mapSource.on('addfeature', this.onEdited)
-    mapModify.on('modifyend', this.onEdited)
-
-    this.iiifLayer.on('prerender', this.prerender)
-    this.iiifLayer.on('postrender', this.postrender)
-
-    this.updateImage(this.image)
-    this.updateGCPs(this.maps)
   }
 }
 </script>

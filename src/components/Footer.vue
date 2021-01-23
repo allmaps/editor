@@ -1,33 +1,46 @@
 <template>
   <footer class="padding">
     <div>
-      <div v-if="selectedImage && imageCount > 1" class="menu">
+      <div
+        v-if="selectedImage && imageCount > 1"
+        class="menu"
+      >
         <template v-if="selectedImage.previousImageId">
-          <router-link :to="{
-            name: $route.name,
-            query: {
-              url: $route.query.url,
-              image: selectedImage.previousImageId
-            }}">Previous</router-link>
+          <router-link
+            :to="{
+              name: $route.name,
+              query: {
+                url: $route.query.url,
+                image: selectedImage.previousImageId
+              }}"
+          >
+            Previous
+          </router-link>
         </template>
         <template v-else>
           <span>Previous</span>
         </template>
         <span>
-          <router-link :to="{
-          name: 'home',
-          query: {
-            url: $route.query.url,
-            image: $route.query.image
-          }}">Image {{ selectedImage.index + 1}}/{{ imageCount }}</router-link>
+          <router-link
+            :to="{
+              name: 'home',
+              query: {
+                url: $route.query.url,
+                image: $route.query.image
+              }}"
+          >Image {{ selectedImage.index + 1 }}/{{ imageCount }}</router-link>
         </span>
         <template v-if="selectedImage.nextImageId">
-          <router-link :to="{
-            name: $route.name,
-            query: {
-              url: $route.query.url,
-              image: selectedImage.nextImageId
-            }}">Next</router-link>
+          <router-link
+            :to="{
+              name: $route.name,
+              query: {
+                url: $route.query.url,
+                image: selectedImage.nextImageId
+              }}"
+          >
+            Next
+          </router-link>
         </template>
         <template v-else>
           <span>Next</span>
@@ -35,12 +48,25 @@
       </div>
     </div>
     <div class="menu">
-      <button @click="$emit('copy-annotation')">Copy</button>
-      <button @click="$emit('download-annotation')">Download</button>
-      <button v-if="hasToken" @click="$emit('save-annotation')">Save</button>
-      <button :style="{
+      <button @click="$emit('copy-annotation')">
+        Copy
+      </button>
+      <button @click="$emit('download-annotation')">
+        Download
+      </button>
+      <button
+        v-if="hasToken"
+        @click="$emit('save-annotation')"
+      >
+        Save
+      </button>
+      <button
+        :style="{
         //width: '150px'
-      }" class="primary" @click="$emit('update:showAnnotation', !showAnnotation)">
+        }"
+        class="primary"
+        @click="$emit('update:showAnnotation', !showAnnotation)"
+      >
         {{ showAnnotation ? 'Hide Annotation' : 'Show Annotation' }}
       </button>
     </div>
@@ -51,9 +77,9 @@
 export default {
   name: 'Footer',
   props: {
-    showAnnotation: Boolean,
-    images: Object,
-    selectedImageId: String
+    showAnnotation: {type:Boolean, default:null},
+    images: {type:Object, default:null},
+    selectedImageId: {type:String, default:null}
   },
   computed: {
     imageCount: function () {

@@ -1,7 +1,14 @@
 <template>
   <div class="container">
-    <Maps :maps="maps" :bus="bus" :selectedMapId="selectedMapId" />
-    <div id="iiif" class="iiif"></div>
+    <Maps
+      :maps="maps"
+      :bus="bus"
+      :selected-map-id="selectedMapId"
+    />
+    <div
+      id="iiif"
+      class="iiif"
+    />
   </div>
 </template>
 
@@ -26,16 +33,16 @@ import {deleteCondition} from '@lib/openlayers'
 
 export default {
   name: 'PixelMask',
-  props: {
-    image: Object,
-    maps: Object,
-    bus: Object,
-    showAnnotation: Boolean,
-    selectedMapId: String,
-    lastMapsUpdateSource: String
-  },
   components: {
     Maps
+  },
+  props: {
+    image: {type:Object, default:null},
+    maps: {type:Object, default:null},
+    bus: {type:Object, default:null},
+    showAnnotation: {type:Boolean, default:null},
+    selectedMapId: {type:String, default:null},
+    lastMapsUpdateSource: {type:String, default:null}
   },
   data () {
     return {
@@ -60,6 +67,56 @@ export default {
         this.updatePixelMasks(this.maps)
       }
     }
+  },
+  mounted: function () {
+    this.iiifLayer = new TileLayer()
+    this.iiifSource = new VectorSource()
+
+    this.iiifVector = new VectorLayer({
+      source: this.iiifSource,
+      style: new Style({
+        stroke: new Stroke({
+          color: '#E10800',
+          width: 3
+        }),
+        image: new CircleStyle({
+          radius: 7,
+          fill: new Fill({
+            color: '#E10800'
+          })
+        })
+      })
+    })
+
+    this.iiifOl = new Map({
+      layers: [this.iiifLayer, this.iiifVector],
+      target: 'iiif'
+    })
+
+    const iiifModify = new Modify({
+      source: this.iiifSource,
+      deleteCondition
+    })
+    this.iiifOl.addInteraction(iiifModify)
+
+    const iiifDraw = new Draw({
+      source: this.iiifSource,
+      type: 'Polygon',
+      freehandCondition: (event) => {
+        return this.emptyMask() && shiftKeyOnly(event)
+      },
+      // condition: () => {
+      //   return this.emptyMask()
+      // }
+    })
+
+    this.iiifOl.addInteraction(iiifDraw)
+
+    this.iiifSource.on('addfeature', this.onEdited)
+    iiifModify.on('modifyend', this.onEdited)
+
+    this.updateImage(this.image)
+    this.updatePixelMasks(this.maps)
   },
   methods: {
     differentSource: function () {
@@ -172,56 +229,6 @@ export default {
     emptyMask: function () {
       // return this.pixelMask === undefined || this.pixelMask.length === 0
     }
-  },
-  mounted: function () {
-    this.iiifLayer = new TileLayer()
-    this.iiifSource = new VectorSource()
-
-    this.iiifVector = new VectorLayer({
-      source: this.iiifSource,
-      style: new Style({
-        stroke: new Stroke({
-          color: '#E10800',
-          width: 3
-        }),
-        image: new CircleStyle({
-          radius: 7,
-          fill: new Fill({
-            color: '#E10800'
-          })
-        })
-      })
-    })
-
-    this.iiifOl = new Map({
-      layers: [this.iiifLayer, this.iiifVector],
-      target: 'iiif'
-    })
-
-    const iiifModify = new Modify({
-      source: this.iiifSource,
-      deleteCondition
-    })
-    this.iiifOl.addInteraction(iiifModify)
-
-    const iiifDraw = new Draw({
-      source: this.iiifSource,
-      type: 'Polygon',
-      freehandCondition: (event) => {
-        return this.emptyMask() && shiftKeyOnly(event)
-      },
-      // condition: () => {
-      //   return this.emptyMask()
-      // }
-    })
-
-    this.iiifOl.addInteraction(iiifDraw)
-
-    this.iiifSource.on('addfeature', this.onEdited)
-    iiifModify.on('modifyend', this.onEdited)
-
-    this.updateImage(this.image)
-    this.updatePixelMasks(this.maps)
   }
 }
 </script>

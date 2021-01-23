@@ -1,6 +1,6 @@
 <template>
   <div :class="{ padding: true, top, bottom: !top }">
-    <div class="separator"></div>
+    <div class="separator" />
   </div>
 </template>
 

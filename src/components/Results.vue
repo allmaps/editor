@@ -1,22 +1,25 @@
 <template>
-  <div id="map" class="map"></div>
+  <div
+    id="map"
+    class="map"
+  />
 </template>
 
 <script>
 import Map from 'ol/Map'
-import Feature from 'ol/Feature'
+// import Feature from 'ol/Feature'
 import View from 'ol/View'
-import {Layer, Tile as TileLayer, Vector as VectorLayer, Image} from 'ol/layer'
-import {Point, Polygon} from 'ol/geom'
-import {OSM, Vector as VectorSource, ImageCanvas} from 'ol/source'
+import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer'
+// import {Point, Polygon} from 'ol/geom'
+import {OSM, Vector as VectorSource} from 'ol/source'
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style'
 import {GeoJSON} from 'ol/format'
-import {fromLonLat, toLonLat, transformExtent} from 'ol/proj'
-import {compose, create} from 'ol/transform'
-import {createTransformString} from 'ol/render/canvas'
-import {round} from '@lib/functions'
-import {deleteCondition} from '@lib/openlayers'
-import {getIiifTiles} from '@lib/tiles'
+import {fromLonLat} from 'ol/proj'
+// import {compose, create} from 'ol/transform'
+// import {createTransformString} from 'ol/render/canvas'
+// import {round} from '@lib/functions'
+// import {deleteCondition} from '@lib/openlayers'
+// import {getIiifTiles} from '@lib/tiles'
 
 import WarpedMapLayer from '@lib/warped-map-layer'
 
@@ -24,12 +27,12 @@ import WarpedMapLayer from '@lib/warped-map-layer'
 export default {
   name: 'Results',
   props: {
-    bus: Object,
-    maps: Object,
-    images: Object,
-    showAnnotation: Boolean,
-    selectedImageId: String,
-    selectedMapId: String
+    bus: {type:Object, default:null},
+    maps: {type:Object, default:null},
+    images: {type:Object, default:null},
+    showAnnotation: {type:Boolean, default:null},
+    selectedImageId: {type:String, default:null},
+    selectedMapId: {type:String, default:null}
   },
   data () {
     return {
@@ -53,6 +56,57 @@ export default {
     maps: function () {
       this.update()
     }
+  },
+  mounted: function () {
+    this.mapLayer = new TileLayer({
+      source: new OSM()
+    })
+    this.mapSource = new VectorSource()
+
+    this.mapVector = new VectorLayer({
+      source: this.mapSource,
+      style: new Style({
+        stroke: new Stroke({
+          color: '#E10800',
+          width: 3
+        }),
+        image: new CircleStyle({
+          radius: 7,
+          fill: new Fill({
+            color: '#E10800'
+          })
+        })
+      })
+    })
+
+    // let map
+    // let image
+    // if (Object.keys(this.maps).length) {
+    //   map = Object.values(this.maps)[0]
+    //   image = this.images[map.imageId]
+    // }
+
+    this.mapOl = new Map({
+      layers: [this.mapLayer, this.mapVector],
+      target: 'map',
+      view: new View({
+        center: fromLonLat([-77.036667, 38.895]),
+        zoom: 3
+      })
+    })
+
+    this.update()
+
+    window.addEventListener('keydown', this.keyDown)
+    window.addEventListener('keyup', this.keyUp)
+  },
+  beforeDestroy: function () {
+    Object.values(this.warpedIiifLayers).forEach((warpedIiifLayer) => {
+      warpedIiifLayer.destroy()
+    })
+
+    window.removeEventListener('keydown', this.keyDown)
+    window.removeEventListener('keyup', this.keyUp)
   },
   methods: {
     keyDown: function (event) {
@@ -121,57 +175,6 @@ export default {
 
       // TODO: remove old maps!
     }
-  },
-  mounted: function () {
-    this.mapLayer = new TileLayer({
-      source: new OSM()
-    })
-    this.mapSource = new VectorSource()
-
-    this.mapVector = new VectorLayer({
-      source: this.mapSource,
-      style: new Style({
-        stroke: new Stroke({
-          color: '#E10800',
-          width: 3
-        }),
-        image: new CircleStyle({
-          radius: 7,
-          fill: new Fill({
-            color: '#E10800'
-          })
-        })
-      })
-    })
-
-    let map
-    let image
-    if (Object.keys(this.maps).length) {
-      map = Object.values(this.maps)[0]
-      image = this.images[map.imageId]
-    }
-
-    this.mapOl = new Map({
-      layers: [this.mapLayer, this.mapVector],
-      target: 'map',
-      view: new View({
-        center: fromLonLat([-77.036667, 38.895]),
-        zoom: 3
-      })
-    })
-
-    this.update()
-
-    window.addEventListener('keydown', this.keyDown)
-    window.addEventListener('keyup', this.keyUp)
-  },
-  beforeDestroy: function () {
-    Object.values(this.warpedIiifLayers).forEach((warpedIiifLayer) => {
-      warpedIiifLayer.destroy()
-    })
-
-    window.removeEventListener('keydown', this.keyDown)
-    window.removeEventListener('keyup', this.keyUp)
   }
 }
 </script>

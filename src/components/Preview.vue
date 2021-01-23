@@ -1,5 +1,8 @@
 <template>
-  <div id="iiif" class="iiif"></div>
+  <div
+    id="iiif"
+    class="iiif"
+  />
 </template>
 
 <script>
@@ -12,9 +15,9 @@ import IIIFInfo from 'ol/format/IIIFInfo'
 export default {
   name: 'Preview',
   props: {
-    image: Object,
-    bus: Object,
-    showAnnotation: Boolean
+    image: {type:Object, default:null},
+    bus: {type:Object, default:null},
+    showAnnotation: {type:Boolean, default:null}
   },
   data () {
     return {
@@ -28,6 +31,18 @@ export default {
       window.setTimeout(this.onResize, 100)
     },
     image: function () {
+      this.updateIiif(this.image)
+    }
+  },
+  mounted: function () {
+    this.iiifLayer = new TileLayer()
+
+    this.iiifOl = new Map({
+      layers: [this.iiifLayer],
+      target: 'iiif'
+    })
+
+    if (this.image) {
       this.updateIiif(this.image)
     }
   },
@@ -56,18 +71,6 @@ export default {
       }))
 
       this.iiifOl.getView().fit(iiifTileSource.getTileGrid().getExtent())
-    }
-  },
-  mounted: function () {
-    this.iiifLayer = new TileLayer()
-
-    this.iiifOl = new Map({
-      layers: [this.iiifLayer],
-      target: 'iiif'
-    })
-
-    if (this.image) {
-      this.updateIiif(this.image)
     }
   }
 }
