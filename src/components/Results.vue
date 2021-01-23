@@ -14,11 +14,11 @@ import {GeoJSON} from 'ol/format'
 import {fromLonLat, toLonLat, transformExtent} from 'ol/proj'
 import {compose, create} from 'ol/transform'
 import {createTransformString} from 'ol/render/canvas'
-import {round} from '../lib/functions'
-import {deleteCondition} from '../lib/openlayers'
-import {getIiifTiles} from '../lib/tiles'
+import {round} from '@lib/functions'
+import {deleteCondition} from '@lib/openlayers'
+import {getIiifTiles} from '@lib/tiles'
 
-import WarpedMapLayer from '../lib/warped-map-layer'
+import WarpedMapLayer from '@lib/warped-map-layer'
 
 
 export default {

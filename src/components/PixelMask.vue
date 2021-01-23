@@ -20,9 +20,9 @@ import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style'
 import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 
-import {round} from '../lib/functions'
-import {randomId} from '../lib/id'
-import {deleteCondition} from '../lib/openlayers'
+import {round} from '@lib/functions'
+import {randomId} from '@lib/id'
+import {deleteCondition} from '@lib/openlayers'
 
 export default {
   name: 'PixelMask',

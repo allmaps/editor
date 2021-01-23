@@ -24,7 +24,7 @@ import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 import {fromLonLat, toLonLat} from 'ol/proj'
 
-import {deleteCondition} from '../lib/openlayers'
+import {deleteCondition} from '@lib/openlayers'
 
 export default {
   name: 'Georeference',

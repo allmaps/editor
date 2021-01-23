@@ -1,5 +1,3 @@
-/* global devicePixelRatio */
-
 import {Layer} from 'ol/layer'
 import {transformExtent} from 'ol/proj'
 import {Point} from 'ol/geom'
@@ -163,7 +161,7 @@ class WarpedMapLayer extends Layer {
 
     // console.log(tiles)
 
-    const tilePositions = tiles.map(({x, y, regionWidth, regionHeight}) => ([
+    const tilePositions = tiles.map(({x, y}) => ([
       x / textureWidth,
       y / textureHeight,
       0

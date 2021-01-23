@@ -2,11 +2,15 @@
   <header class="padding">
     <div class="menu">
       <h1>
-        <router-link :to="{ name: 'home', query }"> allmaps </router-link>
+        <router-link :to="{ name: 'home', query }">
+          allmaps
+        </router-link>
       </h1>
       <ol>
         <li>
-          <router-link :to="{ name: 'preview', query }"> preview </router-link>
+          <router-link :to="{ name: 'preview', query }">
+            preview
+          </router-link>
         </li>
         <li>
           <router-link :to="{ name: 'mask', query }">
@@ -19,7 +23,9 @@
           </router-link>
         </li>
         <li>
-          <router-link :to="{ name: 'results', query }"> results </router-link>
+          <router-link :to="{ name: 'results', query }">
+            results
+          </router-link>
         </li>
       </ol>
     </div>
@@ -28,7 +34,7 @@
         v-model.trim="inputUrl"
         type="text"
         placeholder="IIIF manifest or image URL"
-      />
+      >
 
       <button>Load</button>
     </form>
@@ -40,21 +46,21 @@ export default {
   name: "Header",
   data() {
     return {
-      inputUrl: this.$route.query.url
+      inputUrl: this.$route.query.url,
     };
   },
   computed: {
-    query: function() {
+    query: function () {
       return {
         url: this.$route.query.url,
-        image: this.$route.query.image
+        image: this.$route.query.image,
       };
-    }
+    },
   },
   watch: {
-    "$route.query.url": function() {
+    "$route.query.url": function () {
       this.inputUrl = this.$route.query.url;
-    }
+    },
   },
   methods: {
     handleSubmit() {
@@ -62,11 +68,11 @@ export default {
       this.$router.push({
         name: this.$route.name,
         query: {
-          url: this.inputUrl
-        }
+          url: this.inputUrl,
+        },
       });
-    }
-  }
+    },
+  },
 };
 </script>
 

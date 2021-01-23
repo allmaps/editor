@@ -143,7 +143,6 @@ async function getImages (manifest, manifestId) {
       }
 
       const imageAnnotation = canvas.images[0]
-      const iiifApiImage = imageAnnotation.resource.service
 
       const image = await initializeImage(imageAnnotation.resource.service, canvas, manifestId)
 
@@ -176,7 +175,7 @@ export function getProfileLevel (profileUri) {
   }
 }
 
-export function getSizes (image, width = 100) {
+export function getSizes (image) {
   const profile = image.profile
 
   let profiles
@@ -237,10 +236,10 @@ export function getThumbnailUrls (image, thumbnailWidth = 100) {
   }
 }
 
-export function getQuality (image) {
+export function getQuality () {
   return 'default'
 }
 
-export function getFormat (image) {
+export function getFormat () {
   return 'jpg'
 }

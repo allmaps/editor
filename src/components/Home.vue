@@ -18,17 +18,20 @@
               }
             }"
           >
-            <img class="image" :src="getThumbnailUrls(image.iiif, 250)" />
+            <img
+              class="image"
+              :src="getThumbnailUrls(image.iiif, 250)"
+            >
           </router-link>
           <div class="icons">
             <img
               :class="{ present: hasGcps(id) }"
               src="../assets/icon-georeferenced.svg"
-            />
+            >
             <img
               :class="{ present: hasPixelMask(id) }"
               src="../assets/icon-masked.svg"
-            />
+            >
           </div>
         </li>
       </ol>
@@ -41,31 +44,31 @@
 </template>
 
 <script>
-import { getThumbnailUrls } from "../lib/iiif";
+import { getThumbnailUrls } from "@lib/iiif"
 
 export default {
   name: "Home",
   props: {
-    images: Object,
-    maps: Object,
-    selectedImageId: String,
-    sortedImageIds: Array
+    images: { type: Object, default: () => {} },
+    maps: { type: Object, default: () => {} },
+    selectedImageId: { type: String, default: "" },
+    sortedImageIds: { type: Array, default: () => [] }
   },
   methods: {
     getThumbnailUrls: getThumbnailUrls,
     mapsForImage: function(imageId) {
-      return Object.values(this.maps).filter(map => map.imageId === imageId);
+      return Object.values(this.maps).filter(map => map.imageId === imageId)
     },
     hasGcps: function(imageId) {
-      const maps = this.mapsForImage(imageId);
-      return maps.some(map => map.gcps && map.gcps.length);
+      const maps = this.mapsForImage(imageId)
+      return maps.some(map => map.gcps && map.gcps.length)
     },
     hasPixelMask: function(imageId) {
-      const maps = this.mapsForImage(imageId);
-      return maps.some(map => map.pixelMask && map.pixelMask.length);
+      const maps = this.mapsForImage(imageId)
+      return maps.some(map => map.pixelMask && map.pixelMask.length)
     }
   }
-};
+}
 </script>
 
 <style scoped>
