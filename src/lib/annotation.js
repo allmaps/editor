@@ -19,7 +19,7 @@ function createMapAnnotation (map, image) {
       features: map.gcps.map((gcp) => ({
         type: 'Feature',
         properties: {
-          pixel: gcp.pixel
+          image: gcp.pixel
         },
         geometry: {
           type: 'Point',
@@ -36,6 +36,14 @@ function createMapAnnotation (map, image) {
   if (map.pixelMask) {
     target = {
       source,
+      type: 'Image',
+      service: [
+        {
+          '@id': source,
+          type: 'ImageService2',
+          profile: 'http://iiif.io/api/image/2/level2.json'
+        }
+      ],
       selector: svgSelector(image.width, image.height, map.pixelMask)
     }
   }
