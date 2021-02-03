@@ -1,9 +1,7 @@
-name: Node.js npm run deploy
+name: Deploy
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
     branches: [ master ]
 
 jobs:
@@ -21,4 +19,3 @@ jobs:
     - run: |
         git config user.name "bertspaan" && git config user.email "bert.spaan@gmail.com"
         npm run deploy
-
