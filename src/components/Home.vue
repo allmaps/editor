@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import {getThumbnailUrls} from '../lib/iiif'
+import { getThumbnailUrls } from '../lib/iiif'
 
 export default {
   name: 'Home',

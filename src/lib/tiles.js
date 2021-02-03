@@ -4,7 +4,7 @@ import { uniqWith } from 'ramda'
 
 import {databaseId} from './id'
 
-const createTransformer = require('georeference-js')
+const createTransformer = require('@allmaps/transform')
 
 const mapTileSize = 256
 

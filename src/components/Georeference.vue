@@ -124,7 +124,7 @@ export default {
 
       const gcps = (this.selectedMap && this.selectedMap.gcps) || []
 
-      const iiifCoordinates = gcps.map((gcp) => gcp.pixel)
+      const iiifCoordinates = gcps.map((gcp) => gcp.image)
       const mapCoordinates = gcps.map((gcp) => gcp.world)
 
       this.iiifCoordinates = iiifCoordinates
@@ -206,7 +206,7 @@ export default {
 
       if (this.pointDifference() === 0) {
         const gcps = this.iiifCoordinates.map((iiifCoordinate, index) => ({
-          pixel: iiifCoordinate,
+          image: iiifCoordinate,
           world: this.mapCoordinates[index]
         }))
 

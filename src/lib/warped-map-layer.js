@@ -1,5 +1,3 @@
-/* global devicePixelRatio */
-
 import {Layer} from 'ol/layer'
 import {transformExtent} from 'ol/proj'
 import {Point} from 'ol/geom'
@@ -11,7 +9,7 @@ import {createDrawCommand} from './regl'
 
 import potpack from 'potpack'
 
-const createTransformer = require('georeference-js')
+const createTransformer = require('@allmaps/transform')
 
 class WarpedMapLayer extends Layer {
   constructor (options) {

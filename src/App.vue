@@ -70,11 +70,11 @@ import PixelMask from './components/PixelMask.vue'
 import Results from './components/Results.vue'
 import Annotation from './components/Annotation.vue'
 
-import {getIIIF} from './lib/iiif'
-import {createAnnotation} from './lib/annotation'
-import {save} from './lib/api'
+import { generate, parse } from '@allmaps/annotation'
+import { createTransformer } from '@allmaps/transform'
 
-const createTransformer = require('georeference-js')
+import { getIIIF } from './lib/iiif'
+import { save } from './lib/api'
 
 const serverUrl = process.env.VUE_APP_SERVER_URL
 
@@ -176,33 +176,33 @@ export default {
     },
     computeGeoMask: function (map) {
       if (map.gcps && map.pixelMask) {
-        const gcps = {
-          type: 'FeatureCollection',
-          features: map.gcps.map((gcp) => ({
-            type: 'Feature',
-            properties: {
-              pixel: gcp.pixel
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: gcp.world
-            }
-          }))
-        }
+      //   const gcps = {
+      //     type: 'FeatureCollection',
+      //     features: map.gcps.map((gcp) => ({
+      //       type: 'Feature',
+      //       properties: {
+      //         pixel: gcp.pixel
+      //       },
+      //       geometry: {
+      //         type: 'Point',
+      //         coordinates: gcp.world
+      //       }
+      //     }))
+      //   }
 
-        try {
-          const transformer = createTransformer(gcps)
-          const points = transformer.toWorld(map.pixelMask)
+      //   try {
+      //     const transformer = createTransformer(gcps)
+      //     const points = transformer.toWorld(map.pixelMask)
 
-          const geoMask = {
-            type: 'Polygon',
-            coordinates: [points.coordinates]
-          }
+      //     const geoMask = {
+      //       type: 'Polygon',
+      //       coordinates: [points.coordinates]
+      //     }
 
-          return geoMask
-        } catch (err) {
-          // TODO: catch error!
-        }
+      //     return geoMask
+      //   } catch (err) {
+      //     // TODO: catch error!
+      //   }
       }
     },
     copyAnnotation: function () {
@@ -267,7 +267,27 @@ export default {
   },
   computed: {
     annotation: function () {
-      return createAnnotation(this.manifest, this.images, this.maps)
+      const maps = Object.values(this.maps)
+        .map((map) => {
+          const image = this.images[map.imageId]
+          const imageDimensions = [
+            image.width,
+            image.height
+          ]
+
+          const imageServiceId = image.uri
+
+          return {
+            imageDimensions,
+            imageServiceId,
+            ...map
+          }
+        })
+
+
+      // imageDimensions
+      // imageServiceId
+      return generate(maps)
     },
     annotationString: function () {
       return JSON.stringify(this.annotation, null, 2)
@@ -324,6 +344,13 @@ body {
   width: 100%;
   height: 100%;
   position: absolute;
+
+	font-family: 'Roboto', sans-serif;
+	font-size: 18px;
+}
+
+.monospace {
+	font-family: 'Roboto Mono', monospace;
 }
 
 main p a, main ul a, main ol a {

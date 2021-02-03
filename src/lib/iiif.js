@@ -57,7 +57,9 @@ export async function getIIIF (url) {
     iiifContext = iiifObject['@context']
   }
 
-  const uri = iiifObject['@id']
+  // TODO: check IIIF Manifest version
+  const uri = iiifObject['@id'] || iiifObject['id']
+
   const id = databaseId(uri)
 
   if (iiifContext.startsWith('http://iiif.io/api/presentation')) {
@@ -129,6 +131,7 @@ async function initializeImage (manifestImage, canvas, manifestId) {
 
 // TODO: make sure to catch errors!
 async function getImages (manifest, manifestId) {
+  console.log(manifest)
   if (manifest.sequences.length !== 1) {
     throw new Error('Only accepts manifest with single sequence')
   }

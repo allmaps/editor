@@ -1,5 +1,4 @@
 <template>
-  <!-- TODO: codemirror!!! -->
   <pre v-highlightjs="annotationString"><code class="json"></code></pre>
 </template>
 

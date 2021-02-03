@@ -3,7 +3,11 @@
     <div class="menu">
       <h1>
         <router-link :to="{name: 'home', query}">
-          allmaps
+          <img alt="Allmaps"
+            src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg" />
+          <span>
+            Allmaps
+          </span>
         </router-link>
       </h1>
       <ol>
@@ -83,6 +87,20 @@ h1 {
   margin: 0;
   display: inline;
   line-height: 0;
+}
+
+h1 img {
+  width: 1.8em;
+}
+
+h1 a {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+h1 span {
+  margin-left: 0.5em;
 }
 
 ol {

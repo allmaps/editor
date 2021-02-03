@@ -1,6 +1,6 @@
 {
-  "name": "iiifmaps-vue",
-  "version": "0.1.0",
+  "name": "@allmaps/editor",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -9,12 +9,12 @@
     "deploy": "npm run build; push-dir --dir=dist --branch=gh-pages --cleanup"
   },
   "dependencies": {
+    "@allmaps/annotation": "^1.0.0-alpha.10",
+    "@allmaps/transform": "^1.0.0-alpha.3",
     "axios": "^0.21.1",
-    "codemirror": "^5.59.1",
     "core-js": "^3.8.2",
     "d3-geo": "^2.0.1",
     "d3-tile": "^1.0.0",
-    "georeference-js": "0.0.2",
     "highlight.js": "^10.5.0",
     "ol": "^6.5.0",
     "perma": "^2.0.1",

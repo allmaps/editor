@@ -37,7 +37,6 @@ Vue.directive('highlightjs', {
 // ?uri=uri, redirect to /i or /m
 // /i/:id
 // /m/:id/i/:id
-
 // /m/:id/i/:id/preview
 // /m/:id/i/:id/georeference
 
