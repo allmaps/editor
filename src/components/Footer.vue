@@ -37,7 +37,7 @@
     <div class="menu">
       <button @click="$emit('copy-annotation')">Copy</button>
       <button @click="$emit('download-annotation')">Download</button>
-      <button v-if="hasToken" @click="$emit('save-annotation')">Save</button>
+      <!-- <button v-if="hasToken" @click="$emit('save-annotation')">Save</button> -->
       <button :style="{
         //width: '150px'
       }" class="primary" @click="$emit('update:showAnnotation', !showAnnotation)">

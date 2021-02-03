@@ -11,18 +11,18 @@
         </router-link>
       </h1>
       <ol>
-        <li>
+        <!-- <li>
           <router-link :to="{name: 'preview', query}">preview</router-link>
-        </li>
+        </li> -->
         <li>
           <router-link :to="{name: 'mask', query}">select &amp; mask</router-link>
         </li>
         <li>
           <router-link :to="{name: 'georeference', query}">georeference</router-link>
         </li>
-        <li>
+        <!-- <li>
           <router-link :to="{name: 'results', query}">results</router-link>
-        </li>
+        </li> -->
       </ol>
     </div>
     <form @submit.prevent="handleSubmit">
