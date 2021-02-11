@@ -1,7 +1,6 @@
 <template>
   <div id="app">
     <Header />
-    <Separator top />
     <!-- TODO: check ERROR -->
     <main>
       <template v-if="$route.name === 'preview'">
@@ -9,31 +8,24 @@
           :showAnnotation="showAnnotation" />
       </template>
       <template v-else-if="$route.name === 'mask'">
-        <PixelMask :bus="bus"
-          :image="image" :maps="mapsForSelectedImage"
+        <PixelMask :image="image"
           :lastMapsUpdateSource="lastMapsUpdateSource"
-          :selectedMapId="selectedMapId"
           :showAnnotation="showAnnotation" />
       </template>
       <template v-else-if="$route.name === 'georeference'">
-        <Georeference :bus="bus"
-          :image="image" :maps="mapsForSelectedImage"
+        <Georeference :image="image"
           :lastMapsUpdateSource="lastMapsUpdateSource"
-          :selectedMapId="selectedMapId"
           :showAnnotation="showAnnotation" />
       </template>
-      <template v-else-if="$route.name === 'results'">
-        <Results :bus="bus"
+      <!-- <template v-else-if="$route.name === 'results'">
+        <Results
           :images="images" :maps="maps"
-          :selectedImageId="selectedImageId"
           :selectedMapId="selectedMapId"
           :showAnnotation="showAnnotation" />
-      </template>
+      </template> -->
       <template v-else>
         <Home class="padding"
-          :images="images" :maps="maps"
-          :sortedImageIds="sortedImageIds"
-          :selectedImageId="selectedImageId" />
+          :images="images" />
       </template>
       <transition name="slide">
         <template v-if="showAnnotation">
@@ -43,13 +35,16 @@
         </template>
       </transition>
     </main>
-    <Separator :top="false" />
     <Footer :showAnnotation.sync="showAnnotation"
       @copy-annotation="copyAnnotation"
       @download-annotation="downloadAnnotation"
       @save-annotation="saveAnnotation"
+
+      :numClicks="numClicks"
+      @vis="vis"
+
       :images="images"
-      :selectedImageId="selectedImageId" />
+      :activeImageId="activeImageId" />
   </div>
 </template>
 
@@ -58,10 +53,10 @@
 
 <script>
 import Vue from 'vue'
+import { mapState, mapActions, mapGetters } from 'vuex'
 
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
-import Separator from './components/Separator.vue'
 
 import Home from './components/Home.vue'
 import Preview from './components/Preview.vue'
@@ -70,8 +65,13 @@ import PixelMask from './components/PixelMask.vue'
 import Results from './components/Results.vue'
 import Annotation from './components/Annotation.vue'
 
-import { generate, parse } from '@allmaps/annotation'
-import { createTransformer } from '@allmaps/transform'
+import { generate } from '@allmaps/annotation'
+
+// SHAREDB
+import ReconnectingWebSocket from 'reconnecting-websocket'
+import ShareDB from 'sharedb/lib/client'
+const json1 = require('ot-json1')
+// SHAREDB
 
 import { getIIIF } from './lib/iiif'
 import { save } from './lib/api'
@@ -83,12 +83,11 @@ export default {
   components: {
     Header,
     Footer,
-    Separator,
     Home,
     Preview,
     Georeference,
     PixelMask,
-    Results,
+    // Results,
     Annotation
   },
   data () {
@@ -99,17 +98,30 @@ export default {
       maps: {},
       sortedImageIds: [],
 
-      selectedImageId: undefined,
-      selectedMapId: undefined,
-
-      bus: new Vue(),
       lastMapsUpdateSource: undefined,
 
       showAnnotation: false,
-      error: undefined
+      error: undefined,
+      numClicks: 0
     }
   },
   methods: {
+    ...mapActions('ui', [
+      'setActiveImageId'
+    ]),
+    vis: function () {
+      this.increment()
+    },
+    showNumbers: function () {
+      console.log('numClicks', this.doc.data.numClicks)
+      this.numClicks = this.doc.data.numClicks
+    },
+    increment: function () {
+      // Increment `doc.data.numClicks`. See
+      // https://github.com/ottypes/json1/blob/master/spec.md for list of valid operations.
+      this.doc.submitOp(['numClicks', {ena: 1}])
+    },
+
     goToRoute: function (name) {
       this.$router.push({name, query: this.$route.query})
     },
@@ -138,14 +150,14 @@ export default {
       const editedMapIds = Object.keys(maps)
       this.selectedMapId = editedMapIds[0]
     },
-    mapDelete: function ({source, id}) {
-      this.lastMapsUpdateSource = source
-      Vue.delete(this.maps, id)
-    },
-    mapSelect: function ({source, id}) {
-      this.lastMapsUpdateSource = source
-      this.selectedMapId = id
-    },
+    // mapDelete: function ({source, id}) {
+    //   this.lastMapsUpdateSource = source
+    //   Vue.delete(this.maps, id)
+    // },
+    // mapSelect: function ({source, id}) {
+    //   this.lastMapsUpdateSource = source
+    //   this.selectedMapId = id
+    // },
     updateIiif: async function (url) {
       try {
         const {iiifType, manifest, images, maps} = await getIIIF(url)
@@ -161,13 +173,10 @@ export default {
           .sort((a, b) => a.index - b.index)
 
         if (this.$route.query.image) {
-          this.selectedImageId = this.$route.query.image
+          this.setActiveImageId(this.$route.query.image)
         } else {
-          this.selectedImageId = this.sortedImageIds[0].id
+          this.setActiveImageId(this.sortedImageIds[0].id)
         }
-
-        this.selectedMapId = Object.keys(this.maps)[0]
-
       } catch (err) {
         // TODO: fix!
         console.error(err)
@@ -233,22 +242,22 @@ export default {
     },
     keyPressHandler: function (event) {
       if (event.key === '[') {
-        if (!this.images[this.selectedImageId] || !this.images[this.selectedImageId].previousImageId) {
+        if (!this.images[this.activeImageId] || !this.images[this.activeImageId].previousImageId) {
           return
         }
 
         this.$router.push({name: this.$route.name, query: {
           ...this.$route.query,
-          image: this.images[this.selectedImageId].previousImageId
+          image: this.images[this.activeImageId].previousImageId
         }})
       } else if (event.key === ']') {
-        if (!this.images[this.selectedImageId] || !this.images[this.selectedImageId].nextImageId) {
+        if (!this.images[this.activeImageId] || !this.images[this.activeImageId].nextImageId) {
           return
         }
 
         this.$router.push({name: this.$route.name, query: {
           ...this.$route.query,
-          image: this.images[this.selectedImageId].nextImageId
+          image: this.images[this.activeImageId].nextImageId
         }})
       } else if (event.key === '1') {
         this.goToRoute('home')
@@ -266,6 +275,9 @@ export default {
     }
   },
   computed: {
+    ...mapState({
+      activeImageId: (state) => state.ui.activeImageId
+    }),
     annotation: function () {
       const maps = Object.values(this.maps)
         .map((map) => {
@@ -293,11 +305,11 @@ export default {
       return JSON.stringify(this.annotation, null, 2)
     },
     image: function () {
-      return this.images[this.selectedImageId]
+      return this.images[this.activeImageId]
     },
     mapsForSelectedImage: function () {
       return Object.keys(this.maps)
-        .filter((id) => this.maps[id].imageId === this.selectedImageId)
+        .filter((id) => this.maps[id].imageId === this.activeImageId)
         .reduce((maps, id) => ({
           ...maps,
           [id]: this.maps[id]
@@ -309,16 +321,8 @@ export default {
       this.updateIiif(url)
     },
     '$route.query.image': function (imageId) {
-      this.selectedImageId = imageId
-
-      const mapsForImage = Object.values(this.maps).filter((map) => map.imageId === imageId)
-      this.selectedMapId = mapsForImage[0] && mapsForImage[0].id
+      this.setActiveImageId(imageId)
     }
-  },
-  created: function () {
-    this.bus.$on('maps-update', this.mapsUpdate)
-    this.bus.$on('map-delete', this.mapDelete)
-    this.bus.$on('map-select', this.mapSelect)
   },
   mounted: async function () {
     if (this.$route.query.url) {
@@ -326,9 +330,24 @@ export default {
     }
 
     window.addEventListener('keypress', this.keyPressHandler)
+
+
+    const rws = new ReconnectingWebSocket('ws://localhost:8080')
+    ShareDB.types.register(json1.type)
+    const connection = new ShareDB.Connection(rws)
+
+
+    const doc = connection.get('examples', 'counter')
+    this.doc = doc
+    doc.subscribe(this.showNumbers)
+    doc.on('op', this.showNumbers)
+
+
   },
   beforeDestroy: function () {
     window.removeEventListener('keypress', this.keyPressHandler)
+    // doc unsubscribe
+    // connection disconnect
   }
 }
 </script>
@@ -420,15 +439,21 @@ button {
   cursor: pointer;
   background-color: white;
   text-decoration: underline;
-  padding: 6px 12px;
+  padding: .25em;
+  display: inline-block;
+  line-height: 1;
 }
 
 button.primary {
   border: none;
-  background: linear-gradient(to bottom, #007dc1 5%, #0061a7 100%);
-  background-color: #007dc1;
-  color: #ffffff;
+  border-radius: 5px;
+  background-color: #FFC742;
+  color: black;
   text-decoration: none;
+}
+
+button.primary:hover {
+  background-color: #FFE4A4;
 }
 
 .slide-enter-active, .slide-leave-active {

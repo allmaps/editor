@@ -1,41 +1,40 @@
 <template>
   <div class="container">
-    <Maps :maps="maps" :bus="bus" :selectedMapId="selectedMapId" />
+    <Sidebar />
     <div id="iiif" class="iiif"></div>
   </div>
 </template>
 
 <script>
-import Maps from './Maps.vue'
+import { mapState, mapActions, mapGetters } from 'vuex'
+
+import Sidebar from './Sidebar.vue'
 
 import Map from 'ol/Map'
 import Feature from 'ol/Feature'
 import View from 'ol/View'
-import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer'
-import {Draw, Modify} from 'ol/interaction'
-import {Polygon} from 'ol/geom'
-import {shiftKeyOnly} from 'ol/events/condition'
-import {Vector as VectorSource} from 'ol/source'
-import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style'
+import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'
+import { Draw, Modify } from 'ol/interaction'
+import { Polygon} from 'ol/geom'
+import { shiftKeyOnly } from 'ol/events/condition'
+import { Vector as VectorSource} from 'ol/source'
+import { Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style'
 import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 
-import {round} from '../lib/functions'
-import {randomId} from '../lib/id'
-import {deleteCondition} from '../lib/openlayers'
+import { round } from '../lib/functions'
+import { randomId } from '../lib/id'
+import { deleteCondition } from '../lib/openlayers'
 
 export default {
   name: 'PixelMask',
   props: {
     image: Object,
-    maps: Object,
-    bus: Object,
     showAnnotation: Boolean,
-    selectedMapId: String,
     lastMapsUpdateSource: String
   },
   components: {
-    Maps
+    Sidebar
   },
   data () {
     return {
@@ -44,11 +43,13 @@ export default {
       iiifLayer: undefined,
       iiifVector: undefined,
 
-      pixelMasks: undefined,
       dimensions: undefined
     }
   },
   watch: {
+    activeMapId: function () {
+      this.updateStyles()
+    },
     showAnnotation: function () {
       window.setTimeout(this.onResize, 100)
     },
@@ -56,12 +57,22 @@ export default {
       this.updateImage(this.image)
     },
     maps: function () {
-      if (this.differentSource()) {
-        this.updatePixelMasks(this.maps)
-      }
+      this.updatePixelMasks(this.maps)
     }
   },
+  computed: {
+    ...mapGetters('maps', {
+      maps: 'mapsForActiveImage'
+    }),
+    ...mapState({
+      activeMapId: (state) => state.ui.activeMapId
+    })
+  },
   methods: {
+    ...mapActions('maps', [
+      'addMap',
+      'updateMap'
+    ]),
     differentSource: function () {
       return this.lastMapsUpdateSource !== this.$options.name
     },
@@ -70,18 +81,28 @@ export default {
         this.iiifOl.updateSize()
       }
     },
+    updateStyles: function () {
+      this.iiifVector.setStyle((feature) => {
+        const active = this.activeMapId === feature.getId()
+        return new Style({
+          stroke: new Stroke({
+            color: '#C552B5',
+            width: active ? 5 : 2
+          })
+        })
+      })
+    },
     updatePixelMasks: function (maps) {
       this.iiifSource.clear()
 
-      if (maps && Object.keys(maps).length) {
-        Object.entries(maps)
-          .forEach(([id, map]) => {
+      if (maps) {
+        Object.values(maps)
+          .forEach((map) => {
             const feature = new Feature({
               geometry: new Polygon(this.maskToPolygon(map.pixelMask))
             })
 
-            feature.setId(id)
-
+            feature.setId(map.id)
             this.iiifSource.addFeature(feature)
           })
       }
@@ -93,10 +114,12 @@ export default {
 
       return {
         id,
-        map: {
-          imageId: this.image.id,
-          pixelMask
-        }
+        imageId: this.image.id,
+        pixelMask,
+        imageDimensions: [
+          this.image.width, this.image.height
+        ]
+        // TODO hash???
       }
     },
     onEdited: function (event) {
@@ -111,19 +134,14 @@ export default {
 
         feature.setId(randomId())
 
-        const {id, map} = this.createMap(feature)
-        maps[id] = map
+        const map = this.createMap(feature)
+        this.addMap(map)
       } else if (event.type === 'modifyend') {
         event.features.forEach((feature) => {
-          const {id, map} = this.createMap(feature)
-          maps[id] = map
+          const map = this.createMap(feature)
+          this.updateMap(map)
         })
       }
-
-      this.bus.$emit('maps-update', {
-        source: this.$options.name,
-        maps
-      })
     },
     updateImage: function (image) {
       if (!image) {
@@ -149,7 +167,10 @@ export default {
         constrainOnlyCenter: true
       }))
 
-      this.iiifOl.getView().fit(iiifTileSource.getTileGrid().getExtent())
+      this.iiifOl.getView().fit(iiifTileSource.getTileGrid().getExtent(), {
+        // TODO: move to settings file
+        padding: [10, 10, 10, 10]
+      })
     },
     polygonToMask: function (polygon, dimensions = [1, 1]) {
       return polygon[0].map((coordinate) => ([
@@ -164,13 +185,6 @@ export default {
           -coordinate[1] * dimensions[1]
         ]))
       ]
-    },
-    // clearMask: function () {
-    //   source.clear()
-    //   updateMask()
-    // }
-    emptyMask: function () {
-      // return this.pixelMask === undefined || this.pixelMask.length === 0
     }
   },
   mounted: function () {
@@ -181,13 +195,13 @@ export default {
       source: this.iiifSource,
       style: new Style({
         stroke: new Stroke({
-          color: '#E10800',
+          color: '#C552B5',
           width: 3
         }),
         image: new CircleStyle({
           radius: 7,
           fill: new Fill({
-            color: '#E10800'
+            color: '#C552B5'
           })
         })
       })
@@ -208,12 +222,12 @@ export default {
       source: this.iiifSource,
       type: 'Polygon',
       freehandCondition: (event) => {
-        return this.emptyMask() && shiftKeyOnly(event)
-      },
-      // condition: () => {
-      //   return this.emptyMask()
-      // }
+        return shiftKeyOnly(event)
+      }
     })
+
+    // Add polygon labels
+    // https://openlayers.org/en/latest/examples/vector-labels.html
 
     this.iiifOl.addInteraction(iiifDraw)
 
@@ -222,6 +236,7 @@ export default {
 
     this.updateImage(this.image)
     this.updatePixelMasks(this.maps)
+    this.updateStyles()
   }
 }
 </script>

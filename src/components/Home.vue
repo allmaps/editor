@@ -4,7 +4,7 @@
       <ol class="images">
         <li v-for="(image, id) in images" :key="id"
           :class="{
-            selected: selectedImageId === id
+            active: activeImageId === id
           }">
           <router-link :to="{
             name: 'home',
@@ -28,15 +28,20 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import { getThumbnailUrls } from '../lib/iiif'
 
 export default {
   name: 'Home',
   props: {
     images: Object,
-    maps: Object,
-    selectedImageId: String,
-    sortedImageIds: Array
+  },
+  computed: {
+    ...mapState({
+      maps: (state) => state.maps.all,
+      activeImageId: (state) => state.ui.activeImageId
+    })
   },
   methods: {
     getThumbnailUrls: getThumbnailUrls,
@@ -91,8 +96,8 @@ export default {
   vertical-align: top;
 }
 
-.images li.selected {
-  border-color: #e10800;
+.images li.active {
+  border-color: #C552B5;
   border-style: solid;
   border-width: 3px;
 }

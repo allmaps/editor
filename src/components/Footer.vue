@@ -1,13 +1,13 @@
 <template>
   <footer class="padding">
     <div>
-      <div v-if="selectedImage && imageCount > 1" class="menu">
-        <template v-if="selectedImage.previousImageId">
+      <div v-if="activeImage && imageCount > 1" class="menu">
+        <template v-if="activeImage.previousImageId">
           <router-link :to="{
             name: $route.name,
             query: {
               url: $route.query.url,
-              image: selectedImage.previousImageId
+              image: activeImage.previousImageId
             }}">Previous</router-link>
         </template>
         <template v-else>
@@ -19,14 +19,14 @@
           query: {
             url: $route.query.url,
             image: $route.query.image
-          }}">Image {{ selectedImage.index + 1}}/{{ imageCount }}</router-link>
+          }}">Image {{ activeImage.index + 1}}/{{ imageCount }}</router-link>
         </span>
-        <template v-if="selectedImage.nextImageId">
+        <template v-if="activeImage.nextImageId">
           <router-link :to="{
             name: $route.name,
             query: {
               url: $route.query.url,
-              image: selectedImage.nextImageId
+              image: activeImage.nextImageId
             }}">Next</router-link>
         </template>
         <template v-else>
@@ -35,6 +35,10 @@
       </div>
     </div>
     <div class="menu">
+
+      <button :style="{
+      }" class="primary" @click="$emit('vis')">Vis {{numClicks}}</button>
+
       <button @click="$emit('copy-annotation')">Copy</button>
       <button @click="$emit('download-annotation')">Download</button>
       <!-- <button v-if="hasToken" @click="$emit('save-annotation')">Save</button> -->
@@ -53,14 +57,15 @@ export default {
   props: {
     showAnnotation: Boolean,
     images: Object,
-    selectedImageId: String
+    activeImageId: String,
+    numClicks: Number
   },
   computed: {
     imageCount: function () {
       return Object.keys(this.images).length
     },
-    selectedImage: function () {
-      return this.images[this.selectedImageId]
+    activeImage: function () {
+      return this.images[this.activeImageId]
     },
     hasToken: function () {
       return true || this.$route.query.token

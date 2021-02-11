@@ -131,7 +131,6 @@ async function initializeImage (manifestImage, canvas, manifestId) {
 
 // TODO: make sure to catch errors!
 async function getImages (manifest, manifestId) {
-  console.log(manifest)
   if (manifest.sequences.length !== 1) {
     throw new Error('Only accepts manifest with single sequence')
   }

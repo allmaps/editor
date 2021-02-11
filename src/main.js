@@ -1,7 +1,9 @@
 import Vue from 'vue'
-import App from './App.vue'
 import VueRouter from 'vue-router'
 import hljs from 'highlight.js'
+
+import App from './App.vue'
+import store from './store'
 
 Vue.use(VueRouter)
 
@@ -33,7 +35,7 @@ Vue.directive('highlightjs', {
   }
 })
 
-// TODO: New routes:
+// TODO: New routes??
 // ?uri=uri, redirect to /i or /m
 // /i/:id
 // /m/:id/i/:id
@@ -84,6 +86,7 @@ router.beforeEach((to, from, next) => {
 })
 
 new Vue({
-  render: h => h(App),
-  router
+  router,
+  store,
+  render: h => h(App)
 }).$mount('#app')

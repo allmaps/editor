@@ -105,6 +105,7 @@ h1 span {
 
 ol {
   list-style: none;
+  line-height: 0;
 }
 
 ol, ol li {

@@ -17,12 +17,16 @@
     "d3-tile": "^1.0.0",
     "highlight.js": "^10.5.0",
     "ol": "^6.5.0",
+    "ot-json1": "^1.0.1",
     "perma": "^2.0.1",
     "potpack": "^1.0.1",
     "ramda": "^0.27.1",
+    "reconnecting-websocket": "^4.4.0",
     "regl": "^2.0.1",
+    "sharedb": "^1.7.0",
     "vue": "^2.6.12",
-    "vue-router": "^3.4.9"
+    "vue-router": "^3.4.9",
+    "vuex": "^3.6.2"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.5.10",

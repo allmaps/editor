@@ -5,7 +5,7 @@
 <script>
 import Map from 'ol/Map'
 import View from 'ol/View'
-import {Tile as TileLayer} from 'ol/layer'
+import { Tile as TileLayer } from 'ol/layer'
 import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 
@@ -13,7 +13,6 @@ export default {
   name: 'Preview',
   props: {
     image: Object,
-    bus: Object,
     showAnnotation: Boolean
   },
   data () {
