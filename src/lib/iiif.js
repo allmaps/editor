@@ -4,6 +4,7 @@ import {fetchManifest, fetchImage} from './api'
 import {databaseId} from './id'
 
 function getJson (url) {
+  // TODO: use fetch instead
   return axios.get(url)
     .then((response) => response.data)
 }
