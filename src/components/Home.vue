@@ -22,7 +22,38 @@
       </ol>
     </div>
     <div v-else>
-      Select a map image by typing its IIIF manifest or image URL in the input box.
+      <p>
+        Select a map image by typing its IIIF manifest or image URL in the input box,
+      or select a map from the list below:
+      </p>
+      <form @submit.prevent="handleSubmit">
+        <label>
+          <input type="text" placeholder="IIIF manifest or image URL"
+            v-model="inputUrl" />
+        </label>
+      </form>
+      <div>
+        <section v-for="(collection, index) in mapCollections" :key="index">
+          <template v-if="collection.include !== false">
+            <div>
+              <h3>{{ collection.title }}</h3>
+              <a v-if="collection.url"
+                :href="collection.url" target="_blank">Find more maps</a>
+            </div>
+            <ul v-if="collection.examples">
+              <li v-for="(example, index) in collection.examples" :key="index">
+                <router-link :to="{
+                    query: {
+                      url: example.url
+                    }
+                  }">
+                  {{ example.title }}
+                </router-link>
+              </li>
+            </ul>
+          </template>
+        </section>
+      </div>
     </div>
   </div>
 </template>
@@ -36,14 +67,30 @@ export default {
   name: 'Home',
   props: {
     images: Object,
+    mapCollections: Array
+  },
+  data () {
+    return {
+      inputUrl: this.$route.query.url
+    }
   },
   computed: {
     ...mapState({
-      maps: (state) => state.maps.all,
+      maps: (state) => state.maps.maps,
       activeImageId: (state) => state.ui.activeImageId
     })
   },
+  watch: {
+    '$route.query.url': function () {
+      this.inputUrl = this.$route.query.url
+    }
+  },
   methods: {
+    handleSubmit () {
+      this.$router.push({ name: this.$route.name, query: {
+        url: this.inputUrl
+      }})
+    },
     getThumbnailUrls: getThumbnailUrls,
     mapsForImage: function (imageId) {
       return Object.values(this.maps)
@@ -51,7 +98,7 @@ export default {
     },
     hasGcps: function (imageId) {
       const maps = this.mapsForImage(imageId)
-      return maps.some((map) => map.gcps && map.gcps.length)
+      return maps.some((map) => map.gcps && Object.keys(map.gcps).length)
     },
     hasPixelMask: function (imageId) {
       const maps = this.mapsForImage(imageId)

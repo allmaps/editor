@@ -35,10 +35,6 @@
       </div>
     </div>
     <div class="menu">
-
-      <button :style="{
-      }" class="primary" @click="$emit('vis')">Vis {{numClicks}}</button>
-
       <button @click="$emit('copy-annotation')">Copy</button>
       <button @click="$emit('download-annotation')">Download</button>
       <!-- <button v-if="hasToken" @click="$emit('save-annotation')">Save</button> -->

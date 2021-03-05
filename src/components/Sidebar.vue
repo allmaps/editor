@@ -1,27 +1,31 @@
 <template>
   <div class="maps">
     <ol>
-      <li v-for="(map, id, index) in maps" :key="id"
-        @click="mapClicked(id)" :class="{
-          active: activeMapId === id
+      <li v-for="(map, mapId, index) in maps" :key="mapId"
+        @click="mapClicked(mapId)" :class="{
+          active: activeMapId === mapId
         }">
         <div class="map">
           <div class="thumbnail">
-            <svg v-if="map.pixelMask"
+            <svg v-if="hasPixelMask(map)"
               :viewBox="thumbnailViewbox(map)">
               <polygon
                 :points="thumbnailPolygonPoints(map)" />
             </svg>
             <span>{{ index + 1 }}</span>
           </div>
-          <button v-if="!showGcps" @click="deleteMapClicked(id)">
+          <button v-if="!showGcps" @click.stop="removeMap({ mapId, source })">
             <img alt="Delete map" src="../assets/trash-2.svg" />
           </button>
         </div>
-        <ol class="gcps" v-if="showGcps && map.gcps && map.gcps.length">
-          <li class="gcp" v-for="(gcp, index) in map.gcps" :key="index">
-            <span>{{ index + 1 }}</span>
-            <button @click="removeGcp(id, index)">
+        <ol class="gcps" v-if="showGcps && hasGcps(map)">
+          <li class="gcp" v-for="(gcp, gcpId, index) in map.gcps" :key="gcpId">
+            <span>
+              {{ index + 1 }}
+              <span>{{ gcp.image ? 'i' : '' }}</span>
+              <span>{{ gcp.world ? 'w' : '' }}</span>
+            </span>
+            <button @click.stop="removeGcp({ mapId, gcpId, gcp, source })">
               <img  alt="Delete GCP" src="../assets/trash-2.svg" />
             </button>
           </li>
@@ -40,6 +44,12 @@ export default {
     showGcps: Boolean
   },
   methods: {
+    hasPixelMask: function (map) {
+      return map && map.pixelMask && map.pixelMask.length > 0
+    },
+    hasGcps: function (map) {
+      return map && map.gcps && Object.keys(map.gcps).length > 0
+    },
     maskExtent: function (map) {
       const xs = map.pixelMask.map((point) => point[0])
       const ys = map.pixelMask.map((point) => point[1])
@@ -82,35 +92,14 @@ export default {
         .map((point) => point.join(',')).join(' ')
     },
     ...mapActions('maps', [
-      'deleteMap'
+      'removeMap',
+      'removeGcp'
     ]),
     ...mapActions('ui', [
       'setActiveMapId'
     ]),
-    deleteMapClicked: function (id) {
-      this.deleteMap({
-        source: this.$options.name,
-        id
-      })
-    },
-    removeGcp: function (mapId, index) {
-      const gcps = [...this.maps[mapId].gcps]
-      gcps.splice(index, 1)
-
-      const maps = {
-        [mapId]: {
-          gcps
-        }
-      }
-
-      // this.updateMap(map)]
-      // this.bus.$emit('maps-update', {
-      //   source: this.$options.name,
-      //   maps
-      // })
-    },
-    mapClicked: function (id) {
-      this.setActiveMapId(id)
+    mapClicked: function (mapId) {
+      this.setActiveMapId({ mapId })
     }
   },
   computed: {
@@ -120,6 +109,9 @@ export default {
     ...mapGetters('maps', {
       maps: 'mapsForActiveImage'
     }),
+    source: function () {
+      return this.$options.name
+    }
   }
 }
 </script>

@@ -1,119 +1,236 @@
-import Vue from 'vue'
-
-function makeMapActive (rootState, map, commit) {
-  if (rootState.ui.activeMapId !== map.id) {
-    commit('ui/setActiveMapId', map, { root: true })
+function makeMapActive (rootState, mapId, commit) {
+  if (rootState.ui.activeMapId !== mapId) {
+    commit('ui/setActiveMapId', { mapId }, { root: true })
   }
 }
 
+function makeOtherMapActive (rootState, mapId, commit) {
+  if (rootState.ui.activeMapId !== mapId) {
+    return
+  }
+
+  let otherMapId
+  for (otherMapId of Object.keys(rootState.maps.maps)) {
+    if (otherMapId !== mapId) {
+      break
+    }
+  }
+
+  commit('ui/setActiveMapId', { otherMapId }, { root: true })
+}
+
 const state = () => ({
-  all: {}
+  maps: {}
 })
 
 const getters = {
   activeMap: (state, getters, rootState) => {
     const activeMapId = rootState.ui.activeMapId
-    const activeMap = state.all[activeMapId]
+    const activeMap = state.maps[activeMapId]
     return activeMap
   },
   mapsForActiveImage: (state, getters, rootState) => {
     const activeImageId = rootState.ui.activeImageId
 
-    return Object.keys(state.all)
-      .filter((id) => state.all[id].imageId === activeImageId)
+    return Object.keys(state.maps)
+      .filter((id) => state.maps[id].imageId === activeImageId)
       .reduce((maps, id) => ({
         ...maps,
-        [id]: state.all[id]
+        [id]: state.maps[id]
       }), {})
   }
 }
 
 const actions = {
-  addMap ({ state, commit, rootState }, map) {
-    commit('addMap', map)
-    makeMapActive(rootState, map, commit)
+  setMaps ({ state, commit, rootState }, { maps, source }) {
+    const firstMapId = Object.keys(maps)[0]
+
+    if (firstMapId) {
+      commit('setMaps', { maps, source })
+      makeMapActive(rootState, firstMapId, commit)
+    }
   },
-  updateMap ({ state, commit, rootState }, map) {
-    commit('updateMap', map)
-    makeMapActive(rootState, map, commit)
+  insertMap ({ state, commit, rootState }, { mapId, imageId, pixelMask = [], gcps = {}, source }) {
+    const map = {
+      id: mapId,
+      imageId,
+      pixelMask,
+      gcps
+    }
+
+    commit('insertMap', { mapId, map, source })
+    makeMapActive(rootState, mapId, commit)
   },
-  deleteMap ({ state, commit }, map) {
-    commit('deleteMap', map)
-    // TODO: make other map active
+
+  removeMap ({ state, commit, rootState }, { mapId, source }) {
+    makeOtherMapActive(rootState, mapId, commit)
+    commit('removeMap', { mapId, source })
+  },
+
+  insertPixelMaskPoint ({ state, commit, rootState }, { mapId, index, pixelMaskPoint, source }) {
+    if (!state.maps[mapId]) {
+      throw new Error(`Map ${mapId} does not exist`)
+    }
+
+    commit('insertPixelMaskPoint', {
+      mapId, index, pixelMaskPoint, source
+    })
+
+    makeMapActive(rootState, mapId, commit)
+  },
+
+  replacePixelMaskPoint ({ state, commit, rootState }, { mapId, index, pixelMaskPoint, source }) {
+    commit('replacePixelMaskPoint', {
+      mapId, index, pixelMaskPoint, source
+    })
+
+    makeMapActive(rootState, mapId, commit)
+  },
+
+  removePixelMaskPoint ({ state, commit, rootState }, { mapId, index, source }) {
+    commit('removePixelMaskPoint', {
+      mapId, index, source
+    })
+
+    makeMapActive(rootState, mapId, commit)
+  },
+
+  insertGcp ({ state, commit }, { mapId, gcpId, gcp, source }) {
+    if (!state.maps[mapId]) {
+      throw new Error(`Map ${mapId} does not exist`)
+    }
+
+    if (state.maps[mapId].gcps[gcpId]) {
+      throw new Error(`GCP ${gcpId} already exists`)
+    }
+
+    commit('insertGcp', {
+      mapId, gcpId, gcp, source
+    })
+  },
+
+  replaceGcp ({ state, commit }, { mapId, gcpId, gcp, source }) {
+    if (!state.maps[mapId]) {
+      throw new Error(`Map ${mapId} does not exist`)
+    }
+
+    if (!state.maps[mapId].gcps[gcpId]) {
+      throw new Error(`GCP ${gcpId} does not exist`)
+    }
+
+    commit('replaceGcp', {
+      mapId, gcpId, gcp, source
+    })
+  },
+
+  removeGcp ({ state, commit }, { mapId, gcpId, gcp, source }) {
+    if (!state.maps[mapId]) {
+      throw new Error(`Map ${mapId} does not exist`)
+    }
+
+    if (!state.maps[mapId].gcps[gcpId]) {
+      throw new Error(`GCP ${gcpId} does not exist`)
+    }
+
+    commit('removeGcp', {
+      mapId, gcpId, gcp, source
+    })
   }
 }
 
 const mutations = {
-  addMap (state, map) {
-    const id = map.id
-    if (!state.all[id]) {
-      state.all = {
-        ...state.all,
-        [id]: map
+  setMaps (state, { maps }) {
+    state.maps = maps
+  },
+
+  insertMap (state, { mapId, map }) {
+    if (!state.maps[mapId]) {
+      state.maps = {
+        ...state.maps,
+        [mapId]: map
       }
     } else {
       throw new Error('Map already exists!')
     }
   },
 
-  updateMap (state, map) {
-    const id = map.id
-    if (state.all[id]) {
-      state.all = {
-        ...state.all,
-        [id]: map
-      }
-    } else {
-      throw new Error('Map not found!')
+  removeMap (state, { mapId }) {
+    delete state.maps[mapId]
+  },
+
+  insertPixelMaskPoint (state, { mapId, index, pixelMaskPoint }) {
+    const map = state.maps[mapId]
+
+    const pixelMask = map.pixelMask
+    pixelMask.splice(index, 0, pixelMaskPoint)
+
+    state.maps = {
+      ...state.maps,
+      [mapId]: map
     }
   },
 
-  // addMaskPoint (state) {
+  replacePixelMaskPoint (state, { mapId, index, pixelMaskPoint }) {
+    const map = state.maps[mapId]
+    map.pixelMask[index] = pixelMaskPoint
 
-  // }
+    state.maps = {
+      ...state.maps,
+      [mapId]: map
+    }
+  },
 
-  // moveMaskPoint (state) {
+  removePixelMaskPoint (state, { mapId, index }) {
+    const map = state.maps[mapId]
+    map.pixelMask.splice(index, 1)
 
-  // }
+    state.maps = {
+      ...state.maps,
+      [mapId]: map
+    }
+  },
 
-  // deleteMaskPoint (state) {
+  insertGcp (state, { mapId, gcpId, gcp }) {
+    const map = state.maps[mapId]
+    map.gcps = {
+      ...map.gcps,
+      [gcpId]: {
+        id: gcpId,
+        ...gcp
+      }
+    }
 
-  // }
+    state.maps = {
+      ...state.maps,
+      [mapId]: map
+    }
+  },
 
-  // addGcp (state) {
+  replaceGcp (state, { mapId, gcpId, gcp }) {
+    const map = state.maps[mapId]
+    map.gcps = {
+      ...map.gcps,
+      [gcpId]: {
+        id: gcpId,
+        ...gcp
+      }
+    }
 
-  // }
+    state.maps = {
+      ...state.maps,
+      [mapId]: map
+    }
+  },
 
-  // moveGcp (state) {
+  removeGcp (state, { mapId, gcpId }) {
+    const map = state.maps[mapId]
+    delete map.gcps[gcpId]
 
-  // }
-
-  // deleteGcp (state) {
-
-  // }
-
-  deleteMap (state, { id }) {
-    Vue.delete(state.all, id)
+    state.maps = {
+      ...state.maps,
+      [mapId]: map
+    }
   }
-  // pushProductToCart (state, { id }) {
-  //   state.items.push({
-  //     id,
-  //     quantity: 1
-  //   })
-  // },
-
-  // incrementItemQuantity (state, { id }) {
-  //   const cartItem = state.items.find(item => item.id === id)
-  //   cartItem.quantity++
-  // },
-
-  // setCartItems (state, { items }) {
-  //   state.items = items
-  // },
-
-  // setCheckoutStatus (state, status) {
-  //   state.checkoutStatus = status
-  // }
 }
 
 export default {

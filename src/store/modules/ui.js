@@ -10,27 +10,29 @@ const getters = {
 }
 
 const actions = {
-  setActiveImageId ({ state, commit, rootState, rootGetters }, imageId) {
-    commit('setActiveImageId', imageId)
+  setActiveImageId ({ state, commit, rootState, rootGetters }, { imageId }) {
+    commit('setActiveImageId', { imageId })
 
     const maps = rootGetters['maps/mapsForActiveImage']
     if (Object.keys(maps).length) {
       // TODO: get first map, maybe add property?
       const mapId = Object.keys(maps)[0]
-      commit('setActiveMapId', mapId)
+      commit('setActiveMapId', { mapId })
     }
   },
-  setActiveMapId ({ state, commit }, id) {
-    commit('setActiveMapId', id)
+  setActiveMapId ({ state, commit, rootState }, { mapId }) {
+    if (rootState.maps.maps[mapId]) {
+      commit('setActiveMapId', { mapId })
+    }
   }
 }
 
 const mutations = {
-  setActiveImageId (state, id) {
-    state.activeImageId = id
+  setActiveImageId (state, { imageId }) {
+    state.activeImageId = imageId
   },
-  setActiveMapId (state, id) {
-    state.activeMapId = id
+  setActiveMapId (state, { mapId }) {
+    state.activeMapId = mapId
   }
 }
 

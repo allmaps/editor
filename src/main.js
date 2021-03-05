@@ -1,39 +1,10 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
+import { createApp } from 'vue'
+import { createRouter, createWebHashHistory } from 'vue-router'
+
 import hljs from 'highlight.js'
 
 import App from './App.vue'
 import store from './store'
-
-Vue.use(VueRouter)
-
-Vue.config.productionTip = false
-
-Vue.directive('highlightjs', {
-  deep: true,
-  bind: function (el, binding) {
-    // on first bind, highlight all targets
-    let targets = el.querySelectorAll('code')
-    targets.forEach((target) => {
-      // if a value is directly assigned to the directive, use this
-      // instead of the element content.
-      if (binding.value) {
-        target.textContent = binding.value
-      }
-      hljs.highlightBlock(target)
-    })
-  },
-  componentUpdated: function (el, binding) {
-    // after an update, re-fill the content and then highlight
-    let targets = el.querySelectorAll('code')
-    targets.forEach((target) => {
-      if (binding.value) {
-        target.textContent = binding.value
-        hljs.highlightBlock(target)
-      }
-    })
-  }
-})
 
 // TODO: New routes??
 // ?uri=uri, redirect to /i or /m
@@ -42,7 +13,8 @@ Vue.directive('highlightjs', {
 // /m/:id/i/:id/preview
 // /m/:id/i/:id/georeference
 
-const router = new VueRouter({
+const router = createRouter({
+  history: createWebHashHistory(),
   routes: [
     {
       name: 'home',
@@ -85,8 +57,32 @@ router.beforeEach((to, from, next) => {
   next()
 })
 
-new Vue({
-  router,
-  store,
-  render: h => h(App)
-}).$mount('#app')
+const app = createApp(App)
+
+app.use(router).use(store).mount('#app')
+
+app.directive('highlightjs', {
+  deep: true,
+  beforeMount: function (el, binding) {
+    // on first bind, highlight all targets
+    let targets = el.querySelectorAll('code')
+    targets.forEach((target) => {
+      // if a value is directly assigned to the directive, use this
+      // instead of the element content.
+      if (binding.value) {
+        target.textContent = binding.value
+      }
+      hljs.highlightBlock(target)
+    })
+  },
+  updated: function (el, binding) {
+    // after an update, re-fill the content and then highlight
+    let targets = el.querySelectorAll('code')
+    targets.forEach((target) => {
+      if (binding.value) {
+        target.textContent = binding.value
+        hljs.highlightBlock(target)
+      }
+    })
+  }
+})

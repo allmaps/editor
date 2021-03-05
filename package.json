@@ -11,32 +11,28 @@
   "dependencies": {
     "@allmaps/annotation": "^1.0.0-alpha.10",
     "@allmaps/transform": "^1.0.0-alpha.3",
-    "axios": "^0.21.1",
     "core-js": "^3.8.2",
-    "d3-geo": "^2.0.1",
-    "d3-tile": "^1.0.0",
     "highlight.js": "^10.5.0",
     "ol": "^6.5.0",
     "ot-json1": "^1.0.1",
     "perma": "^2.0.1",
-    "potpack": "^1.0.1",
     "ramda": "^0.27.1",
     "reconnecting-websocket": "^4.4.0",
-    "regl": "^2.0.1",
     "sharedb": "^1.7.0",
-    "vue": "^2.6.12",
-    "vue-router": "^3.4.9",
-    "vuex": "^3.6.2"
+    "vue": "^3.0.0-beta.1",
+    "vue-router": "^4.0.3",
+    "vuex": "^4.0.0-alpha.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.5.10",
     "@vue/cli-plugin-eslint": "^4.5.10",
     "@vue/cli-service": "^4.5.10",
+    "@vue/compiler-sfc": "^3.0.0-beta.1",
     "babel-eslint": "^10.1.0",
     "eslint": "^5.16.0",
-    "eslint-plugin-vue": "^5.0.0",
+    "eslint-plugin-vue": "^7.0.0-alpha.0",
     "push-dir": "^0.4.1",
-    "vue-template-compiler": "^2.6.12"
+    "vue-cli-plugin-yaml": "^1.0.2"
   },
   "eslintConfig": {
     "root": true,
@@ -44,7 +40,7 @@
       "node": true
     },
     "extends": [
-      "plugin:vue/essential",
+      "plugin:vue/vue3-essential",
       "eslint:recommended"
     ],
     "rules": {

@@ -2,46 +2,32 @@
   <header class="padding">
     <div class="menu">
       <h1>
-        <router-link :to="{name: 'home', query}">
+        <a href="https://allmaps.org/">
           <img alt="Allmaps"
             src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg" />
           <span>
             Allmaps
           </span>
-        </router-link>
+        </a>
       </h1>
       <ol>
-        <!-- <li>
-          <router-link :to="{name: 'preview', query}">preview</router-link>
-        </li> -->
         <li>
-          <router-link :to="{name: 'mask', query}">select &amp; mask</router-link>
+          <router-link :to="{name: 'home', query}">Collection</router-link>
         </li>
         <li>
-          <router-link :to="{name: 'georeference', query}">georeference</router-link>
+          <router-link :to="{name: 'mask', query}">Mask</router-link>
         </li>
-        <!-- <li>
-          <router-link :to="{name: 'results', query}">results</router-link>
-        </li> -->
+        <li>
+          <router-link :to="{name: 'georeference', query}">Georeference</router-link>
+        </li>
       </ol>
     </div>
-    <form @submit.prevent="handleSubmit">
-      <label>
-        <input type="text" placeholder="IIIF manifest or image URL"
-          v-model="inputUrl" />
-      </label>
-    </form>
   </header>
 </template>
 
 <script>
 export default {
   name: 'Header',
-  data () {
-    return {
-      inputUrl: this.$route.query.url
-    }
-  },
   computed: {
     query: function () {
       return {
@@ -67,6 +53,9 @@ export default {
 
 <style scoped>
 header {
+  /* position: absolute;
+  z-index: 999; */
+
   display: flex;
   flex-direction: row;
   align-items: center;

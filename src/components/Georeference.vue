@@ -29,6 +29,7 @@ import { fromLonLat } from 'ol/proj'
 
 import { deleteCondition } from '../lib/openlayers'
 import { randomId } from '../lib/id'
+import { createFullImageMap } from '../lib/map'
 import { round } from '../lib/functions'
 
 export default {
@@ -36,26 +37,14 @@ export default {
   props: {
     image: Object,
     showAnnotation: Boolean,
-
-    // lastMapsUpdateSource: String
   },
   components: {
     Sidebar
   },
   data () {
     return {
-      iiifPoints: [],
-      mapPoints: [],
-
-      iiifOl: undefined,
-      iiifSource: undefined,
-      iiifLayer: undefined,
-      iiifVector: undefined,
-
-      mapOl: undefined,
-      mapSource: undefined,
-      mapLayer: undefined,
-      mapVector: undefined,
+      singleIiifFeatures: [],
+      singleMapFeatures: [],
 
       dimensions: undefined
     }
@@ -63,7 +52,7 @@ export default {
   watch: {
     activeMapId: function () {
       this.iiifSource.changed()
-      this.updateGCPs(this.activeMap)
+      this.initalizeGCPs(this.activeMap)
     },
     showAnnotation: function () {
       window.setTimeout(this.onResize, 100)
@@ -74,9 +63,98 @@ export default {
   },
   methods: {
     ...mapActions('maps', [
-      'addMap',
-      'updateMap'
+      'insertMap',
+      'insertGcp',
+      'replaceGcp',
+      'removeGcp'
     ]),
+    onStoreMutation: function (mutation) {
+      if (mutation.payload.source === this.source) {
+        return
+      }
+
+      const mapId = mutation.payload.mapId
+
+      if (this.activeMapId !== mapId) {
+        return
+      }
+
+      const gcpId = mutation.payload.gcpId
+      const gcp = mutation.payload.gcp
+
+      if (mutation.type === 'maps/removeGcp') {
+        const iiifFeature = this.iiifSource.getFeatureById(gcpId)
+        const mapFeature = this.mapSource.getFeatureById(gcpId)
+
+        if (iiifFeature) {
+          this.iiifSource.removeFeature(iiifFeature)
+        }
+
+        if (mapFeature) {
+          this.mapSource.removeFeature(mapFeature)
+        }
+      } else if (mutation.type === 'maps/insertGcp' || mutation.type === 'maps/replaceGcp') {
+        const iiifFeature = this.iiifSource.getFeatureById(gcpId)
+        const mapFeature = this.mapSource.getFeatureById(gcpId)
+
+        if (gcp.image) {
+          const coordinates = gcp.image
+          if (iiifFeature) {
+            iiifFeature.getGeometry().setCoordinates([
+              coordinates[0],
+              -coordinates[1]
+            ])
+          } else {
+            const index = this.iiifSource.getFeatures().length
+
+            const iiifFeature = new Feature({
+              index,
+              geometry: new Point([
+                coordinates[0],
+                -coordinates[1]
+              ])
+            })
+
+            iiifFeature.setId(gcp.id)
+
+            if (!gcp.world) {
+              this.singleIiifFeatures.push(iiifFeature)
+            }
+
+            this.iiifSource.addFeature(iiifFeature)
+          }
+        }
+
+        if (gcp.world) {
+          const coordinates = gcp.world
+          if (mapFeature) {
+            mapFeature.getGeometry().setCoordinates(fromLonLat(coordinates))
+          } else {
+            const index = this.mapSource.getFeatures().length
+
+            const mapFeature = (new GeoJSON()).readFeature({
+              type: 'Feature',
+              id: gcp.id,
+              properties: {
+                index
+              },
+              geometry: {
+                type: 'Point',
+                coordinates
+              }
+            }, { featureProjection: 'EPSG:3857' })
+
+            mapFeature.setId(gcp.id)
+
+            if (!gcp.image) {
+              this.singleMapFeatures.push(mapFeature)
+            }
+
+            this.mapSource.addFeature(mapFeature)
+          }
+        }
+      }
+    },
     // prerender: function (event) {
     //   if (this.maps.length === 0) {
     //     return
@@ -101,9 +179,6 @@ export default {
     //   const ctx = event.context
     //   ctx.restore()
     // },
-    differentSource: function () {
-      return this.lastMapsUpdateSource !== this.$options.name
-    },
     onResize: function () {
       if (this.iiifOl && this.mapOl) {
         this.iiifOl.updateSize()
@@ -111,45 +186,75 @@ export default {
       }
     },
     pointDifference: function () {
-      const iiifPoints = this.iiifPoints || []
-      const mapPoints = this.mapPoints || []
+      const iiifFeatures = this.iiifSource.getFeatures()
+      const mapFeatures = this.mapSource.getFeatures()
 
-      return iiifPoints.length - mapPoints.length
+      return iiifFeatures.length - mapFeatures.length
     },
-    updateGCPs: function (map) {
+    gcpFromGcpId: function (gcpId) {
+      const iiifFeature = this.iiifSource.getFeatureById(gcpId)
+      const mapFeature = this.mapSource.getFeatureById(gcpId)
+
+      let iiifPoint
+      if (iiifFeature) {
+        iiifPoint = this.iiifFeatureToPoint(iiifFeature)
+      }
+
+      let mapPoint
+      if (mapFeature) {
+        mapPoint = this.mapFeatureToPoint(mapFeature)
+      }
+
+      return {
+        id: gcpId,
+        image: iiifPoint,
+        world: mapPoint
+      }
+    },
+    initalizeGCPs: function (map) {
       this.mapSource.clear()
       this.iiifSource.clear()
 
-      const gcps = (map && map.gcps) || []
+      this.singleIiifFeatures = []
+      this.singleMapFeatures = []
+
+      const gcps = (map && Object.values(map.gcps)) || []
 
       if (!gcps || gcps.length === 0) {
         return
       }
 
-      const iiifPoints = gcps.map((gcp) => gcp.image)
-      const mapPoints = gcps.map((gcp) => gcp.world)
-
-      const iiifFeatures = iiifPoints
-        .map((coordinates, index) => {
+      const iiifFeatures = gcps
+        .map((gcp, index) => {
+          const coordinates = gcp.image
           if (coordinates) {
-            return new Feature({
+            const feature = new Feature({
               index,
-              // id
               geometry: new Point([
                 coordinates[0],
                 -coordinates[1]
               ])
             })
+
+            feature.setId(gcp.id)
+
+            if (!gcp.world) {
+              this.singleIiifFeatures.push(feature)
+            }
+
+            return feature
           }
         })
         .filter((feature) => feature)
 
-      const mapFeatures = mapPoints
-        .map((coordinates, index) => {
+      const mapFeatures = gcps
+        .map((gcp, index) => {
+          const coordinates = gcp.world
+
           if (coordinates) {
-            return  (new GeoJSON()).readFeature({
+            const feature = (new GeoJSON()).readFeature({
               type: 'Feature',
-              // id
+              id: gcp.id,
               properties: {
                 index
               },
@@ -158,6 +263,14 @@ export default {
                 coordinates
               }
             }, { featureProjection: 'EPSG:3857' })
+
+            feature.setId(gcp.id)
+
+            if (!gcp.image) {
+              this.singleMapFeatures.push(feature)
+            }
+
+            return feature
           }
         })
         .filter((feature) => feature)
@@ -165,96 +278,186 @@ export default {
       this.iiifSource.addFeatures(iiifFeatures)
       this.mapSource.addFeatures(mapFeatures)
 
-      //   if (!this.lastMapsUpdateSource) {
-      const extent = this.mapSource.getExtent()
-      this.mapOl.getView().fit(extent, {
-        padding: [25, 25, 25, 25],
-        maxZoom: 18
-      })
+      if (mapFeatures.length > 0) {
+        const extent = this.mapSource.getExtent()
+        this.mapOl.getView().fit(extent, {
+          padding: [25, 25, 25, 25],
+          maxZoom: 18
+        })
+      }
+    },
+    iiifFeatureToPoint: function (feature) {
+      const coordinate = feature.getGeometry().getCoordinates()
+      return [
+        Math.round(coordinate[0]),
+        Math.round(-coordinate[1])
+      ]
+    },
+    mapFeatureToPoint: function (feature) {
+      const geometry = feature.getGeometry().clone()
+      geometry.transform('EPSG:3857', 'EPSG:4326')
 
+      // 7 decimal places should be enough...
+      // See https://gis.stackexchange.com/questions/8650/measuring-accuracy-of-latitude-and-longitude
+      return geometry.getCoordinates()
+        .map((coordinate) => round(coordinate, 7))
     },
     onEdited: function (event) {
       if (event.type === 'addfeature') {
         const feature = event.feature
+
+        if (feature.getId()) {
+          return
+        }
+
+        let gcpId
+        let newGcpId
+
+        const pointDifference = this.pointDifference()
+        if ((pointDifference > 0 && event.target === this.iiifSource) ||
+          (pointDifference < 0 && event.target === this.mapSource)) {
+          gcpId = randomId()
+          newGcpId = true
+
+          if (event.target === this.iiifSource) {
+            this.singleIiifFeatures.push(feature)
+          } else {
+            this.singleMapFeatures.push(feature)
+          }
+        } else {
+          if (event.target === this.iiifSource) {
+            const matchingMapFeature = this.singleMapFeatures.shift()
+            gcpId = matchingMapFeature.getId()
+          } else {
+            const matchingIiifFeature = this.singleIiifFeatures.shift()
+            gcpId = matchingIiifFeature.getId()
+          }
+        }
+
+        feature.setId(gcpId)
+
         const properties = feature.getProperties()
 
-        if (properties.index === undefined) {
-          const index = (this.activeMap && this.activeMap.gcps && this.activeMap.gcps.length) || 0
-          feature.setProperties({
-            index
-          })
-        }
-      }
-
-      const iiifFeatures = this.iiifVector.getSource().getFeatures()
-      const mapFeatures = this.mapVector.getSource().getFeatures()
-
-      if (iiifFeatures.length) {
-        const iiifPoints = iiifFeatures
-          .map((feature) => {
-            const coordinate = feature.getGeometry().getCoordinates()
-            return [
-              Math.round(coordinate[0]),
-              Math.round(-coordinate[1])
-            ]
-          })
-
-        this.iiifPoints = iiifPoints
-      }
-
-      if (mapFeatures.length) {
-        const mapPoints = mapFeatures
-          .map((feature) => {
-            const geometry = feature.getGeometry().clone()
-            geometry.transform('EPSG:3857', 'EPSG:4326')
-            return geometry.getCoordinates()
-              .map((coordinate) => round(coordinate))
-          })
-
-        this.mapPoints = mapPoints
-      }
-
-
-      if (this.pointDifference() === 0) {
-        const gcps = this.iiifPoints.map((iiifPoint, index) => ({
-          image: iiifPoint,
-          world: this.mapPoints[index]
-        }))
-
-        const imageId = this.image.id
-        const imageDimensions = [
-          this.image.width,
-          this.image.height
-        ]
-
-        const mapId = this.activeMapId || randomId()
-
-        let pixelMask
-        if (this.activeMap && this.activeMap.pixelMask && this.activeMap.pixelMask.length) {
-          pixelMask = this.activeMap.pixelMask
+        let index
+        if (event.target === this.iiifSource) {
+          index = this.iiifSource.getFeatures().length - 1
         } else {
-          pixelMask = [
-            [0, 0],
-            [0, imageDimensions[1]],
-            imageDimensions,
-            [imageDimensions[0], 0],
-            [0, 0]
-          ]
+          index = this.mapSource.getFeatures().length - 1
         }
 
-        const map = {
-          id: mapId,
-          gcps,
-          imageId,
-          pixelMask
-        }
+        feature.setProperties({
+          index
+        })
+
+        const gcp = this.gcpFromGcpId(gcpId)
 
         if (this.activeMapId) {
-          this.updateMap(map)
+          const mapId = this.activeMapId
+
+          if (newGcpId) {
+            this.insertGcp({ mapId, gcpId, gcp, source: this.source })
+          } else {
+
+            this.replaceGcp({ mapId, gcpId, gcp, source: this.source })
+          }
         } else {
-          this.addMap(map)
+          const map = createFullImageMap(this.image)
+          const { id: mapId, imageId, pixelMask } = map
+
+          const gcps = {
+            [gcpId]: gcp
+          }
+
+          this.insertMap({ mapId, imageId, pixelMask, gcps, source: this.source })
+        }
+      } else if (event.type === 'modifyend') {
+        const mapId = this.activeMapId
+
+        const feature = event.features.item(0)
+        const gcpId = feature.getId()
+
+        if (!gcpId) {
+          console.error('GCP without ID encountered')
+        } else {
+          const gcp = this.gcpFromGcpId(gcpId)
+          this.replaceGcp({ mapId, gcpId, gcp, source: this.source })
         }
       }
+
+      // const iiifFeatures = this.iiifVector.getSource().getFeatures()
+      // const mapFeatures = this.mapVector.getSource().getFeatures()
+
+      // if (iiifFeatures.length) {
+      //   const iiifPoints = iiifFeatures
+      //     .map((feature) => {
+      //       const coordinate = feature.getGeometry().getCoordinates()
+      //       return [
+      //         Math.round(coordinate[0]),
+      //         Math.round(-coordinate[1])
+      //       ]
+      //     })
+
+      //   this.iiifPoints = iiifPoints
+      // }
+
+      // if (mapFeatures.length) {
+      //   const mapPoints = mapFeatures
+      //     .map((feature) => {
+      //       const geometry = feature.getGeometry().clone()
+      //       geometry.transform('EPSG:3857', 'EPSG:4326')
+      //       return geometry.getCoordinates()
+      //         .map((coordinate) => round(coordinate))
+      //     })
+
+      //   this.mapPoints = mapPoints
+      // }
+
+      // if (this.pointDifference() === 0) {
+      //   const gcps = this.iiifPoints.map((iiifPoint, index) => ({
+      //     image: iiifPoint,
+      //     world: this.mapPoints[index]
+      //   }))
+
+      //   if (this.activeMapId) {
+
+      //   } else {
+
+      //   }
+
+      //   const imageId = this.image.id
+      //   const imageDimensions = [
+      //     this.image.width,
+      //     this.image.height
+      //   ]
+
+      //   const mapId = this.activeMapId || randomId()
+
+      //   let pixelMask
+      //   if (this.activeMap && this.activeMap.pixelMask && this.activeMap.pixelMask.length) {
+      //     pixelMask = this.activeMap.pixelMask
+      //   } else {
+      //     pixelMask = [
+      //       [0, 0],
+      //       [0, imageDimensions[1]],
+      //       imageDimensions,
+      //       [imageDimensions[0], 0],
+      //       [0, 0]
+      //     ]
+      //   }
+
+      //   const map = {
+      //     id: mapId,
+      //     gcps,
+      //     imageId,
+      //     pixelMask
+      //   }
+
+      //   if (this.activeMapId) {
+      //     this.insertMap(map)
+      //   } else {
+      //     this.addMap(map)
+      //   }
+      // }
     },
     updateImage: function (image) {
       if (!image || !image.iiif) {
@@ -322,7 +525,10 @@ export default {
     ...mapGetters('maps', {
       maps: 'mapsForActiveImage',
       activeMap: 'activeMap'
-    })
+    }),
+    source: function () {
+      return this.$options.name
+    }
   },
   mounted: function () {
     this.iiifLayer = new TileLayer()
@@ -340,6 +546,7 @@ export default {
 
     this.mapLayer = new TileLayer({
       source: new XYZ({
+        // TODO: move to config
         url: 'https://a.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png'
       })
     })
@@ -359,48 +566,57 @@ export default {
       })
     })
 
-    const iiifModify = new Modify({
+    this.iiifModify = new Modify({
       source: this.iiifSource,
       deleteCondition
     })
 
-    const mapModify = new Modify({
+    this.mapModify = new Modify({
       source: this.mapSource,
       deleteCondition
     })
 
-    this.iiifOl.addInteraction(iiifModify)
-    this.mapOl.addInteraction(mapModify)
+    this.iiifOl.addInteraction(this.iiifModify)
+    this.mapOl.addInteraction(this.mapModify)
 
     const iiifDraw = new Draw({
       source: this.iiifSource,
-      type: 'Point',
-      // condition: () =>
-      //   this.pointDifference() === 0 || this.pointDifference() === -1
+      type: 'Point'
     })
 
     const mapDraw = new Draw({
       source: this.mapSource,
-      type: 'Point',
-      // condition: () =>
-      //   this.pointDifference() === 0 || this.pointDifference() === 1
+      type: 'Point'
     })
 
     this.iiifOl.addInteraction(iiifDraw)
-
     this.mapOl.addInteraction(mapDraw)
 
     this.iiifSource.on('addfeature', this.onEdited)
-    iiifModify.on('modifyend', this.onEdited)
+    this.iiifModify.on('modifyend', this.onEdited)
 
     this.mapSource.on('addfeature', this.onEdited)
-    mapModify.on('modifyend', this.onEdited)
+    this.mapModify.on('modifyend', this.onEdited)
 
-    this.iiifLayer.on('prerender', this.prerender)
-    this.iiifLayer.on('postrender', this.postrender)
+    // this.iiifLayer.on('prerender', this.prerender)
+    // this.iiifLayer.on('postrender', this.postrender)
+
+    this.storeUnsubscribe = this.$store.subscribe(this.onStoreMutation)
 
     this.updateImage(this.image)
-    this.updateGCPs(this.activeMap)
+    this.initalizeGCPs(this.activeMap)
+  },
+  beforeUnmount: function () {
+    this.iiifSource.un('addfeature', this.onEdited)
+    this.iiifModify.un('modifyend', this.onEdited)
+
+    this.mapSource.un('addfeature', this.onEdited)
+    this.mapModify.un('modifyend', this.onEdited)
+
+    // this.iiifLayer.un('prerender', this.prerender)
+    // this.iiifLayer.un('postrender', this.postrender)
+
+    this.storeUnsubscribe()
   }
 }
 </script>

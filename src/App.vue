@@ -3,11 +3,11 @@
     <Header />
     <!-- TODO: check ERROR -->
     <main>
-      <template v-if="$route.name === 'preview'">
+      <!-- <template v-if="$route.name === 'preview'">
         <Preview :image="image"
           :showAnnotation="showAnnotation" />
-      </template>
-      <template v-else-if="$route.name === 'mask'">
+      </template> -->
+      <template v-if="$route.name === 'mask'">
         <PixelMask :image="image"
           :lastMapsUpdateSource="lastMapsUpdateSource"
           :showAnnotation="showAnnotation" />
@@ -25,23 +25,20 @@
       </template> -->
       <template v-else>
         <Home class="padding"
+          :mapCollections="mapCollections"
           :images="images" />
       </template>
       <transition name="slide">
         <template v-if="showAnnotation">
           <Annotation class="annotation"
-            :image="image"
             :annotation="annotation" />
         </template>
       </transition>
     </main>
-    <Footer :showAnnotation.sync="showAnnotation"
+    <Footer v-model:showAnnotation="showAnnotation"
       @copy-annotation="copyAnnotation"
       @download-annotation="downloadAnnotation"
       @save-annotation="saveAnnotation"
-
-      :numClicks="numClicks"
-      @vis="vis"
 
       :images="images"
       :activeImageId="activeImageId" />
@@ -52,27 +49,28 @@
 <style src='highlight.js/styles/sunburst.css'></style>
 
 <script>
-import Vue from 'vue'
 import { mapState, mapActions, mapGetters } from 'vuex'
 
 import Header from './components/Header.vue'
 import Footer from './components/Footer.vue'
 
 import Home from './components/Home.vue'
-import Preview from './components/Preview.vue'
 import Georeference from './components/Georeference.vue'
 import PixelMask from './components/PixelMask.vue'
-import Results from './components/Results.vue'
 import Annotation from './components/Annotation.vue'
 
 import { generate } from '@allmaps/annotation'
 
+import mapCollections from '../../iiif-map-collections/iiif-map-collections.yml'
+
 // SHAREDB
+const WS_API_URL = process.env.VUE_APP_WS_API_URL
 import ReconnectingWebSocket from 'reconnecting-websocket'
 import ShareDB from 'sharedb/lib/client'
 const json1 = require('ot-json1')
 // SHAREDB
 
+import { parseOperations } from './lib/json1-operations'
 import { getIIIF } from './lib/iiif'
 import { save } from './lib/api'
 
@@ -84,98 +82,196 @@ export default {
     Header,
     Footer,
     Home,
-    Preview,
     Georeference,
     PixelMask,
-    // Results,
     Annotation
   },
   data () {
     return {
       iiifType: undefined,
       manifest: undefined,
+
       images: {},
-      maps: {},
       sortedImageIds: [],
 
       lastMapsUpdateSource: undefined,
 
       showAnnotation: false,
       error: undefined,
-      numClicks: 0
+      numClicks: 0,
+
+      mapCollections,
+      loading: true
     }
   },
   methods: {
     ...mapActions('ui', [
       'setActiveImageId'
     ]),
-    vis: function () {
-      this.increment()
-    },
-    showNumbers: function () {
-      console.log('numClicks', this.doc.data.numClicks)
-      this.numClicks = this.doc.data.numClicks
-    },
-    increment: function () {
-      // Increment `doc.data.numClicks`. See
-      // https://github.com/ottypes/json1/blob/master/spec.md for list of valid operations.
-      this.doc.submitOp(['numClicks', {ena: 1}])
-    },
 
+    ...mapActions('maps', [
+      'setMaps',
+      'insertMap',
+      'removeMap',
+      'insertPixelMaskPoint',
+      'removePixelMaskPoint',
+      'replacePixelMaskPoint',
+      'insertGcp',
+      'replaceGcp',
+      'removeGcp'
+    ]),
+
+    initializeDoc: function () {
+      const source = 'ShareDB'
+
+      if (!this.doc.version) {
+        this.doc.create({}, json1.type.name)
+      }
+
+      // TODO: we now have two versions of the maps data
+      // 1 in the ShareDB doc, one in the Vuex store
+      // This needs to be merged into one!
+      // For now:
+      const maps = JSON.parse(JSON.stringify(this.doc.data))
+
+      // either don't allow editing before share db is initialized,
+      // or merge the 2 set of maps
+
+      this.setMaps({ maps, source })
+      this.loading = false
+    },
+    getDoc: function () {
+      if (this.doc) {
+        this.doc.destroy()
+      }
+
+      try {
+        this.doc = this.connection.get('images', this.activeImageId)
+      } catch (err) {
+        console.error('vissen', err)
+      }
+
+      this.doc.subscribe(this.initializeDoc)
+      this.doc.on('op', this.remoteOperation)
+    },
+    remoteOperation: function (op, localOperation) {
+      if (!localOperation && op) {
+        // remote operation from server
+
+        const source = 'ShareDB'
+
+        const operations = parseOperations(op)
+
+        operations.forEach(({ mapId, type, key, instructions }) => {
+          if (type === 'map' && instructions.i) {
+            const { imageId, pixelMask, gcps } = instructions.i
+
+            this.insertMap({
+              mapId,
+              imageId,
+              pixelMask,
+              gcps,
+              source
+            })
+          } else if (type === 'map' && instructions.r) {
+            this.removeMap({ mapId, source })
+          } else if (type === 'pixelMask') {
+            const index = key
+            const pixelMaskPoint = instructions.i
+
+            if (instructions.r && pixelMaskPoint) {
+              this.replacePixelMaskPoint({
+                mapId, index, pixelMaskPoint, source
+              })
+            } else if (pixelMaskPoint) {
+              this.insertPixelMaskPoint({
+                mapId, index, pixelMaskPoint, source
+              })
+            } else if (instructions.r) {
+              this.removePixelMaskPoint({
+                mapId, index, pixelMaskPoint, source
+              })
+            }
+          } else if (type === 'gcps') {
+            const gcpId = key
+            const gcp = instructions.i
+
+            if (instructions.r && gcp) {
+              this.replaceGcp({
+                mapId, gcpId, gcp, source
+              })
+            } else if (gcp) {
+              this.insertGcp({
+                mapId, gcpId, gcp, source
+              })
+            } else if (instructions.r) {
+              this.removeGcp({
+                mapId, gcpId, source
+              })
+            }
+          }
+        })
+      }
+    },
+    onStoreMutation: function (mutation) {
+      if (mutation.payload.source === 'ShareDB') {
+        return
+      }
+
+      if (mutation.type === 'maps/insertMap') {
+        const { mapId, map } = mutation.payload
+        this.doc.submitOp(json1.insertOp([mapId], map))
+      } else if (mutation.type === 'maps/removeMap') {
+        const { mapId } = mutation.payload
+        this.doc.submitOp(json1.removeOp([mapId]))
+      } else if (mutation.type === 'maps/insertPixelMaskPoint') {
+        const { mapId, index, pixelMaskPoint} = mutation.payload
+        this.doc.submitOp(json1.insertOp([mapId, 'pixelMask', index], pixelMaskPoint))
+      } else if (mutation.type === 'maps/removePixelMaskPoint') {
+        const { mapId, index, pixelMaskPoint} = mutation.payload
+        this.doc.submitOp(json1.removeOp([mapId, 'pixelMask', index], pixelMaskPoint))
+      } else if (mutation.type === 'maps/replacePixelMaskPoint') {
+        const { mapId, index, pixelMaskPoint} = mutation.payload
+        // TODO: replace true with oldVal
+        this.doc.submitOp(json1.replaceOp([mapId, 'pixelMask', index], true, pixelMaskPoint))
+      } else if (mutation.type === 'maps/insertGcp') {
+        const { mapId, gcpId, gcp} = mutation.payload
+        // if (gcp.image && gcp.world) {
+          this.doc.submitOp(json1.insertOp([mapId, 'gcps', gcpId], gcp))
+        // }
+      } else if (mutation.type === 'maps/replaceGcp') {
+        const { mapId, gcpId, gcp} = mutation.payload
+        // if (gcp.image && gcp.world) {
+          // TODO: replace true with oldVal
+          this.doc.submitOp(json1.replaceOp([mapId, 'gcps', gcpId], true, gcp))
+        // }
+      } else if (mutation.type === 'maps/removeGcp') {
+        const { mapId, gcpId, gcp} = mutation.payload
+        // if (gcp.image && gcp.world) {
+          this.doc.submitOp(json1.removeOp([mapId, 'gcps', gcpId]))
+        // }
+      }
+    },
     goToRoute: function (name) {
       this.$router.push({name, query: this.$route.query})
     },
-    mapsUpdate: function ({source, maps}) {
-      this.lastMapsUpdateSource = source
-
-      Object.entries(maps)
-        .forEach(([id, map]) => {
-          const updatedMap = {
-            ...this.maps[id],
-            ...map
-          }
-
-          let geoMask
-          if (map.gcps || map.pixelMask) {
-            geoMask = this.computeGeoMask(updatedMap)
-          }
-
-          Vue.set(this.maps, id, {
-            id,
-            ...updatedMap,
-            geoMask
-          })
-        })
-
-      const editedMapIds = Object.keys(maps)
-      this.selectedMapId = editedMapIds[0]
-    },
-    // mapDelete: function ({source, id}) {
-    //   this.lastMapsUpdateSource = source
-    //   Vue.delete(this.maps, id)
-    // },
-    // mapSelect: function ({source, id}) {
-    //   this.lastMapsUpdateSource = source
-    //   this.selectedMapId = id
-    // },
     updateIiif: async function (url) {
       try {
-        const {iiifType, manifest, images, maps} = await getIIIF(url)
+        const { iiifType, manifest, images } = await getIIIF(url)
 
         this.iiifType = iiifType
         this.manifest = manifest
         this.images = images
         this.lastMapsUpdateSource = undefined
-        this.maps = maps
 
         this.sortedImageIds = Object.values(this.images)
           .map(({id, index}) => ({id, index}))
           .sort((a, b) => a.index - b.index)
 
         if (this.$route.query.image) {
-          this.setActiveImageId(this.$route.query.image)
+          this.setActiveImageId({ imageId: this.$route.query.image })
         } else {
-          this.setActiveImageId(this.sortedImageIds[0].id)
+          this.setActiveImageId({ imageId: this.sortedImageIds[0].id })
         }
       } catch (err) {
         // TODO: fix!
@@ -276,7 +372,8 @@ export default {
   },
   computed: {
     ...mapState({
-      activeImageId: (state) => state.ui.activeImageId
+      activeImageId: (state) => state.ui.activeImageId,
+      maps: (state) => state.maps.maps
     }),
     annotation: function () {
       const maps = Object.values(this.maps)
@@ -290,15 +387,14 @@ export default {
           const imageServiceId = image.uri
 
           return {
+            ...map,
+            pixelMask: [...map.pixelMask, map.pixelMask[0]],
+            gcps: Object.values(map.gcps),
             imageDimensions,
             imageServiceId,
-            ...map
           }
         })
 
-
-      // imageDimensions
-      // imageServiceId
       return generate(maps)
     },
     annotationString: function () {
@@ -321,7 +417,10 @@ export default {
       this.updateIiif(url)
     },
     '$route.query.image': function (imageId) {
-      this.setActiveImageId(imageId)
+      this.setActiveImageId({ imageId })
+    },
+    activeImageId: function () {
+      this.getDoc()
     }
   },
   mounted: async function () {
@@ -331,23 +430,23 @@ export default {
 
     window.addEventListener('keypress', this.keyPressHandler)
 
-
-    const rws = new ReconnectingWebSocket('ws://localhost:8080')
+    this.rws = new ReconnectingWebSocket(WS_API_URL)
     ShareDB.types.register(json1.type)
-    const connection = new ShareDB.Connection(rws)
+    this.connection = new ShareDB.Connection(this.rws)
 
-
-    const doc = connection.get('examples', 'counter')
-    this.doc = doc
-    doc.subscribe(this.showNumbers)
-    doc.on('op', this.showNumbers)
-
-
+    this.storeUnsubscribe = this.$store.subscribe(this.onStoreMutation)
   },
-  beforeDestroy: function () {
+  beforeUnmount: function () {
     window.removeEventListener('keypress', this.keyPressHandler)
-    // doc unsubscribe
-    // connection disconnect
+
+    this.storeUnsubscribe()
+
+    if (this.doc) {
+      this.doc.destroy()
+    }
+
+    this.connection.close()
+    this.rws.close()
   }
 }
 </script>
@@ -396,6 +495,7 @@ main p a, main ul a, main ol a {
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100%;
   max-height: 100%;
   min-height: 100%;
 }
@@ -460,8 +560,7 @@ button.primary:hover {
   transition: width .05s;
 }
 
-.slide-enter, .slide-leave-to {
+.slide-enter-from, .slide-leave-to {
   width: 0;
 }
-
 </style>

@@ -6,8 +6,7 @@
 export default {
   name: 'Annotation',
   props: {
-    annotation: Object,
-    image: Object
+    annotation: Object
   },
   computed: {
     annotationString: function () {

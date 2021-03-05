@@ -16,33 +16,33 @@ function toObjectById (arr) {
 }
 
 async function getMapsFromManifestApi (id) {
-  try {
-    const apiManifest = await fetchManifest(id)
+  // try {
+  //   const apiManifest = await fetchManifest(id)
 
-    const maps = apiManifest.images
-      .map((apiImage) => apiImage.maps
-        .map((map) => ({imageId: apiImage.id, ...map})))
-      .flat()
+  //   const maps = apiManifest.images
+  //     .map((apiImage) => apiImage.maps
+  //       .map((map) => ({imageId: apiImage.id, ...map})))
+  //     .flat()
 
-    return toObjectById(maps)
-  } catch (err) {
-    console.log(`Can't connect to allmaps API`)
-  }
+  //   return toObjectById(maps)
+  // } catch (err) {
+  //   console.log(`Can't connect to allmaps API`)
+  // }
 
   return {}
 }
 
 async function getMapsFromImageApi (id) {
-  try {
-    const apiImage = await fetchImage(id)
+  // try {
+  //   const apiImage = await fetchImage(id)
 
-    const maps = apiImage.maps
-      .map((map) => ({imageId: id, ...map}))
+  //   const maps = apiImage.maps
+  //     .map((map) => ({imageId: id, ...map}))
 
-    return toObjectById(maps)
-  } catch (err) {
-    console.log(`Can't connect to allmaps API`)
-  }
+  //   return toObjectById(maps)
+  // } catch (err) {
+  //   console.log(`Can't connect to allmaps API`)
+  // }
 
   return {}
 }
