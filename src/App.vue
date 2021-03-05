@@ -61,7 +61,7 @@ import Annotation from './components/Annotation.vue'
 
 import { generate } from '@allmaps/annotation'
 
-import mapCollections from '../../iiif-map-collections/iiif-map-collections.yml'
+// import mapCollections from '../../iiif-map-collections/iiif-map-collections.yml'
 
 // SHAREDB
 const WS_API_URL = process.env.VUE_APP_WS_API_URL
@@ -100,7 +100,7 @@ export default {
       error: undefined,
       numClicks: 0,
 
-      mapCollections,
+      mapCollections: [],
       loading: true
     }
   },
