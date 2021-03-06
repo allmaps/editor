@@ -362,13 +362,13 @@ export default {
           }
         } else {
           const map = createFullImageMap(this.image)
-          const { id: mapId, imageId, pixelMask } = map
+          const { id: mapId, image, pixelMask } = map
 
           const gcps = {
             [gcpId]: gcp
           }
 
-          this.insertMap({ mapId, imageId, pixelMask, gcps, source: this.source })
+          this.insertMap({ mapId, image, pixelMask, gcps, source: this.source })
         }
       } else if (event.type === 'modifyend') {
         const mapId = this.activeMapId

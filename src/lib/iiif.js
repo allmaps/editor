@@ -124,8 +124,7 @@ async function initializeImage (manifestImage, canvas, manifestId) {
     uri,
     canvasUri,
     label,
-    width,
-    height,
+    dimensions: [width, height],
     iiif: image
   }
 }
@@ -165,10 +164,6 @@ async function getImages (manifest, manifestId) {
   } catch (err) {
     console.log(err)
   }
-}
-
-export function getDimensions (image) {
-  return [image.width, image.height]
 }
 
 export function getProfileLevel (profileUri) {
@@ -211,7 +206,7 @@ export function getSizes (image, width = 100) {
 
 export function getThumbnailUrls (image, thumbnailWidth = 100) {
   const sizes = getSizes(image)
-  const dimensions = getDimensions(image)
+  const dimensions = image.dimensions
 
   const baseUrl = image['@id']
   const suffix = `0/${getQuality(image)}.${getFormat(image)}`

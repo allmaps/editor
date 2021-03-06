@@ -164,11 +164,10 @@ export default {
 
         operations.forEach(({ mapId, type, key, instructions }) => {
           if (type === 'map' && instructions.i) {
-            const { imageId, pixelMask, gcps } = instructions.i
-
+            const { image, pixelMask, gcps } = instructions.i
             this.insertMap({
               mapId,
-              imageId,
+              image,
               pixelMask,
               gcps,
               source
@@ -378,20 +377,12 @@ export default {
     annotation: function () {
       const maps = Object.values(this.maps)
         .map((map) => {
-          const image = this.images[map.imageId]
-          const imageDimensions = [
-            image.width,
-            image.height
-          ]
-
-          const imageServiceId = image.uri
 
           return {
             ...map,
             pixelMask: [...map.pixelMask, map.pixelMask[0]],
             gcps: Object.values(map.gcps),
-            imageDimensions,
-            imageServiceId,
+            image: map.image
           }
         })
 

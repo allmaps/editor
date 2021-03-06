@@ -33,7 +33,7 @@ const getters = {
     const activeImageId = rootState.ui.activeImageId
 
     return Object.keys(state.maps)
-      .filter((id) => state.maps[id].imageId === activeImageId)
+      .filter((id) => state.maps[id].image.id === activeImageId)
       .reduce((maps, id) => ({
         ...maps,
         [id]: state.maps[id]
@@ -50,10 +50,11 @@ const actions = {
       makeMapActive(rootState, firstMapId, commit)
     }
   },
-  insertMap ({ state, commit, rootState }, { mapId, imageId, pixelMask = [], gcps = {}, source }) {
+  insertMap ({ state, commit, rootState }, { mapId, pixelMask = [], gcps = {}, image, source }) {
     const map = {
+      version: 1,
       id: mapId,
-      imageId,
+      image,
       pixelMask,
       gcps
     }

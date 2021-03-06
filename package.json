@@ -9,7 +9,7 @@
     "deploy": "npm run build; push-dir --dir=dist --branch=gh-pages --cleanup"
   },
   "dependencies": {
-    "@allmaps/annotation": "^1.0.0-alpha.10",
+    "@allmaps/annotation": "^1.0.0-alpha.11",
     "@allmaps/transform": "^1.0.0-alpha.3",
     "axios": "^0.21.1",
     "core-js": "^3.8.2",

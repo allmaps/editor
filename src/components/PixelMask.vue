@@ -173,7 +173,11 @@ export default {
 
         this.insertMap({
           mapId,
-          imageId: this.image.id,
+          image: {
+            id: this.image.id,
+            uri: this.image.uri,
+            dimensions: [...this.image.dimensions]
+          },
           pixelMask: this.featurePolygon(feature),
           source: this.source
         })
