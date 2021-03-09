@@ -1,29 +1,27 @@
 <template>
   <header class="padding">
-
-      <h1 class="menu-icon">
-        <a href="https://allmaps.org/">
-          <img alt="Allmaps"
-            src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg" />
-        </a>
-      </h1>
-      <ol>
-        <li>
-          <router-link class="collection" :to="{name: 'home', query}">Collection</router-link>
-        </li>
-        <li>
-          <router-link class="mask" :to="{name: 'mask', query}">Mask</router-link>
-        </li>
-        <li>
-          <router-link class="georeference" :to="{name: 'georeference', query}">Georeference</router-link>
-        </li>
-        <li>
-          <router-link class="results" :to="{name: 'results', query}">Results</router-link>
-        </li>
-      </ol>
-      <div class="menu-icon">
-      </div>
-
+    <h1 class="menu-icon">
+      <a href="https://allmaps.org/">
+        <img alt="Allmaps"
+          src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg" />
+      </a>
+    </h1>
+    <ol>
+      <li>
+        <router-link class="collection" :to="{name: 'home', query}">Collection</router-link>
+      </li>
+      <li>
+        <router-link class="mask" :to="{name: 'mask', query}">Mask</router-link>
+      </li>
+      <li>
+        <router-link class="georeference" :to="{name: 'georeference', query}">Georeference</router-link>
+      </li>
+      <li>
+        <router-link class="results" :to="{name: 'results', query}">Results</router-link>
+      </li>
+    </ol>
+    <div class="menu-icon">
+    </div>
   </header>
 </template>
 

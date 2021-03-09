@@ -1,15 +1,16 @@
-import { createStore } from 'vuex'
+import Vue from 'vue'
+import Vuex from 'vuex'
 
 import maps from './modules/maps'
 import ui from './modules/ui'
 import iiif from './modules/iiif'
 
-// const debug = process.env.NODE_ENV !== 'production'
+Vue.use(Vuex)
 
-export default createStore({
+export default new Vuex.Store({
   modules: {
     maps,
     ui,
     iiif
   }
-});
+})

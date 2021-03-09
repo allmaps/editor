@@ -37,11 +37,11 @@
       <button @click="$emit('copy-annotation')">Copy</button>
       <button @click="$emit('download-annotation')">Download</button>
       <!-- <button v-if="hasToken" @click="$emit('save-annotation')">Save</button> -->
-      <button :style="{
+      <!-- <button :style="{
         //width: '150px'
       }" class="primary" @click="$emit('update:showAnnotation', !showAnnotation)">
         {{ showAnnotation ? 'Hide Annotation' : 'Show Annotation' }}
-      </button>
+      </button> -->
     </div>
   </footer>
 </template>

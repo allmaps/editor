@@ -1,5 +1,4 @@
 const state = () => ({
-  showAnnotation: false,
   lastError: undefined,
   activeImageId: undefined,
   activeMapId: undefined

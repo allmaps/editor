@@ -407,7 +407,7 @@ export default {
 
     this.storeUnsubscribe = this.$store.subscribe(this.onStoreMutation)
   },
-  beforeUnmount: function () {
+  beforeDestroy: function () {
     window.removeEventListener('keypress', this.keyPressHandler)
 
     this.storeUnsubscribe()
