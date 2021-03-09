@@ -1,27 +1,29 @@
 <template>
   <header class="padding">
-    <div class="menu">
-      <h1>
+
+      <h1 class="menu-icon">
         <a href="https://allmaps.org/">
           <img alt="Allmaps"
             src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg" />
-          <span>
-            Allmaps
-          </span>
         </a>
       </h1>
       <ol>
         <li>
-          <router-link :to="{name: 'home', query}">Collection</router-link>
+          <router-link class="collection" :to="{name: 'home', query}">Collection</router-link>
         </li>
         <li>
-          <router-link :to="{name: 'mask', query}">Mask</router-link>
+          <router-link class="mask" :to="{name: 'mask', query}">Mask</router-link>
         </li>
         <li>
-          <router-link :to="{name: 'georeference', query}">Georeference</router-link>
+          <router-link class="georeference" :to="{name: 'georeference', query}">Georeference</router-link>
+        </li>
+        <li>
+          <router-link class="results" :to="{name: 'results', query}">Results</router-link>
         </li>
       </ol>
-    </div>
+      <div class="menu-icon">
+      </div>
+
   </header>
 </template>
 
@@ -53,8 +55,9 @@ export default {
 
 <style scoped>
 header {
-  /* position: absolute;
-  z-index: 999; */
+  position: absolute;
+  z-index: 999;
+  width: 100%;
 
   display: flex;
   flex-direction: row;
@@ -68,6 +71,10 @@ header {
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+}
+
+.menu-icon {
+  width: 50px;
 }
 
 h1 {
@@ -103,8 +110,25 @@ ol, ol li {
   padding: 0;
 }
 
-ol li, form {
-  padding-left: 1em;
+ol li a {
+  width: 160px;
+  display: inline-block;
+  background-color: white;
+
+  border-color: rgb(221, 221, 221);
+  border-width: 3px;
+  border-style: solid;
+
+  padding: 0.8em 0.5em;
+  text-align: center;
+}
+
+ol li:first-child a {
+  border-radius: 999px 0 0 999px;
+}
+
+ol li:last-child a {
+  border-radius: 0 999px 999px 0;
 }
 
 h1 a, ol li a, ol li a:visited {
@@ -112,10 +136,27 @@ h1 a, ol li a, ol li a:visited {
 }
 
 a.router-link-exact-active  {
-  text-decoration: underline;
+  /* text-decoration: underline; */
 }
 
-form, form input {
-  width: 100%;
+a.router-link-exact-active.collection {
+  background-color: var(--blue-1);
+  border-color: var(--blue-2);
 }
+
+a.router-link-exact-active.mask {
+  background-color: var(--purple-1);
+  border-color: var(--purple-2);
+}
+
+a.router-link-exact-active.georeference {
+  background-color: var(--green-1);
+  border-color: var(--green-2);
+}
+
+a.router-link-exact-active.results {
+  background-color: var(--yellow-1);
+  border-color: var(--yellow-2);
+}
+
 </style>

@@ -1,14 +1,11 @@
 <template>
   <div class="container">
-    <Sidebar />
-    <div id="iiif" class="iiif"></div>
+    <div id="iiif" class="iiif zoom-controls-bottom-left"></div>
   </div>
 </template>
 
 <script>
 import { mapState, mapActions, mapGetters } from 'vuex'
-
-import Sidebar from './Sidebar.vue'
 
 import Map from 'ol/Map'
 import Feature from 'ol/Feature'
@@ -28,11 +25,7 @@ import { deleteCondition } from '../lib/openlayers'
 export default {
   name: 'PixelMask',
   props: {
-    image: Object,
-    showAnnotation: Boolean,
-  },
-  components: {
-    Sidebar
+    image: Object
   },
   data () {
     return {
@@ -43,9 +36,6 @@ export default {
     activeMapId: function () {
       this.updateStyles()
       this.initializePixelMasks(this.maps)
-    },
-    showAnnotation: function () {
-      window.setTimeout(this.onResize, 100)
     },
     image: function () {
       this.updateImage(this.image)
@@ -245,7 +235,7 @@ export default {
 
       this.iiifOl.getView().fit(iiifTileSource.getTileGrid().getExtent(), {
         // TODO: move to settings file
-        padding: [10, 10, 10, 10]
+        padding: [30 + 40 + 20, 10, 30 + 40 + 20, 10]
       })
     },
     polygonToMask: function (polygon) {
@@ -356,9 +346,10 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: row;
+  background-color: var(--purple-4);
 }
 
-#iiif {
+.iiif {
   width: 100%;
   height: 100%;
   padding: 2px;

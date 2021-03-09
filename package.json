@@ -12,6 +12,7 @@
     "@allmaps/annotation": "^1.0.0-alpha.11",
     "@allmaps/transform": "^1.0.0-alpha.3",
     "axios": "^0.21.1",
+    "buefy": "^0.9.4",
     "core-js": "^3.8.2",
     "highlight.js": "^10.5.0",
     "ol": "^6.5.0",

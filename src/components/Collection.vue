@@ -1,5 +1,5 @@
 <template>
-  <div class="text">
+  <div class="container text">
     <div v-if="Object.keys(images).length">
       <ol class="images">
         <li v-for="(image, id) in images" :key="id"
@@ -64,7 +64,7 @@ import { mapState } from 'vuex'
 import { getThumbnailUrls } from '../lib/iiif'
 
 export default {
-  name: 'Home',
+  name: 'Collection',
   props: {
     images: Object,
     mapCollections: Array
@@ -109,6 +109,10 @@ export default {
 </script>
 
 <style scoped>
+.container {
+  background-color: var(--blue-4);
+}
+
 .text {
   width: 100%;
   position: relative;

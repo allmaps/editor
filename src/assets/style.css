@@ -1,0 +1,95 @@
+:root {
+  --blue-1: #C3F0F4;
+  --blue-2: #63D8E6;
+  --blue-3: #00618D;
+  --blue-4: #3B44AD;
+  --yellow-1: #FFE4A4;
+  --yellow-2: #FFC742;
+  --yellow-3: #E0B45C;
+  --green-1: #BDE4CD;
+  --green-2: #5BBC82;
+  --green-3: #558F6C;
+  --green-4: #1E7742;
+  --red-1: #FFDFDF;
+  --red-2: #FF4D56;
+  --red-3: #C14456;
+  --red-4: #E22D3F;
+  --purple-1: #F6E0F4;
+  --purple-2: #D162C6;
+  --purple-3: #AF69AC;
+  --purple-4: #993694;
+  --pink-1: #FFD8EF;
+  --pink-2: #FF56BA;
+  --pink-4: #B73B85;
+  --orange-1: #FFE3D0;
+  --orange-2: #FF7415;
+  --orange-3: #C67844;
+  --orange-4: #DB5800;
+  --black: #1D1D1D;
+  --gray: #DDDDDD;
+}
+
+/* h1 {
+  font-family: "Roboto-Bold";
+  font-size: 44px;
+  letter-spacing: 0.5px;
+  text-align: center;
+  line-height: 52px;
+}
+
+h2 {
+  font-family: "Roboto-Bold";
+  font-size: 32px;
+  letter-spacing: 0.36px;
+}
+
+h3 {
+  font-family: "Karla-Bold";
+  font-size: 20px;
+  color: #3B44AD;
+  letter-spacing: 0.23px;
+  line-height: 32px;
+}
+
+body {
+  font-family: "Karla-Regular";
+  font-size: 20px;
+  letter-spacing: 0.23px;
+  line-height: 32px;
+}
+
+button, .button {
+  font-family: "RobotoMono-Bold";
+  font-size: 18px;
+  letter-spacing: 0.2px;
+  text-align: center;
+  line-height: 20px;
+  background: #FFFFFF;
+  border: 3px solid #000000;
+}
+
+.input-field {
+  background: #FFFFFF;
+  border: 1px solid var(--gray);
+  font-family: "Karla-Regular";
+  font-size: 20px;
+  color: var(--black);
+  letter-spacing: 0.23px;
+  line-height: 32px;
+} */
+
+/* OpenLayers */
+
+.zoom-controls-bottom-left .ol-zoom {
+  top: auto;
+  bottom: .5em;
+  left: .5em;
+  right: auto;
+}
+
+.zoom-controls-bottom-right .ol-zoom {
+  top: auto;
+  bottom: .5em;
+  left: auto;
+  right: .5em;
+}

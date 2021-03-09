@@ -3,40 +3,22 @@
     <Header />
     <!-- TODO: check ERROR -->
     <main>
-      <!-- <template v-if="$route.name === 'preview'">
-        <Preview :image="image"
-          :showAnnotation="showAnnotation" />
-      </template> -->
       <template v-if="$route.name === 'mask'">
-        <PixelMask :image="image"
-          :lastMapsUpdateSource="lastMapsUpdateSource"
-          :showAnnotation="showAnnotation" />
+        <PixelMask :image="image" />
       </template>
       <template v-else-if="$route.name === 'georeference'">
-        <Georeference :image="image"
-          :lastMapsUpdateSource="lastMapsUpdateSource"
-          :showAnnotation="showAnnotation" />
+        <Georeference :image="image" />
       </template>
-      <!-- <template v-else-if="$route.name === 'results'">
-        <Results
-          :images="images" :maps="maps"
-          :selectedMapId="selectedMapId"
-          :showAnnotation="showAnnotation" />
-      </template> -->
+      <template v-else-if="$route.name === 'results'">
+        <Results />
+      </template>
       <template v-else>
-        <Home class="padding"
+        <Collection class="padding"
           :mapCollections="mapCollections"
           :images="images" />
       </template>
-      <transition name="slide">
-        <template v-if="showAnnotation">
-          <Annotation class="annotation"
-            :annotation="annotation" />
-        </template>
-      </transition>
     </main>
-    <Footer v-model:showAnnotation="showAnnotation"
-      @copy-annotation="copyAnnotation"
+    <Drawer @copy-annotation="copyAnnotation"
       @download-annotation="downloadAnnotation"
       @save-annotation="saveAnnotation"
 
@@ -49,15 +31,15 @@
 <style src='highlight.js/styles/sunburst.css'></style>
 
 <script>
-import { mapState, mapActions, mapGetters } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 
 import Header from './components/Header.vue'
-import Footer from './components/Footer.vue'
+import Drawer from './components/Drawer.vue'
 
-import Home from './components/Home.vue'
+import Collection from './components/Collection.vue'
 import Georeference from './components/Georeference.vue'
 import PixelMask from './components/PixelMask.vue'
-import Annotation from './components/Annotation.vue'
+import Results from './components/Results.vue'
 
 import { generate } from '@allmaps/annotation'
 
@@ -80,11 +62,11 @@ export default {
   name: 'app',
   components: {
     Header,
-    Footer,
-    Home,
+    Drawer,
+    Collection,
     Georeference,
     PixelMask,
-    Annotation
+    Results
   },
   data () {
     return {
@@ -96,9 +78,7 @@ export default {
 
       lastMapsUpdateSource: undefined,
 
-      showAnnotation: false,
       error: undefined,
-      numClicks: 0,
 
       mapCollections: [],
       loading: true
@@ -458,6 +438,8 @@ body {
 	font-size: 18px;
 }
 
+@import './assets/style.css';
+
 .monospace {
 	font-family: 'Roboto Mono', monospace;
 }
@@ -467,7 +449,7 @@ main p a, main ul a, main ol a {
 }
 
 .padding {
-  padding: 10px;
+  padding: 30px;
   box-sizing: border-box;
 }
 
@@ -510,11 +492,6 @@ main > * {
   overflow-y: auto;
 }
 
-.annotation {
-  width: calc(100% / 3);
-  flex-shrink: 0;
-}
-
 button, input {
   font-size: 100%;
 }
@@ -545,13 +522,5 @@ button.primary {
 
 button.primary:hover {
   background-color: #FFE4A4;
-}
-
-.slide-enter-active, .slide-leave-active {
-  transition: width .05s;
-}
-
-.slide-enter-from, .slide-leave-to {
-  width: 0;
 }
 </style>

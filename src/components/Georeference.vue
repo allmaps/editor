@@ -1,17 +1,12 @@
 <template>
-  <div class="georeference">
-    <Sidebar showGcps />
-    <div class="container">
-      <div id="iiif" class="iiif"></div>
-      <div id="map" class="map"></div>
-    </div>
+  <div class="container">
+    <div id="iiif" class="iiif zoom-controls-bottom-left"></div>
+    <div id="map" class="map zoom-controls-bottom-right"></div>
   </div>
 </template>
 
 <script>
 import { mapState, mapActions, mapGetters } from 'vuex'
-
-import Sidebar from './Sidebar.vue'
 
 import Map from 'ol/Map'
 import Feature from 'ol/Feature'
@@ -21,6 +16,8 @@ import { Draw, Modify } from 'ol/interaction'
 import { Point } from 'ol/geom'
 import { GeoJSON } from 'ol/format'
 import { Vector as VectorSource } from 'ol/source'
+import Zoom from 'ol/control/Zoom'
+import OSM from 'ol/source/OSM'
 import XYZ from 'ol/source/XYZ'
 import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style'
 import IIIF from 'ol/source/IIIF'
@@ -35,11 +32,7 @@ import { round } from '../lib/functions'
 export default {
   name: 'Georeference',
   props: {
-    image: Object,
-    showAnnotation: Boolean,
-  },
-  components: {
-    Sidebar
+    image: Object
   },
   data () {
     return {
@@ -53,9 +46,6 @@ export default {
     activeMapId: function () {
       this.iiifSource.changed()
       this.initalizeGCPs(this.activeMap)
-    },
-    showAnnotation: function () {
-      window.setTimeout(this.onResize, 100)
     },
     image: function () {
       this.updateImage(this.image)
@@ -545,10 +535,11 @@ export default {
     })
 
     this.mapLayer = new TileLayer({
-      source: new XYZ({
-        // TODO: move to config
-        url: 'https://a.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png'
-      })
+      // source: new XYZ({
+      //   // TODO: move to config
+      //   url: 'https://a.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png'
+      // })
+      source: new OSM()
     })
     this.mapSource = new VectorSource()
 
@@ -559,6 +550,9 @@ export default {
 
     this.mapOl = new Map({
       layers: [this.mapLayer, this.mapVector],
+      controls: [
+        new Zoom()
+      ],
       target: 'map',
       view: new View({
         center: fromLonLat([-77.036667, 38.895]),
@@ -622,18 +616,12 @@ export default {
 </script>
 
 <style scoped>
-.georeference {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-}
-
 .container {
   display: flex;
   flex-direction: row;
   width: 100%;
   height: 100%;
+  background-color: var(--green-4);
 }
 
 .container > * {
