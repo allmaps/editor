@@ -1,11 +1,18 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import Buefy from 'buefy'
+import 'buefy/dist/buefy.css'
+
 import hljs from 'highlight.js'
 
 import App from './App.vue'
 import store from './store'
 
 Vue.use(VueRouter)
+Vue.use(Buefy, {
+  defaultIconPack: 'fas',
+  defaultContainerElement: '#content'
+})
 
 Vue.config.productionTip = false
 
@@ -50,6 +57,11 @@ const router = new VueRouter({
       component: App
     },
     {
+      name: 'collection',
+      path: '/collection',
+      component: App
+    },
+    {
       name: 'georeference',
       path: '/georeference',
       component: App
@@ -65,19 +77,6 @@ const router = new VueRouter({
       component: App
     }
   ]
-})
-
-router.beforeEach((to, from, next) => {
-  if (from.query.token && !to.query.token) {
-    next({path: to.path,
-      query: {
-        ...to.query,
-        token: from.query.token
-      }
-    })
-  }
-
-  next()
 })
 
 new Vue({

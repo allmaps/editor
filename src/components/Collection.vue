@@ -1,60 +1,26 @@
 <template>
-  <div class="container text">
-    <div v-if="Object.keys(images).length">
+  <div class="background">
+    <section class="container below-header">
       <ol class="images">
         <li v-for="(image, id) in images" :key="id"
           :class="{
             active: activeImageId === id
           }">
           <router-link :to="{
-            name: 'home',
+            name: 'collection',
             query: {
               url: $route.query.url,
               image: id
             }}">
-            <img class="image" :src="getThumbnailUrls(image.iiif, 250)" />
+            <img class="image" :src="getThumbnailUrls(image.iiif, 200)" />
           </router-link>
           <div class="icons">
-            <img :class="{present: hasGcps(id)}" src="../assets/icon-georeferenced.svg" />
-            <img :class="{present: hasPixelMask(id)}" src="../assets/icon-masked.svg" />
+            <!-- <img :class="{present: hasGcps(id)}" src="../assets/icon-georeferenced.svg" /> -->
+            <!-- <img :class="{present: hasPixelMask(id)}" src="../assets/icon-masked.svg" /> -->
           </div>
         </li>
       </ol>
-    </div>
-    <div v-else>
-      <p>
-        Select a map image by typing its IIIF manifest or image URL in the input box,
-      or select a map from the list below:
-      </p>
-      <form @submit.prevent="handleSubmit">
-        <label>
-          <input type="text" placeholder="IIIF manifest or image URL"
-            v-model="inputUrl" />
-        </label>
-      </form>
-      <div>
-        <section v-for="(collection, index) in mapCollections" :key="index">
-          <template v-if="collection.include !== false">
-            <div>
-              <h3>{{ collection.title }}</h3>
-              <a v-if="collection.url"
-                :href="collection.url" target="_blank">Find more maps</a>
-            </div>
-            <ul v-if="collection.examples">
-              <li v-for="(example, index) in collection.examples" :key="index">
-                <router-link :to="{
-                    query: {
-                      url: example.url
-                    }
-                  }">
-                  {{ example.title }}
-                </router-link>
-              </li>
-            </ul>
-          </template>
-        </section>
-      </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -66,24 +32,13 @@ import { getThumbnailUrls } from '../lib/iiif'
 export default {
   name: 'Collection',
   props: {
-    images: Object,
-    mapCollections: Array
-  },
-  data () {
-    return {
-      inputUrl: this.$route.query.url
-    }
+    images: Object
   },
   computed: {
     ...mapState({
       maps: (state) => state.maps.maps,
       activeImageId: (state) => state.ui.activeImageId
     })
-  },
-  watch: {
-    '$route.query.url': function () {
-      this.inputUrl = this.$route.query.url
-    }
   },
   methods: {
     handleSubmit () {
@@ -109,30 +64,28 @@ export default {
 </script>
 
 <style scoped>
-.container {
+.background {
   background-color: var(--blue-4);
 }
 
-.text {
-  width: 100%;
-  position: relative;
-}
-
-.text > *:first-child {
-  margin-top: 0;
-}
-
 .images {
-  margin: 0;
+  margin: 10px;
   padding: 0;
   list-style-type: none;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  grid-gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.images::after {
+  content: "";
+  flex-grow: 10;
 }
 
 .images li {
   position: relative;
+  margin: 10px;
+  height: 200px;
+  flex-grow: 1;
   box-sizing: border-box;
   border-width: 3px;
   border-color: white;
@@ -140,12 +93,16 @@ export default {
   transition: border-color 0.08s;
 }
 
-.images li::before {
+/* li:last-child {
+  flex-grow: 10;
+} */
+
+/* .images li::before {
   content: "";
   padding-bottom: 100%;
   display: inline-block;
   vertical-align: top;
-}
+} */
 
 .images li.active {
   border-color: #C552B5;
@@ -162,6 +119,10 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  max-height: 100%;
+  min-width: 100%;
+  object-fit: cover;
+  vertical-align: bottom;
 }
 
 .icons {

@@ -1,7 +1,10 @@
 const state = () => ({
+  sidebarOpen: false,
+  drawerOpen: undefined,
   lastError: undefined,
   activeImageId: undefined,
-  activeMapId: undefined
+  activeMapId: undefined,
+  loading: false
 })
 
 const getters = {
@@ -9,20 +12,29 @@ const getters = {
 }
 
 const actions = {
-  setActiveImageId ({ state, commit, rootState, rootGetters }, { imageId }) {
+  setActiveImageId ({ state, commit, rootState }, { imageId }) {
     commit('setActiveImageId', { imageId })
 
-    const maps = rootGetters['maps/mapsForActiveImage']
+    const maps = rootState.maps.maps
     if (Object.keys(maps).length) {
       // TODO: get first map, maybe add property?
       const mapId = Object.keys(maps)[0]
       commit('setActiveMapId', { mapId })
     }
   },
+
   setActiveMapId ({ state, commit, rootState }, { mapId }) {
     if (rootState.maps.maps[mapId]) {
       commit('setActiveMapId', { mapId })
     }
+  },
+
+  setSidebarOpen ({ state, commit }, { open }) {
+    commit('setSidebarOpen', { open })
+  },
+
+  setDrawerOpen ({ state, commit }, { drawer }) {
+    commit('setDrawerOpen', { drawer })
   }
 }
 
@@ -32,6 +44,12 @@ const mutations = {
   },
   setActiveMapId (state, { mapId }) {
     state.activeMapId = mapId
+  },
+  setSidebarOpen (state, { open }) {
+    state.sidebarOpen = open
+  },
+  setDrawerOpen (state, { drawer }) {
+    state.drawerOpen = drawer
   }
 }
 

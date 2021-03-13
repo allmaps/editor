@@ -65,35 +65,27 @@ export async function getIIIF (url) {
 
   if (iiifContext.startsWith('http://iiif.io/api/presentation')) {
     const manifest = iiifObject
-    const label = manifest.label
-
-    const maps = await getMapsFromManifestApi(id)
 
     const iiif = {
-      iiifType: 'manifest',
+      type: 'manifest',
       manifest: {
         id,
         uri,
-        label,
         iiif: manifest,
       },
-      images: await getImages(manifest, id),
-      maps
+      images: await getImages(manifest, id)
     }
 
     return iiif
   } else if (iiifContext.startsWith('http://iiif.io/api/image')) {
     const image = await initializeImage(iiifObject)
 
-    const maps = await getMapsFromImageApi(image.id)
-
     const iiif = {
-      iiifType: 'image',
+      type: 'image',
       manifest: undefined,
       images: {
         [image.id]: image
-      },
-      maps
+      }
     }
 
     return iiif
@@ -125,7 +117,8 @@ async function initializeImage (manifestImage, canvas, manifestId) {
     canvasUri,
     label,
     dimensions: [width, height],
-    iiif: image
+    iiif: image,
+    canvas
   }
 }
 

@@ -3,27 +3,26 @@
     <Header />
     <!-- TODO: check ERROR -->
     <main>
-      <template v-if="$route.name === 'mask'">
+      <template v-if="$route.name === 'collection'">
+        <Collection :images="images" />
+      </template>
+      <template v-else-if="$route.name === 'mask'">
         <PixelMask :image="image" />
       </template>
       <template v-else-if="$route.name === 'georeference'">
         <Georeference :image="image" />
       </template>
       <template v-else-if="$route.name === 'results'">
-        <Results />
+        <Results :image="image" />
       </template>
       <template v-else>
-        <Collection class="padding"
-          :mapCollections="mapCollections"
-          :images="images" />
+        <Home class="padding" />
       </template>
     </main>
-    <Drawer @copy-annotation="copyAnnotation"
-      @download-annotation="downloadAnnotation"
-      @save-annotation="saveAnnotation"
-
+    <Drawer v-if="$route.name !== 'home'"
       :images="images"
       :activeImageId="activeImageId" />
+    <Sidebar />
   </div>
 </template>
 
@@ -35,26 +34,21 @@ import { mapState, mapActions } from 'vuex'
 
 import Header from './components/Header.vue'
 import Drawer from './components/Drawer.vue'
+import Sidebar from './components/Sidebar.vue'
 
+import Home from './components/Home.vue'
 import Collection from './components/Collection.vue'
 import Georeference from './components/Georeference.vue'
 import PixelMask from './components/PixelMask.vue'
 import Results from './components/Results.vue'
 
-import { generate } from '@allmaps/annotation'
-
-// import mapCollections from '../../iiif-map-collections/iiif-map-collections.yml'
-
-// SHAREDB
 const WS_API_URL = process.env.VUE_APP_WS_API_URL
 import ReconnectingWebSocket from 'reconnecting-websocket'
 import ShareDB from 'sharedb/lib/client'
 const json1 = require('ot-json1')
-// SHAREDB
 
 import { parseOperations } from './lib/json1-operations'
 import { getIIIF } from './lib/iiif'
-import { save } from './lib/api'
 
 const serverUrl = process.env.VUE_APP_SERVER_URL
 
@@ -63,6 +57,8 @@ export default {
   components: {
     Header,
     Drawer,
+    Sidebar,
+    Home,
     Collection,
     Georeference,
     PixelMask,
@@ -76,11 +72,8 @@ export default {
       images: {},
       sortedImageIds: [],
 
-      lastMapsUpdateSource: undefined,
-
       error: undefined,
 
-      mapCollections: [],
       loading: true
     }
   },
@@ -101,12 +94,27 @@ export default {
       'removeGcp'
     ]),
 
+    ...mapActions('iiif', [
+      'setIiifUrl'
+    ]),
+
     initializeDoc: function () {
       const source = 'ShareDB'
 
+      let message
       if (!this.doc.version) {
         this.doc.create({}, json1.type.name)
+        message = 'You’re editing a new map.'
+      } else {
+        message = 'Someone has started georeferencing this map, you can continue editing to improve their work.'
       }
+
+      message += ' All edits are automatically saved in the Allmaps database.'
+
+      this.$buefy.snackbar.open({
+        message,
+        position: 'is-top'
+      })
 
       // TODO: we now have two versions of the maps data
       // 1 in the ShareDB doc, one in the Vuex store
@@ -128,7 +136,7 @@ export default {
       try {
         this.doc = this.connection.get('images', this.activeImageId)
       } catch (err) {
-        console.error('vissen', err)
+        console.error(err)
       }
 
       this.doc.subscribe(this.initializeDoc)
@@ -232,88 +240,25 @@ export default {
       }
     },
     goToRoute: function (name) {
-      this.$router.push({name, query: this.$route.query})
+      this.$router.push({ name, query: this.$route.query })
     },
     updateIiif: async function (url) {
-      try {
-        const { iiifType, manifest, images } = await getIIIF(url)
+      const { type, manifest, images } = await getIIIF(url)
 
-        this.iiifType = iiifType
-        this.manifest = manifest
-        this.images = images
-        this.lastMapsUpdateSource = undefined
+      this.iiifType = type
+      this.manifest = manifest
+      this.images = images
 
-        this.sortedImageIds = Object.values(this.images)
-          .map(({id, index}) => ({id, index}))
-          .sort((a, b) => a.index - b.index)
+      this.sortedImageIds = Object.values(this.images)
+        .map(({id, index}) => ({id, index}))
+        .sort((a, b) => a.index - b.index)
 
-        if (this.$route.query.image) {
-          this.setActiveImageId({ imageId: this.$route.query.image })
-        } else {
-          this.setActiveImageId({ imageId: this.sortedImageIds[0].id })
-        }
-      } catch (err) {
-        // TODO: fix!
-        console.error(err)
-        this.error = err.message
+      if (this.$route.query.image) {
+        this.setActiveImageId({ imageId: this.$route.query.image })
+      } else {
+        this.setActiveImageId({ imageId: this.sortedImageIds[0].id })
       }
-    },
-    computeGeoMask: function (map) {
-      if (map.gcps && map.pixelMask) {
-      //   const gcps = {
-      //     type: 'FeatureCollection',
-      //     features: map.gcps.map((gcp) => ({
-      //       type: 'Feature',
-      //       properties: {
-      //         pixel: gcp.pixel
-      //       },
-      //       geometry: {
-      //         type: 'Point',
-      //         coordinates: gcp.world
-      //       }
-      //     }))
-      //   }
 
-      //   try {
-      //     const transformer = createTransformer(gcps)
-      //     const points = transformer.toWorld(map.pixelMask)
-
-      //     const geoMask = {
-      //       type: 'Polygon',
-      //       coordinates: [points.coordinates]
-      //     }
-
-      //     return geoMask
-      //   } catch (err) {
-      //     // TODO: catch error!
-      //   }
-      }
-    },
-    copyAnnotation: function () {
-      navigator.clipboard.writeText(this.annotationString)
-    },
-    downloadAnnotation: function () {
-      const blob = new Blob([this.annotationString], {type : 'application/json'})
-      const dataUrl = window.URL.createObjectURL(blob)
-
-      const a = document.createElement('a')
-      document.body.appendChild(a)
-      a.style = 'display: none'
-
-      a.href = dataUrl
-
-      // TODO: proper filename
-      // image.id
-      a.download = 'annotation.json'
-      a.click()
-      window.URL.revokeObjectURL(dataUrl)
-    },
-    saveAnnotation: async function () {
-      try {
-        await save(this.manifest, this.images, this.maps)
-      } catch (err) {
-        console.error(err)
-      }
     },
     keyPressHandler: function (event) {
       if (event.key === '[') {
@@ -344,8 +289,6 @@ export default {
         this.goToRoute('georeference')
       } else if (event.key === '5') {
         this.goToRoute('results')
-      } else if (event.key === 'a') {
-        this.showAnnotation = !this.showAnnotation
       }
     }
   },
@@ -354,37 +297,16 @@ export default {
       activeImageId: (state) => state.ui.activeImageId,
       maps: (state) => state.maps.maps
     }),
-    annotation: function () {
-      const maps = Object.values(this.maps)
-        .map((map) => {
-
-          return {
-            ...map,
-            pixelMask: [...map.pixelMask, map.pixelMask[0]],
-            gcps: Object.values(map.gcps),
-            image: map.image
-          }
-        })
-
-      return generate(maps)
-    },
-    annotationString: function () {
-      return JSON.stringify(this.annotation, null, 2)
+    fullscreen: function () {
+      return this.$route.name === 'mask' || this.$route.name === 'georeference' || this.$route.name === 'results'
     },
     image: function () {
       return this.images[this.activeImageId]
-    },
-    mapsForSelectedImage: function () {
-      return Object.keys(this.maps)
-        .filter((id) => this.maps[id].imageId === this.activeImageId)
-        .reduce((maps, id) => ({
-          ...maps,
-          [id]: this.maps[id]
-        }), {})
     }
   },
   watch: {
     '$route.query.url': function (url) {
+      this.setIiifUrl(url)
       this.updateIiif(url)
     },
     '$route.query.image': function (imageId) {
@@ -395,8 +317,11 @@ export default {
     }
   },
   mounted: async function () {
-    if (this.$route.query.url) {
-      this.updateIiif(this.$route.query.url)
+    const url = this.$route.query.url
+
+    if (url) {
+      this.setIiifUrl(url)
+      this.updateIiif(url)
     }
 
     window.addEventListener('keypress', this.keyPressHandler)
@@ -423,6 +348,8 @@ export default {
 </script>
 
 <style>
+@import './assets/base.scss';
+
 html {
   height: 100%;
 }
@@ -438,8 +365,6 @@ body {
 	font-size: 18px;
 }
 
-@import './assets/style.css';
-
 .monospace {
 	font-family: 'Roboto Mono', monospace;
 }
@@ -449,7 +374,7 @@ main p a, main ul a, main ol a {
 }
 
 .padding {
-  padding: 30px;
+  padding: 0.5em;
   box-sizing: border-box;
 }
 
@@ -464,7 +389,7 @@ main p a, main ul a, main ol a {
   -moz-osx-font-smoothing: grayscale;
   font-size: 18px;
 
-  color: #2c3e50;
+  color: var(--black);
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -501,7 +426,7 @@ a, a:visited {
   color: #2c3e50;
 }
 
-button {
+/* button {
   border: none;
   display: inline-block;
   cursor: pointer;
@@ -510,7 +435,7 @@ button {
   padding: .25em;
   display: inline-block;
   line-height: 1;
-}
+} */
 
 button.primary {
   border: none;

@@ -1,7 +1,5 @@
 <template>
-  <div class="container">
-    <div id="iiif" class="iiif zoom-controls-bottom-left"></div>
-  </div>
+  <div id="iiif" class="iiif zoom-controls-bottom-left"></div>
 </template>
 
 <script>
@@ -42,11 +40,9 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('maps', {
-      maps: 'mapsForActiveImage'
-    }),
     ...mapState({
-      activeMapId: (state) => state.ui.activeMapId
+      activeMapId: (state) => state.ui.activeMapId,
+      maps: (state) => state.maps.maps
     }),
     source: function () {
       return this.$options.name
@@ -315,9 +311,6 @@ export default {
       freehandCondition: (event) => false
     })
 
-    // Add polygon labels
-    // https://openlayers.org/en/latest/examples/vector-labels.html
-
     this.iiifOl.addInteraction(iiifDraw)
 
     this.iiifSource.on('addfeature', this.onEdited)
@@ -341,17 +334,9 @@ export default {
 </script>
 
 <style scoped>
-.container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-  background-color: var(--purple-4);
-}
-
 .iiif {
   width: 100%;
   height: 100%;
-  padding: 2px;
+  background-color: var(--purple-4);
 }
 </style>

@@ -1,3 +1,5 @@
+import { ToastProgrammatic as Toast } from 'buefy'
+
 function makeMapActive (rootState, mapId, commit) {
   if (rootState.ui.activeMapId !== mapId) {
     commit('ui/setActiveMapId', { mapId }, { root: true })
@@ -28,20 +30,33 @@ const getters = {
     const activeMapId = rootState.ui.activeMapId
     const activeMap = state.maps[activeMapId]
     return activeMap
-  },
-  mapsForActiveImage: (state, getters, rootState) => {
-    const activeImageId = rootState.ui.activeImageId
-
-    return Object.keys(state.maps)
-      .filter((id) => state.maps[id].image.id === activeImageId)
-      .reduce((maps, id) => ({
-        ...maps,
-        [id]: state.maps[id]
-      }), {})
   }
+  // mapsForActiveImage: (state, getters, rootState) => {
+  //   const activeImageId = rootState.ui.activeImageId
+
+  //   return Object.keys(state.maps)
+  //     .filter((id) => state.maps[id].image.id === activeImageId)
+  //     .reduce((maps, id) => ({
+  //       ...maps,
+  //       [id]: state.maps[id]
+  //     }), {})
+  // }
 }
 
 const actions = {
+  undo () {
+    Toast.open({
+      message: 'Not yet implemented 😔',
+      type: 'is-danger'
+    })
+  },
+  redo () {
+    Toast.open({
+      message: 'Not yet implemented 😔',
+      type: 'is-danger'
+    })
+  },
+
   setMaps ({ state, commit, rootState }, { maps, source }) {
     const firstMapId = Object.keys(maps)[0]
 

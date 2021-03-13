@@ -1,34 +1,82 @@
 <template>
   <header class="padding">
     <h1 class="menu-icon">
-      <a href="https://allmaps.org/">
+      <router-link :to="{ name: 'home', query }">
         <img alt="Allmaps"
           src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg" />
-      </a>
+      </router-link>
     </h1>
-    <ol>
-      <li>
-        <router-link class="collection" :to="{name: 'home', query}">Collection</router-link>
-      </li>
-      <li>
-        <router-link class="mask" :to="{name: 'mask', query}">Mask</router-link>
-      </li>
-      <li>
-        <router-link class="georeference" :to="{name: 'georeference', query}">Georeference</router-link>
-      </li>
-      <li>
-        <router-link class="results" :to="{name: 'results', query}">Results</router-link>
-      </li>
-    </ol>
+
+    <nav>
+      <div class="buttons field has-addons">
+        <p class="control">
+          <b-button tag="router-link"
+            icon-left="layer-group"
+            :to="{ name: 'collection', query }"
+            type="is-link" outlined>
+            Collection
+          </b-button>
+        </p>
+
+        <p class="control">
+          <b-tooltip position="is-bottom" multilined
+            :triggers="maskTooltipTriggers" :auto-close="['outside', 'escape']">
+            <b-button tag="router-link"
+              icon-left="draw-polygon"
+              :to="{name: 'mask', query}"
+              type="is-link" outlined>Mask</b-button>
+              <template v-slot:content>
+                <b-field>
+                  <b-switch :value="true"
+                    type="is-success">
+                    Success
+                  </b-switch>
+                </b-field>
+                <b>Lorem ipsum dolor sit amet</b>, consectetur warning elit. <i>Fusce id fermentum quam</i>.
+            </template>
+          </b-tooltip>
+        </p>
+
+        <p class="control">
+          <b-button tag="router-link"
+            icon-left="map-pin"
+            :to="{ name: 'georeference', query }"
+            type="is-link" outlined>
+            Georeference
+          </b-button>
+        </p>
+
+        <p class="control">
+          <b-button tag="router-link"
+            icon-left="globe"
+            :to="{ name: 'results', query }"
+            type="is-link" outlined>
+            Results
+          </b-button>
+        </p>
+      </div>
+    </nav>
+
     <div class="menu-icon">
+      <b-button @click="setSidebarOpen({ open: true })"
+        pack="fas" icon-right="bars" />
     </div>
   </header>
 </template>
 
 <script>
+import { mapState, mapActions } from 'vuex'
+
 export default {
   name: 'Header',
   computed: {
+    ...mapState({
+      activeImageId: (state) => state.ui.activeImageId,
+      maps: (state) => state.maps.maps
+    }),
+    maskTooltipTriggers: function () {
+      return Object.keys(this.maps).length ? [] : ['click']
+    },
     query: function () {
       return {
         url: this.$route.query.url,
@@ -42,6 +90,10 @@ export default {
     }
   },
   methods: {
+    ...mapActions('ui', [
+      'setSidebarOpen'
+    ]),
+
     handleSubmit () {
       this.$router.push({ name: this.$route.name, query: {
         url: this.inputUrl
@@ -54,26 +106,28 @@ export default {
 <style scoped>
 header {
   position: absolute;
-  z-index: 999;
+
+  z-index: 35;
   width: 100%;
 
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  pointer-events: none;
 }
 
-.menu {
+header > * {
+  pointer-events: all;
+}
+
+/* .menu {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-}
-
-.menu-icon {
-  width: 50px;
-}
+} */
 
 h1 {
   font-size: 100%;
@@ -84,7 +138,7 @@ h1 {
 }
 
 h1 img {
-  width: 1.8em;
+  width: 40px;
 }
 
 h1 a {
@@ -93,48 +147,8 @@ h1 a {
   align-items: center;
 }
 
-h1 span {
-  margin-left: 0.5em;
-}
-
-ol {
-  list-style: none;
-  line-height: 0;
-}
-
-ol, ol li {
-  display: inline;
-  margin: 0;
-  padding: 0;
-}
-
-ol li a {
+nav a[type=button] {
   width: 160px;
-  display: inline-block;
-  background-color: white;
-
-  border-color: rgb(221, 221, 221);
-  border-width: 3px;
-  border-style: solid;
-
-  padding: 0.8em 0.5em;
-  text-align: center;
-}
-
-ol li:first-child a {
-  border-radius: 999px 0 0 999px;
-}
-
-ol li:last-child a {
-  border-radius: 0 999px 999px 0;
-}
-
-h1 a, ol li a, ol li a:visited {
-  text-decoration: none;
-}
-
-a.router-link-exact-active  {
-  /* text-decoration: underline; */
 }
 
 a.router-link-exact-active.collection {

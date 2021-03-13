@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="panes">
     <div id="iiif" class="iiif zoom-controls-bottom-left"></div>
     <div id="map" class="map zoom-controls-bottom-right"></div>
   </div>
@@ -475,7 +475,7 @@ export default {
 
       this.iiifOl.getView().fit(iiifTileSource.getTileGrid().getExtent(), {
         // TODO: move to settings file
-        padding: [10, 10, 10, 10]
+        padding: [90, 10, 90  , 10]
       })
     },
     gcpStyle: function (feature) {
@@ -510,10 +510,10 @@ export default {
   },
   computed: {
     ...mapState({
-      activeMapId: (state) => state.ui.activeMapId
+      activeMapId: (state) => state.ui.activeMapId,
+      maps: (state) => state.maps.maps
     }),
     ...mapGetters('maps', {
-      maps: 'mapsForActiveImage',
       activeMap: 'activeMap'
     }),
     source: function () {
@@ -616,7 +616,7 @@ export default {
 </script>
 
 <style scoped>
-.container {
+.panes {
   display: flex;
   flex-direction: row;
   width: 100%;
@@ -624,8 +624,7 @@ export default {
   background-color: var(--green-4);
 }
 
-.container > * {
-  padding: 2px;
+.panes > * {
   width: 100%;
   box-sizing: border-box;
 }
