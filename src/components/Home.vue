@@ -1,13 +1,22 @@
 <template>
-  <div class="container below-header">
-    <p>
-      Select a map image by typing its IIIF manifest or image URL in the input box.
+  <div class="container below-header content">
+    <p class="block">
+      Start georeferencing a map by typing its IIIF Manifest or Image URL in the input box:
     </p>
-    <form @submit.prevent="handleSubmit">
-      <b-field label="IIIF manifest or image URL">
-        <b-input v-model="inputUrl" placeholder="IIIF manifest or image URL"></b-input>
-      </b-field>
-    </form>
+
+    <b-field class="block">
+      <b-input placeholder="IIIF manifest or image URL" expanded
+        v-model="inputUrl" class="is-link" type="search">
+      </b-input>
+      <p class="control">
+        <b-button @click="handleSubmit"
+          type="is-primary" label="Load" />
+      </p>
+    </b-field>
+
+    <!-- <p class="block">
+      For examples, see <a href="https://observablehq.com/d/8c38533260c50483?collection=@bertspaan/iiif-maps">this Observable notebook</a>.
+    </p> -->
   </div>
 </template>
 
@@ -32,7 +41,7 @@ export default {
   },
   methods: {
     handleSubmit () {
-      this.$router.push({ name: this.$route.name, query: {
+      this.$router.push({ name: 'collection', query: {
         url: this.inputUrl
       }})
     }

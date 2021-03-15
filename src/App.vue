@@ -1,28 +1,32 @@
 <template>
   <div id="app">
-    <Header />
-    <!-- TODO: check ERROR -->
-    <main>
-      <template v-if="$route.name === 'collection'">
-        <Collection :images="images" />
-      </template>
-      <template v-else-if="$route.name === 'mask'">
-        <PixelMask :image="image" />
-      </template>
-      <template v-else-if="$route.name === 'georeference'">
-        <Georeference :image="image" />
-      </template>
-      <template v-else-if="$route.name === 'results'">
-        <Results :image="image" />
-      </template>
-      <template v-else>
-        <Home class="padding" />
-      </template>
-    </main>
-    <Drawer v-if="$route.name !== 'home'"
-      :images="images"
-      :activeImageId="activeImageId" />
-    <Sidebar />
+    <div class="banner">
+    This website is not yet finished. Not everything will work as intended,
+    and some things will not work at all. Follow <a href="https://twitter.com/bertspaan">@bertspaan</a> for updates.
+    </div>
+    <div class="main">
+      <Header />
+      <!-- TODO: check ERROR -->
+      <main>
+        <template v-if="$route.name === 'collection'">
+          <Collection />
+        </template>
+        <template v-else-if="$route.name === 'mask'">
+          <PixelMask />
+        </template>
+        <template v-else-if="$route.name === 'georeference'">
+          <Georeference />
+        </template>
+        <template v-else-if="$route.name === 'results'">
+          <Results />
+        </template>
+        <template v-else>
+          <Home class="padding" />
+        </template>
+      </main>
+      <Drawer v-if="$route.name !== 'home'" />
+      <Sidebar />
+    </div>
   </div>
 </template>
 
@@ -30,7 +34,7 @@
 <style src='highlight.js/styles/sunburst.css'></style>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 
 import Header from './components/Header.vue'
 import Drawer from './components/Drawer.vue'
@@ -64,22 +68,10 @@ export default {
     PixelMask,
     Results
   },
-  data () {
-    return {
-      iiifType: undefined,
-      manifest: undefined,
-
-      images: {},
-      sortedImageIds: [],
-
-      error: undefined,
-
-      loading: true
-    }
-  },
   methods: {
     ...mapActions('ui', [
-      'setActiveImageId'
+      'setActiveImageId',
+      'toggleDrawer'
     ]),
 
     ...mapActions('maps', [
@@ -126,18 +118,15 @@ export default {
       // or merge the 2 set of maps
 
       this.setMaps({ maps, source })
-      this.loading = false
     },
     getDoc: function () {
       if (this.doc) {
+        this.doc.removeListener('op', this.remoteOperation)
+        this.doc.unsubscribe()
         this.doc.destroy()
       }
 
-      try {
-        this.doc = this.connection.get('images', this.activeImageId)
-      } catch (err) {
-        console.error(err)
-      }
+      this.doc = this.connection.get('images', this.activeImageId)
 
       this.doc.subscribe(this.initializeDoc)
       this.doc.on('op', this.remoteOperation)
@@ -242,53 +231,41 @@ export default {
     goToRoute: function (name) {
       this.$router.push({ name, query: this.$route.query })
     },
-    updateIiif: async function (url) {
-      const { type, manifest, images } = await getIIIF(url)
-
-      this.iiifType = type
-      this.manifest = manifest
-      this.images = images
-
-      this.sortedImageIds = Object.values(this.images)
-        .map(({id, index}) => ({id, index}))
-        .sort((a, b) => a.index - b.index)
-
-      if (this.$route.query.image) {
-        this.setActiveImageId({ imageId: this.$route.query.image })
-      } else {
-        this.setActiveImageId({ imageId: this.sortedImageIds[0].id })
-      }
-
-    },
     keyPressHandler: function (event) {
       if (event.key === '[') {
-        if (!this.images[this.activeImageId] || !this.images[this.activeImageId].previousImageId) {
+        if (!this.activeImage || !this.activeImage.previousImageId) {
           return
         }
 
         this.$router.push({name: this.$route.name, query: {
           ...this.$route.query,
-          image: this.images[this.activeImageId].previousImageId
+          image: this.activeImage.previousImageId
         }})
       } else if (event.key === ']') {
-        if (!this.images[this.activeImageId] || !this.images[this.activeImageId].nextImageId) {
+        if (!this.activeImage || !this.activeImage.nextImageId) {
           return
         }
 
         this.$router.push({name: this.$route.name, query: {
           ...this.$route.query,
-          image: this.images[this.activeImageId].nextImageId
+          image: this.activeImage.nextImageId
         }})
       } else if (event.key === '1') {
-        this.goToRoute('home')
+        this.goToRoute('collection')
       } else if (event.key === '2') {
-        this.goToRoute('preview')
-      } else if (event.key === '3') {
         this.goToRoute('mask')
-      } else if (event.key === '4') {
+      } else if (event.key === '3') {
         this.goToRoute('georeference')
-      } else if (event.key === '5') {
+      } else if (event.key === '4') {
         this.goToRoute('results')
+      } else if (event.key === '0') {
+        this.goToRoute('home')
+      } else if (event.key === 'i') {
+        this.toggleDrawer('metadata')
+      } else if (event.key === 'm') {
+        this.toggleDrawer('maps')
+      } else if (event.key === 'a') {
+        this.toggleDrawer('annotation')
       }
     }
   },
@@ -297,20 +274,21 @@ export default {
       activeImageId: (state) => state.ui.activeImageId,
       maps: (state) => state.maps.maps
     }),
+    ...mapGetters('ui', {
+      activeImage: 'activeImage'
+    }),
     fullscreen: function () {
       return this.$route.name === 'mask' || this.$route.name === 'georeference' || this.$route.name === 'results'
     },
-    image: function () {
-      return this.images[this.activeImageId]
-    }
   },
   watch: {
     '$route.query.url': function (url) {
-      this.setIiifUrl(url)
-      this.updateIiif(url)
+      this.setIiifUrl({ url, imageId: this.$route.query.image })
     },
     '$route.query.image': function (imageId) {
-      this.setActiveImageId({ imageId })
+      if (imageId && this.activeImageId !== imageId) {
+        this.setActiveImageId({ imageId })
+      }
     },
     activeImageId: function () {
       this.getDoc()
@@ -320,8 +298,7 @@ export default {
     const url = this.$route.query.url
 
     if (url) {
-      this.setIiifUrl(url)
-      this.updateIiif(url)
+      this.setIiifUrl({ url, imageId: this.$route.query.image })
     }
 
     window.addEventListener('keypress', this.keyPressHandler)
@@ -337,6 +314,7 @@ export default {
 
     this.storeUnsubscribe()
 
+    // TODO: check MaxListenersExceededWarning
     if (this.doc) {
       this.doc.destroy()
     }
@@ -348,8 +326,6 @@ export default {
 </script>
 
 <style>
-@import './assets/base.scss';
-
 html {
   height: 100%;
 }
@@ -382,9 +358,20 @@ main p a, main ul a, main ol a {
   box-sizing: border-box;
 }
 
+.banner {
+  background-color: rgb(226, 88, 70);
+  color: white;
+  padding: 0.5em;
+  font-size: 75%;
+}
+
+.banner a, .banner a:visited {
+  color: white;
+}
+
 #app {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  /* font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 18px;
@@ -398,8 +385,11 @@ main p a, main ul a, main ol a {
   min-height: 100%;
 }
 
-header, footer {
-  flex: none;
+.main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
 }
 
 main {
@@ -417,35 +407,8 @@ main > * {
   overflow-y: auto;
 }
 
-button, input {
-  font-size: 100%;
-}
-
 header, footer,
 a, a:visited {
   color: #2c3e50;
-}
-
-/* button {
-  border: none;
-  display: inline-block;
-  cursor: pointer;
-  background-color: white;
-  text-decoration: underline;
-  padding: .25em;
-  display: inline-block;
-  line-height: 1;
-} */
-
-button.primary {
-  border: none;
-  border-radius: 5px;
-  background-color: #FFC742;
-  color: black;
-  text-decoration: none;
-}
-
-button.primary:hover {
-  background-color: #FFE4A4;
 }
 </style>

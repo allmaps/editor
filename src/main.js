@@ -1,7 +1,9 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Buefy from 'buefy'
+
 import 'buefy/dist/buefy.css'
+import './assets/base.scss'
 
 import hljs from 'highlight.js'
 
@@ -49,7 +51,7 @@ Vue.directive('highlightjs', {
 // /m/:id/i/:id/preview
 // /m/:id/i/:id/georeference
 
-const router = new VueRouter({
+export const router = new VueRouter({
   routes: [
     {
       name: 'home',

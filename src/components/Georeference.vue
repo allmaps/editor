@@ -31,9 +31,6 @@ import { round } from '../lib/functions'
 
 export default {
   name: 'Georeference',
-  props: {
-    image: Object
-  },
   data () {
     return {
       singleIiifFeatures: [],
@@ -47,8 +44,8 @@ export default {
       this.iiifSource.changed()
       this.initalizeGCPs(this.activeMap)
     },
-    image: function () {
-      this.updateImage(this.image)
+    activeImage: function () {
+      this.updateImage(this.activeImage)
     }
   },
   methods: {
@@ -351,7 +348,7 @@ export default {
             this.replaceGcp({ mapId, gcpId, gcp, source: this.source })
           }
         } else {
-          const map = createFullImageMap(this.image)
+          const map = createFullImageMap(this.activeImage)
           const { id: mapId, image, pixelMask } = map
 
           const gcps = {
@@ -475,7 +472,7 @@ export default {
 
       this.iiifOl.getView().fit(iiifTileSource.getTileGrid().getExtent(), {
         // TODO: move to settings file
-        padding: [90, 10, 90  , 10]
+        padding: [90, 10, 90, 10]
       })
     },
     gcpStyle: function (feature) {
@@ -516,6 +513,9 @@ export default {
     ...mapGetters('maps', {
       activeMap: 'activeMap'
     }),
+    ...mapGetters('ui', {
+      activeImage: 'activeImage'
+    }),
     source: function () {
       return this.$options.name
     }
@@ -555,8 +555,8 @@ export default {
       ],
       target: 'map',
       view: new View({
-        center: fromLonLat([-77.036667, 38.895]),
-        zoom: 3
+        center: fromLonLat([0, 0]),
+        zoom: 2
       })
     })
 
@@ -597,7 +597,7 @@ export default {
 
     this.storeUnsubscribe = this.$store.subscribe(this.onStoreMutation)
 
-    this.updateImage(this.image)
+    this.updateImage(this.activeImage)
     this.initalizeGCPs(this.activeMap)
   },
   beforeUnmount: function () {

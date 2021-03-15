@@ -22,9 +22,6 @@ import { deleteCondition } from '../lib/openlayers'
 
 export default {
   name: 'PixelMask',
-  props: {
-    image: Object
-  },
   data () {
     return {
       dimensions: undefined
@@ -35,14 +32,17 @@ export default {
       this.updateStyles()
       this.initializePixelMasks(this.maps)
     },
-    image: function () {
-      this.updateImage(this.image)
+    activeImage: function () {
+      this.updateImage(this.activeImage)
     }
   },
   computed: {
     ...mapState({
       activeMapId: (state) => state.ui.activeMapId,
       maps: (state) => state.maps.maps
+    }),
+    ...mapGetters('ui', {
+      activeImage: 'activeImage'
     }),
     source: function () {
       return this.$options.name
@@ -160,9 +160,9 @@ export default {
         this.insertMap({
           mapId,
           image: {
-            id: this.image.id,
-            uri: this.image.uri,
-            dimensions: [...this.image.dimensions]
+            id: this.activeImage.id,
+            uri: this.activeImage.uri,
+            dimensions: [...this.activeImage.dimensions]
           },
           pixelMask: this.featurePolygon(feature),
           source: this.source
@@ -319,7 +319,7 @@ export default {
 
     this.storeUnsubscribe = this.$store.subscribe(this.onStoreMutation)
 
-    this.updateImage(this.image)
+    this.updateImage(this.activeImage)
     this.initializePixelMasks(this.maps)
     this.updateStyles()
   },

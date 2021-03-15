@@ -6,15 +6,15 @@
         <div class="title">
           <span>Allmaps Editor</span>
           <b-button @click="open = false"
-            icon-right="times" />
+            class="is-light" icon-right="times" />
         </div>
-        <ul>
+        <!-- <ul>
           <li>About</li>
           <li>Keyboard shortcuts</li>
           <li>Open source</li>
           <li>Explore map collections</li>
           <li>Terms of use</li>
-        </ul>
+        </ul> -->
       </div>
     </b-sidebar>
   </section>

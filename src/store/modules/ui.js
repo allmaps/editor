@@ -8,11 +8,17 @@ const state = () => ({
 })
 
 const getters = {
-
+  activeImage: (state, getters, rootState) => {
+    return rootState.iiif.images[state.activeImageId]
+  }
 }
 
 const actions = {
   setActiveImageId ({ state, commit, rootState }, { imageId }) {
+    if (!rootState.iiif.images[imageId]) {
+      throw new Error(`Image ID does not exist in IIIF source: ${imageId}`)
+    }
+
     commit('setActiveImageId', { imageId })
 
     const maps = rootState.maps.maps
@@ -33,8 +39,9 @@ const actions = {
     commit('setSidebarOpen', { open })
   },
 
-  setDrawerOpen ({ state, commit }, { drawer }) {
-    commit('setDrawerOpen', { drawer })
+  toggleDrawer ({ state, commit }, drawer) {
+    const drawerOpen = state.drawerOpen === drawer ? undefined : drawer
+    commit('setDrawerOpen', { drawer: drawerOpen })
   }
 }
 

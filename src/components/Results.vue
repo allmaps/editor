@@ -3,7 +3,7 @@
     <div class="container">
       <div>
         <p>
-          Results page coming soon. <span v-if="imageId">
+          Results page coming soon. <span v-if="activeImageId">
           For now, you can view this map in
           the <a :href="viewerUrl">Allmaps Viewer</a>.
           </span>
@@ -14,19 +14,17 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
 
 export default {
   name: 'Results',
-  props: {
-    image: Object
-  },
   computed: {
-    imageId: function () {
-      return this.image && this.image.id
-    },
+    ...mapState({
+      activeImageId: (state) => state.ui.activeImageId
+    }),
     viewerUrl: function () {
       const baseUrl = 'https://viewer.allmaps.org/#data=data%3Atext%2Fx-url%2C'
-      const annotationUrl = `https://annotations.allmaps.org/images/${this.imageId}`
+      const annotationUrl = `https://annotations.allmaps.org/images/${this.activeImageId}`
 
       return `${baseUrl}${encodeURIComponent(annotationUrl)}`
     }

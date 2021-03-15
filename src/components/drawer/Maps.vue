@@ -1,29 +1,58 @@
 <template>
-  <ol v-if="maps && Object.keys(maps).length">
+  <ol class="drawer-content" v-if="maps && Object.keys(maps).length">
     <li v-for="(map, mapId, index) in maps" :key="mapId"
       @click="mapClicked(mapId)" :class="{
         active: activeMapId === mapId
       }">
       <div class="map">
-        <div class="thumbnail">
-          <svg v-if="hasPixelMask(map)"
-            :viewBox="thumbnailViewbox(map)">
-            <polygon
-              :points="thumbnailPolygonPoints(map)" />
-          </svg>
-          <span>{{ index + 1 }}</span>
+        <div class="index">
+          <div class="thumbnail">
+            <svg v-if="hasPixelMask(map)"
+              :viewBox="thumbnailViewbox(map)">
+              <polygon
+                :points="thumbnailPolygonPoints(map)" />
+            </svg>
+            <span>{{ index + 1 }}</span>
+          </div>
+          <span>Map {{ index + 1 }}</span>
         </div>
-        <b-button icon-left="trash"
+        <b-button icon-left="trash" class="is-white"
           @click.stop="removeMap({ mapId, source })" />
       </div>
-      <ol class="gcps" v-if="showGcps && hasGcps(map)">
+      <ol class="gcps" v-if="activeMapId === mapId && hasGcps(map)">
         <li class="gcp" v-for="(gcp, gcpId, index) in map.gcps" :key="gcpId">
-          <span>
-            {{ index + 1 }}
-            <span>{{ gcp.image ? 'i' : '' }}</span>
-            <span>{{ gcp.world ? 'w' : '' }}</span>
-          </span>
-          <b-button icon-left="trash"
+          <div class="gcp-data">
+            <div class="gcp-icon">
+              <span class="circle"></span>
+              <span class="index">
+              {{ index + 1 }}
+              </span>
+            </div>
+            <span class="gcp-coordinates">
+              <template v-if="gcp.image">
+                <span class="gcp-image-coordinate">{{ printImageCoordinate(gcp.image[0]) }}</span>
+                <span class="gcp-image-coordinate">{{ printImageCoordinate(gcp.image[1]) }}</span>
+              </template>
+              <template v-else>
+                <!-- TODO: create placeholder -->
+                <span class="gcp-image-coordinate"></span>
+                <span class="gcp-image-coordinate"></span>
+              </template>
+
+              <template v-if="gcp.world">
+                <span class="gcp-world-coordinate">{{ printWorldCoordinate(gcp.world[0]) }}</span>
+                <span class="gcp-world-coordinate">{{ printWorldCoordinate(gcp.world[1]) }}</span>
+              </template>
+              <template v-else>
+                <!-- TODO: create placeholder -->
+                <span class="gcp-world-coordinate"></span>
+                <span class="gcp-world-coordinate"></span>
+              </template>
+
+
+            </span>
+          </div>
+          <b-button icon-left="trash" class="is-white"
             @click.stop="removeGcp({ mapId, gcpId, gcp, source })" />
         </li>
       </ol>
@@ -35,14 +64,19 @@
 </template>
 
 <script>
-import { mapGetters, mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from 'vuex'
+
+import { round } from '../../lib/functions'
 
 export default {
   name: 'Maps',
-  props: {
-    showGcps: Boolean
-  },
   methods: {
+    printImageCoordinate: function (coordinate) {
+      return coordinate
+    },
+    printWorldCoordinate: function (coordinate) {
+      return round(coordinate, 5)
+    },
     hasPixelMask: function (map) {
       return map && map.pixelMask && map.pixelMask.length > 0
     },
@@ -130,13 +164,20 @@ ol li {
   align-items: center;
 }
 
+.map .index {
+  display: flex;
+  align-items: center;
+}
+
 .thumbnail {
+  display: inline-block;
   position: relative;
   width: 50px;
   height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-right: 12px;
 }
 
 .thumbnail > * {
@@ -171,8 +212,7 @@ ol li {
 
 .gcps {
   list-style-type: none;
-  margin: 0;
-  padding: 0;
+  margin-left: 18px;
 }
 
 .gcp {
@@ -180,5 +220,42 @@ ol li {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+}
+
+.gcp-data {
+  display: flex;
+  flex-direction: row;
+}
+
+.gcp-icon {
+  display: inline-block;
+  margin-right: 12px;
+}
+
+.gcp .circle {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background-color: red;
+}
+
+.gcp .index {
+  top: 0.5em;
+  position: relative;
+}
+
+.gcp .gcp-coordinates {
+  display: flex;
+  flex-direction: row;
+  font-family: monospace;
+}
+
+.gcp .gcp-image-coordinate {
+  width: 3.5em;
+}
+
+.gcp .gcp-world-coordinate {
+  width: 6em;
 }
 </style>

@@ -1,18 +1,12 @@
 <template>
-  <div class="metadata">
+  <div class="drawer-content content">
     <h3>{{ label }}</h3>
     <p>{{ description }}</p>
     <dl>
       <div v-for="(item, index) in metadata" :key="index">
-        <!-- <dt>{{ label }} </dt> -->
-        <dd>{{ item }} </dd>
+        <dt>{{ item.label }} </dt>
+        <dd>{{ item.value }} </dd>
       </div>
-
-      <!-- <dt>Morgawr</dt>
-      <dd>A sea serpent.</dd>
-
-      <dt>Owlman</dt>
-      <dd>A giant owl-like creature.</dd> -->
     </dl>
   </div>
 </template>
@@ -33,8 +27,7 @@ export default {
 </script>
 
 <style scoped>
-.metadata {
-  max-height: 300px;
-  overflow-y: auto;
+.drawer-content {
+  margin-bottom: 1rem;
 }
 </style>

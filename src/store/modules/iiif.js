@@ -1,3 +1,7 @@
+/* global DOMParser */
+
+import { router } from '../../main.js'
+
 import { getIIIF } from '../../lib/iiif'
 
 function getString (value) {
@@ -14,18 +18,27 @@ function getString (value) {
   }
 }
 
+function sortImageIds (images) {
+  return Object.values(images)
+    .map(({ id, index }) => ({ id, index }))
+    .sort((a, b) => a.index - b.index)
+}
+
 const state = () => ({
+  loaded: false,
   url: undefined,
   manifest: undefined,
   type: undefined,
-  images: {}
+  images: {},
+  sortedImageIds: []
 })
 
 const getters = {
+  imageCount: (state) => {
+    return Object.keys(state.images).length
+  },
   sortedImageIds: (state) => {
-    return Object.values(state.images)
-      .map(({id, index}) => ({id, index}))
-      .sort((a, b) => a.index - b.index)
+    return state.sortedImageIds
   },
   label: (state) => {
     return state.manifest && getString(state.manifest.iiif.label)
@@ -45,29 +58,44 @@ const getters = {
 }
 
 const actions = {
-  async setIiifUrl ({ state, commit, rootState }, url) {
+  async setIiifUrl ({ state, commit, rootState }, { url, imageId }) {
     if (!url) {
       return
     }
 
     const { type, manifest, images } = await getIIIF(url)
+    const sortedImageIds = sortImageIds(images)
 
-    // if (this.$route.query.image) {
-    //   this.setActiveImageId({ imageId: this.$route.query.image })
-    // } else {
-    //   this.setActiveImageId({ imageId: this.sortedImageIds[0].id })
-    // }
+    commit('maps/setMaps', { maps: {} }, { root: true })
+    commit('setIiif', { url, type, manifest, images, sortedImageIds })
 
-    commit('setIiif', { url, type, manifest, images })
+    if (imageId && images[imageId]) {
+      commit('ui/setActiveImageId', { imageId }, { root: true })
+    } else {
+      imageId = sortedImageIds[0].id
+
+      const newRoute = {
+        name: router.currentRoute.name,
+        query: {
+          ...router.currentRoute.query,
+          image: imageId
+        }
+      }
+
+      router.push(newRoute)
+      commit('ui/setActiveImageId', { imageId: sortedImageIds[0].id }, { root: true })
+    }
   }
 }
 
 const mutations = {
-  setIiif (state, { url, type, manifest, images }) {
+  setIiif (state, { url, type, manifest, images, sortedImageIds }) {
+    state.loaded = true
     state.url = url
     state.type = type
     state.manifest = manifest
     state.images = images
+    state.sortedImageIds = sortedImageIds
   }
 }
 

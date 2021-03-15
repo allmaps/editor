@@ -1,3 +1,71 @@
+@import "~bulma/sass/utilities/_all";
+
+$custom-colors: null !default;
+$custom-shades: null !default;
+
+$primary: #ff2e33;
+$primary-light: findLightColor($primary);
+$primary-dark: findDarkColor($primary);
+$primary-invert: findColorInvert($primary);
+
+$blue-1: #C3F0F4;
+$blue-2: #63D8E6;
+$blue-3: #00618D;
+$blue-4: #3B44AD;
+
+$purple-1: #F6E0F4;
+$purple-2: #D162C6;
+$purple-3: #AF69AC;
+$purple-4: #993694;
+
+$green-1: #BDE4CD;
+$green-2: #5BBC82;
+$green-3: #558F6C;
+$green-4: #1E7742;
+
+$yellow-1: #FFE4A4;
+$yellow-2: #FFC742;
+$yellow-3: #E0B45C;
+
+$colors: mergeColorMaps(
+  (
+    // "primary": (
+    //   $primary,
+    //   $primary-invert,
+    //   $primary-light,
+    //   $primary-dark
+    // ),
+    "collection": (
+      $blue-1,
+      $blue-2,
+      $blue-3,
+      $blue-4
+    ),
+    "mask": (
+      $purple-1,
+      $purple-2,
+      $purple-3,
+      $purple-4
+    ),
+    "georeference": (
+      $green-1,
+      $green-2,
+      $green-3,
+      $green-4
+    ),
+    "results": (
+      $yellow-1,
+      $yellow-2,
+      $yellow-3
+    )
+  ),
+  $custom-colors
+);
+
+// Import Bulma and Buefy styles
+@import "~bulma";
+@import "~buefy/src/scss/buefy";
+
 :root {
   --blue-1: #C3F0F4;
   --blue-2: #63D8E6;
@@ -34,8 +102,7 @@
 }
 
 hr {
-  background: red;
-  margin: 1rem 0;
+  margin: 0.75rem 0;
 }
 
 /* h1 {

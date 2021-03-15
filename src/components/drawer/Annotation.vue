@@ -1,10 +1,10 @@
 <template>
-  <div>
+  <div class="drawer-content">
     <pre v-highlightjs="annotationString"><code class="json"></code></pre>
-    <div class="actions">
+    <div class="block actions buttons">
       <b-button @click="copy">Copy to clipboard</b-button>
       <b-button @click="download">Download</b-button>
-      <a :href="`https://annotations.allmaps.org/images/${activeImageId}`">View data in new tab</a>
+      <a class="button" target="_blank" :href="`https://annotations.allmaps.org/images/${activeImageId}`">Open in new tab</a>
     </div>
   </div>
 </template>
@@ -74,13 +74,18 @@ export default {
 </script>
 
 <style scoped>
+.drawer-content {
+  display: flex;
+  flex-direction: column;
+}
+
 pre {
   background-color: black;
   margin: 0;
   padding: 0;
   white-space: pre-wrap;
   border-radius: 0.5em;
-  height: 400px;
+  /* height: 400px; */
   overflow: auto;
 }
 
@@ -88,5 +93,9 @@ code {
   height: 100%;
   width: 100%;
   padding: 0.5rem;
+}
+
+.actions {
+  flex-shrink: 0;
 }
 </style>

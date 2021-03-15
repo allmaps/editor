@@ -1,6 +1,6 @@
 <template>
   <header class="padding">
-    <h1 class="menu-icon">
+    <h1>
       <router-link :to="{ name: 'home', query }">
         <img alt="Allmaps"
           src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg" />
@@ -13,7 +13,7 @@
           <b-button tag="router-link"
             icon-left="layer-group"
             :to="{ name: 'collection', query }"
-            type="is-link" outlined>
+            type="is-link is-collection">
             Collection
           </b-button>
         </p>
@@ -24,15 +24,15 @@
             <b-button tag="router-link"
               icon-left="draw-polygon"
               :to="{name: 'mask', query}"
-              type="is-link" outlined>Mask</b-button>
+              type="is-link is-mask">Mask</b-button>
               <template v-slot:content>
                 <b-field>
                   <b-switch :value="true"
                     type="is-success">
-                    Success
+                    This image contains one or more maps.
                   </b-switch>
                 </b-field>
-                <b>Lorem ipsum dolor sit amet</b>, consectetur warning elit. <i>Fusce id fermentum quam</i>.
+                <!-- <p></p> -->
             </template>
           </b-tooltip>
         </p>
@@ -41,7 +41,7 @@
           <b-button tag="router-link"
             icon-left="map-pin"
             :to="{ name: 'georeference', query }"
-            type="is-link" outlined>
+            type="is-link is-georeference">
             Georeference
           </b-button>
         </p>
@@ -50,17 +50,15 @@
           <b-button tag="router-link"
             icon-left="globe"
             :to="{ name: 'results', query }"
-            type="is-link" outlined>
+            type="is-link is-results">
             Results
           </b-button>
         </p>
       </div>
     </nav>
 
-    <div class="menu-icon">
-      <b-button @click="setSidebarOpen({ open: true })"
-        pack="fas" icon-right="bars" />
-    </div>
+    <b-button class="is-light" @click="setSidebarOpen({ open: true })"
+      pack="fas" icon-right="bars" />
   </header>
 </template>
 
@@ -75,7 +73,8 @@ export default {
       maps: (state) => state.maps.maps
     }),
     maskTooltipTriggers: function () {
-      return Object.keys(this.maps).length ? [] : ['click']
+      return []
+      // return Object.keys(this.maps).length ? [] : ['click']
     },
     query: function () {
       return {
@@ -121,34 +120,18 @@ header > * {
   pointer-events: all;
 }
 
-/* .menu {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-} */
-
-h1 {
-  font-size: 100%;
-  font-weight: bold;
-  margin: 0;
-  display: inline;
-  line-height: 0;
-}
-
 h1 img {
   width: 40px;
 }
 
-h1 a {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+nav a[type=button] {
+  width: 150px;
+  color: black;
+  background: white;
 }
 
-nav a[type=button] {
-  width: 160px;
+nav a[type=button]:hover {
+  color: black;
 }
 
 a.router-link-exact-active.collection {

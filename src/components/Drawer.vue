@@ -8,64 +8,47 @@
         <hr />
       </template>
 
-      <!-- <div v-if="activeImage && imageCount > 1" class="menu">
-        <template v-if="activeImage.previousImageId">
-          <router-link :to="{
-            name: $route.name,
-            query: {
-              url: $route.query.url,
-              image: activeImage.previousImageId
-            }}">Previous</router-link>
-        </template>
-        <template v-else>
-          <span>Previous</span>
-        </template>
-        <span>
-          <router-link :to="{
-          name: 'home',
-          query: {
-            url: $route.query.url,
-            image: $route.query.image
-          }}">Image {{ activeImage.index + 1}}/{{ imageCount }}</router-link>
-        </span>
-        <template v-if="activeImage.nextImageId">
-          <router-link :to="{
-            name: $route.name,
-            query: {
-              url: $route.query.url,
-              image: activeImage.nextImageId
-            }}">Next</router-link>
-        </template>
-        <template v-else>
-          <span>Next</span>
-        </template>
-      </div> -->
-
-
-      <div class="controls">
-        <div class="text">
-          <div>
-            Editing image {{ activeImage.index + 1}}/{{ imageCount }}
-
-           <b-button size="is-small"
-              icon-left="arrow-left" />
-            <b-button size="is-small"
-              icon-left="arrow-right" />
-
+      <div class="base">
+        <h3 class="label">{{ label }}</h3>
+        <div class="controls">
+          <div class="select-image">
+            <template v-if="activeImage">
+              <span>
+                Editing image {{ activeImage.index + 1 }}/{{ imageCount }}
+              </span>
+              <div class="buttons prev-next-buttons">
+                <b-button size="is-small" icon-left="arrow-left"
+                  :disabled="!activeImage.previousImageId"
+                  tag="router-link" type="is-link" :to="{
+                  name: $route.name,
+                  query: {
+                    url: $route.query.url,
+                    image: activeImage.previousImageId
+                  }}" />
+                <b-button size="is-small" icon-left="arrow-right"
+                  :disabled="!activeImage.nextImageId"
+                  tag="router-link" type="is-link" :to="{
+                  name: $route.name,
+                  query: {
+                    url: $route.query.url,
+                    image: activeImage.nextImageId
+                  }}" />
+              </div>
+            </template>
           </div>
-          <h3 class="label">{{ label }}</h3>
-        </div>
-        <div class="buttons">
-          <b-button @click="toggleDrawer('metadata')"
-            :active="drawerOpen === 'metadata'" icon-right="info" />
-          <b-button @click="toggleDrawer('maps')"
-            :active="drawerOpen === 'maps'" icon-right="list" />
-          <b-button @click="toggleDrawer('annotation')"
-            :active="drawerOpen === 'annotation'" icon-right="code" />
-          <!-- <b-button
-            icon-right="undo" @click="undo" />
-          <b-button
-            icon-right="redo" @click="redo" /> -->
+
+          <div class="buttons drawer-buttons">
+            <b-button @click="toggleDrawer('metadata')"
+              :active="drawerOpen === 'metadata'" icon-right="info" />
+            <b-button @click="toggleDrawer('maps')"
+              :active="drawerOpen === 'maps'" icon-right="list" />
+            <b-button @click="toggleDrawer('annotation')"
+              :active="drawerOpen === 'annotation'" icon-right="code" />
+            <!-- <b-button
+              icon-right="undo" @click="undo" />
+            <b-button
+              icon-right="redo" @click="redo" /> -->
+          </div>
         </div>
       </div>
     </div>
@@ -73,7 +56,7 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapActions, mapGetters, mapState } from 'vuex'
 
 import Metadata from './drawer/Metadata.vue'
 import Maps from './drawer/Maps.vue'
@@ -86,40 +69,26 @@ export default {
     Maps,
     Annotation
   },
-  props: {
-    images: Object,
-    activeImageId: String,
-  },
   methods: {
     ...mapActions('ui', [
-      'setDrawerOpen'
+      'toggleDrawer'
     ]),
     ...mapActions('maps', [
       'undo',
       'redo'
-    ]),
-    toggleDrawer: function (drawer) {
-      this.drawerOpen = this.drawerOpen === drawer ? undefined : drawer
-    }
+    ])
   },
   computed: {
     ...mapGetters('iiif', {
-      label: 'label'
+      label: 'label',
+      imageCount: 'imageCount'
     }),
-    drawerOpen: {
-      get () {
-        return this.$store.state.ui.drawerOpen
-      },
-      set (drawer) {
-        this.setDrawerOpen({ drawer })
-      },
-    },
-    imageCount: function () {
-      return Object.keys(this.images).length
-    },
-    activeImage: function () {
-      return this.images[this.activeImageId]
-    }
+    ...mapGetters('ui', {
+      activeImage: 'activeImage'
+    }),
+    ...mapState({
+      drawerOpen: (state) => state.ui.drawerOpen
+    })
   }
 }
 </script>
@@ -146,29 +115,29 @@ footer {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
 }
 
-.buttons {
+.prev-next-buttons {
+  display: inline-block;
+}
+
+.drawer-buttons {
   flex-wrap: nowrap;
 }
 
-.buttons button {
+.drawer-buttons button {
   border-radius: 999px;
 }
 
 .label {
   text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    width: 300px;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
-.menu > * {
-  margin-right: .5em;
-}
-
-.menu button {
-  padding: .5em;
-  margin: 0;
+.drawer-content {
+  max-height: 300px;
+  overflow-y: auto;
 }
 </style>

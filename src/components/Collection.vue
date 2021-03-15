@@ -2,15 +2,15 @@
   <div class="background">
     <section class="container below-header">
       <ol class="images">
-        <li v-for="(image, id) in images" :key="id"
+        <li v-for="(image, imageId) in images" :key="imageId"
           :class="{
-            active: activeImageId === id
+            active: activeImageId === imageId
           }">
           <router-link :to="{
             name: 'collection',
             query: {
-              url: $route.query.url,
-              image: id
+              image: imageId,
+              url: $route.query.url
             }}">
             <img class="image" :src="getThumbnailUrls(image.iiif, 200)" />
           </router-link>
@@ -31,11 +31,9 @@ import { getThumbnailUrls } from '../lib/iiif'
 
 export default {
   name: 'Collection',
-  props: {
-    images: Object
-  },
   computed: {
     ...mapState({
+      images: (state) => state.iiif.images,
       maps: (state) => state.maps.maps,
       activeImageId: (state) => state.ui.activeImageId
     })

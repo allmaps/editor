@@ -153,6 +153,8 @@ async function getImages (manifest, manifestId) {
       }
     }), {})
 
+    // TODO: this functions seems to be called twice on init
+
     return images
   } catch (err) {
     console.log(err)
