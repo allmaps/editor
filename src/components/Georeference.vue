@@ -465,6 +465,7 @@ export default {
       this.dimensions = [extent[2], -extent[1]]
 
       this.iiifOl.setView(new View({
+        enableRotation: false,
         resolutions: iiifTileSource.getTileGrid().getResolutions(),
         extent,
         constrainOnlyCenter: true
@@ -555,6 +556,7 @@ export default {
       ],
       target: 'map',
       view: new View({
+        enableRotation: false,
         center: fromLonLat([0, 0]),
         zoom: 2
       })
