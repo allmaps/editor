@@ -125,7 +125,6 @@ h1 img {
 }
 
 nav a[type=button] {
-  width: 150px;
   color: black;
   background: white;
 }

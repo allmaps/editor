@@ -105,6 +105,26 @@ hr {
   margin: 0.75rem 0;
 }
 
+nav a.button {
+  width: 150px;
+
+  @include mobile {
+    width: auto;
+  }
+}
+
+nav a.button span:not(.icon) {
+  @include mobile {
+    display: none;
+  }
+}
+
+nav a.button span.icon {
+  @include mobile {
+    margin-right: calc(-0.5em - 1px) !important;
+  }
+}
+
 /* h1 {
   font-family: "Roboto-Bold";
   font-size: 44px;
