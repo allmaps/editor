@@ -1,8 +1,8 @@
 <template>
-  <div class="background">
-    <div class="container">
+  <div class="background section">
+    <div class="container content">
       <div>
-        <p>
+        <p class="block">
           Results page coming soon. <span v-if="activeImageId">
           For now, you can view this map in
           the <a :href="viewerUrl">Allmaps Viewer</a>.
