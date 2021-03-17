@@ -7,7 +7,8 @@
       </router-link>
     </h1>
 
-    <nav>
+    <!-- TODO: replace !$route.query.url with store.ui.loaded -->
+    <nav v-if="$route.query.url">
       <div class="buttons field has-addons">
         <p class="control">
           <b-button tag="router-link"
@@ -124,19 +125,25 @@ h1 img {
   width: 40px;
 }
 
-nav a[type=button] {
+nav a.button {
   color: black;
   background: white;
+  border-color: #bbb;
 }
 
-nav a[type=button]:hover {
+nav a.button:hover, nav a.button:active {
   color: black;
 }
 
-a.router-link-exact-active.collection {
+a.button.router-link-exact-active.collection {
   background-color: var(--blue-1);
   border-color: var(--blue-2);
 }
+
+/* a.router-link-exact-active.collection {
+  background-color: var(--blue-1);
+  border-color: var(--blue-2);
+} */
 
 a.router-link-exact-active.mask {
   background-color: var(--purple-1);

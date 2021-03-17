@@ -8,7 +8,11 @@
       <Header />
       <!-- TODO: check ERROR -->
       <main>
-        <template v-if="$route.name === 'collection'">
+        <!-- TODO: replace !$route.query.url with store.ui.loaded -->
+        <template v-if="$route.name === 'home' || !$route.query.url">
+          <Home />
+        </template>
+        <template v-else-if="$route.name === 'collection'">
           <Collection />
         </template>
         <template v-else-if="$route.name === 'mask'">
@@ -19,9 +23,6 @@
         </template>
         <template v-else-if="$route.name === 'results'">
           <Results />
-        </template>
-        <template v-else>
-          <Home class="padding" />
         </template>
       </main>
       <Drawer v-if="$route.name !== 'home'" />
@@ -52,7 +53,6 @@ import ShareDB from 'sharedb/lib/client'
 const json1 = require('ot-json1')
 
 import { parseOperations } from './lib/json1-operations'
-import { getIIIF } from './lib/iiif'
 
 const serverUrl = process.env.VUE_APP_SERVER_URL
 
