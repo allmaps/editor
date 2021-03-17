@@ -1,5 +1,5 @@
 <template>
-  <div class="container below-header content">
+  <div class="container below-header content section">
     <p class="block">
       Start georeferencing a map by typing its IIIF Manifest or Image URL in the input box:
     </p>
