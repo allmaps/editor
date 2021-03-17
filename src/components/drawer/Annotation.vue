@@ -2,9 +2,18 @@
   <div class="drawer-content">
     <pre v-highlightjs="annotationString"><code class="json"></code></pre>
     <div class="block actions buttons">
-      <b-button @click="copy">Copy to clipboard</b-button>
-      <b-button @click="download">Download</b-button>
-      <a class="button" target="_blank" :href="`https://annotations.allmaps.org/images/${activeImageId}`">Open in new tab</a>
+      <b-button @click="copy" icon-left="copy">Copy</b-button>
+      <b-button @click="download" icon-left="file-download">Download</b-button>
+
+      <a target="_blank" :href="`https://annotations.allmaps.org/images/${activeImageId}`"
+        class="button is-link" type="button">
+        <span class="icon is-small">
+          <i class="fas fa-external-link-alt"></i>
+        </span>
+        <span>Open in new tab</span>
+      </a>
+
+
     </div>
   </div>
 </template>
