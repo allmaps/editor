@@ -4,21 +4,21 @@
       Start georeferencing a map by typing its IIIF Manifest or Image URL in the input box:
     </p>
 
-    <form>
-    <b-field class="block">
-      <b-input placeholder="IIIF manifest or image URL" expanded
-        v-model="inputUrl" class="is-link" type="search">
-      </b-input>
-      <p class="control">
-        <b-button @click="handleSubmit" native-type="submit"
-          type="is-primary" label="Load" />
-      </p>
-    </b-field>
+    <form class="block">
+      <b-field>
+        <b-input placeholder="IIIF manifest or image URL" expanded
+          v-model="inputUrl" class="is-link" type="search">
+        </b-input>
+        <p class="control">
+          <b-button @click="handleSubmit" native-type="submit"
+            type="is-primary" label="Load" />
+        </p>
+      </b-field>
     </form>
 
-    <!-- <p class="block">
-      For examples, see <a href="https://observablehq.com/d/8c38533260c50483?collection=@bertspaan/iiif-maps">this Observable notebook</a>.
-    </p> -->
+    <p class="block">
+      For examples of map collections that are accessible with IIIF and URLs you can use, see <a href="https://next.observablehq.com/d/8c38533260c50483?collection=@bertspaan/iiif-maps">this Observable notebook</a>.
+    </p>
   </div>
 </template>
 
