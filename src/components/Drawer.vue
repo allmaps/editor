@@ -38,7 +38,7 @@
           </div>
 
           <div class="buttons drawer-buttons">
-            <b-button @click="toggleDrawer('metadata')"
+            <b-button @click="toggleDrawer('metadata')" v-if="hasMetadata"
               :active="drawerOpen === 'metadata'" icon-right="info" />
             <b-button @click="toggleDrawer('maps')"
               :active="drawerOpen === 'maps'" icon-right="list" />
@@ -81,6 +81,7 @@ export default {
   computed: {
     ...mapGetters('iiif', {
       label: 'label',
+      metadata: 'metadata',
       imageCount: 'imageCount'
     }),
     ...mapGetters('ui', {
@@ -88,7 +89,10 @@ export default {
     }),
     ...mapState({
       drawerOpen: (state) => state.ui.drawerOpen
-    })
+    }),
+    hasMetadata: function () {
+      return this.label || this.metadata
+    }
   }
 }
 </script>

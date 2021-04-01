@@ -13,6 +13,9 @@
             class="is-light" icon-right="times" />
         </div>
         <div class="container content">
+          <p>
+           <router-link :to="{ name: 'home' }">Open new IIIF URL</router-link>
+          </p>
           <h4>Keyboard shortcuts</h4>
 
           <dl class="shortcuts">

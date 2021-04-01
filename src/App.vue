@@ -71,7 +71,8 @@ export default {
   methods: {
     ...mapActions('ui', [
       'setActiveImageId',
-      'toggleDrawer'
+      'toggleDrawer',
+      'setSidebarOpen'
     ]),
 
     ...mapActions('maps', [
@@ -94,7 +95,7 @@ export default {
       const source = 'ShareDB'
 
       let message
-      if (!this.doc.version) {
+      if (!this.doc.version || !this.doc.data || Object.keys(this.doc.data).length === 0) {
         this.doc.create({}, json1.type.name)
         message = 'You’re editing a new map.'
       } else {
@@ -282,11 +283,16 @@ export default {
     },
   },
   watch: {
+    '$route.name': function () {
+      this.setSidebarOpen({ open: false })
+    },
     '$route.query.url': function (url) {
+      this.setSidebarOpen({ open: false })
       this.setIiifUrl({ url, imageId: this.$route.query.image })
     },
     '$route.query.image': function (imageId) {
       if (imageId && this.activeImageId !== imageId) {
+        this.setSidebarOpen({ open: false })
         this.setActiveImageId({ imageId })
       }
     },

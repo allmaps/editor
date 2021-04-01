@@ -1,5 +1,5 @@
 <template>
-  <ol class="drawer-content" v-if="maps && Object.keys(maps).length">
+  <ol class="drawer-content maps" v-if="maps && Object.keys(maps).length">
     <li v-for="(map, mapId, index) in maps" :key="mapId"
       @click="mapClicked(mapId)" :class="{
         active: activeMapId === mapId
@@ -148,10 +148,11 @@ export default {
 </script>
 
 <style scoped>
-ol {
+ol.maps {
   margin: 0;
   padding: 0;
   list-style-type: none;
+  font-size: 75%;
 }
 
 ol li {

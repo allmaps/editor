@@ -1,10 +1,10 @@
 <template>
   <header class="padding">
     <h1>
-      <router-link :to="{ name: 'home', query }">
+      <a href="https://allmaps.org/">
         <img alt="Allmaps"
           src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg" />
-      </router-link>
+      </a>
     </h1>
 
     <!-- TODO: replace !$route.query.url with store.ui.loaded -->

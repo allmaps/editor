@@ -36,7 +36,9 @@ const actions = {
   },
 
   setSidebarOpen ({ state, commit }, { open }) {
-    commit('setSidebarOpen', { open })
+    if (state.sidebarOpen !== open) {
+      commit('setSidebarOpen', { open })
+    }
   },
 
   toggleDrawer ({ state, commit }, drawer) {

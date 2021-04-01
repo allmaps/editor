@@ -13,6 +13,7 @@
               url: $route.query.url
             }}">
             <img class="image" :src="getThumbnailUrls(image.iiif, 200)" />
+            <span v-if="image.label">{{ image.label }}</span>
           </router-link>
           <div class="icons">
             <!-- <img :class="{present: hasGcps(id)}" src="../assets/icon-georeferenced.svg" /> -->

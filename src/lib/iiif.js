@@ -63,25 +63,33 @@ export async function getIIIF (url) {
 
   const id = databaseId(uri)
 
-  if (iiifContext.startsWith('http://iiif.io/api/presentation')) {
+  const contextRegex = /http:\/\/iiif\.io\/api\/(?<type>\w+)\/(?<version>\d+\.?\d*)\/context\.json/
+  const match = iiifContext.match(contextRegex)
+  let { groups: { type, version }} = match
+
+  version = parseInt(version.split('.')[0])
+
+  if (type === 'presentation') {
     const manifest = iiifObject
 
     const iiif = {
       type: 'manifest',
+      version,
       manifest: {
         id,
         uri,
         iiif: manifest,
       },
-      images: await getImages(manifest, id)
+      images: await getImages(manifest, id, version)
     }
 
     return iiif
-  } else if (iiifContext.startsWith('http://iiif.io/api/image')) {
+  } else if (type === 'image') {
     const image = await initializeImage(iiifObject)
 
     const iiif = {
       type: 'image',
+      version,
       manifest: undefined,
       images: {
         [image.id]: image
@@ -99,7 +107,7 @@ export function getManifest (manifestUrl) {
 }
 
 async function initializeImage (manifestImage, canvas, manifestId) {
-  const uri = manifestImage['@id']
+  const uri = manifestImage['@id'] || manifestImage.id
   const id = databaseId(uri)
 
   const image = await getJson(`${uri}/info.json`)
@@ -123,42 +131,71 @@ async function initializeImage (manifestImage, canvas, manifestId) {
 }
 
 // TODO: make sure to catch errors!
-async function getImages (manifest, manifestId) {
-  if (manifest.sequences.length !== 1) {
-    throw new Error('Only accepts manifest with single sequence')
+async function getImages (manifest, manifestId, version) {
+  // TODO: this functions seems to be called twice on init
+
+  let canvases
+
+  if (version === 2) {
+    if (manifest.sequences.length !== 1) {
+      throw new Error('Only accepts manifest with single sequence')
+    }
+
+    const sequence = manifest.sequences[0]
+    canvases = sequence.canvases
+  } else if (version === 3) {
+    canvases = manifest.items
+  } else {
+    throw new Error(`Unsupported Presentation API version: ${version}`)
   }
 
-  const sequence = manifest.sequences[0]
-  const canvases = sequence.canvases
 
-  try {
-    const images = (await Promise.all(canvases.map(async (canvas) => {
-      if (canvas.images.length !== 1) {
-        throw new Error('Only accepts canvases with single image')
+  const images = (await Promise.all(canvases.map(async (canvas) => {
+    let images
+
+    if (version === 2) {
+      images = canvas.images
+    } else if (version === 3) {
+      images = canvas.items
+    }
+
+    if (images.length !== 1) {
+      throw new Error('Only accepts canvases with single image')
+    }
+
+    const imageAnnotations = images[0]
+
+    let imageAnnotation
+    if (imageAnnotations.type === 'AnnotationPage' ||
+      imageAnnotations['@type'] === 'oa:AnnotationPage') {
+      if (imageAnnotations.items.length !== 1) {
+        throw new Error('Only accepts images with single image annotation')
       }
 
-      const imageAnnotation = canvas.images[0]
-      const iiifApiImage = imageAnnotation.resource.service
+      imageAnnotation = imageAnnotations.items[0]
+    } else if (imageAnnotations.type === 'Annotation' ||
+    imageAnnotations['@type'] === 'oa:Annotation') {
+      imageAnnotation = imageAnnotations
+    } else {
+      throw new Error(`Invalid type`)
+    }
 
-      const image = await initializeImage(imageAnnotation.resource.service, canvas, manifestId)
+    const resource = imageAnnotation.body || imageAnnotation.resource
+    const iiifApiImage = resource.service
+    const image = await initializeImage(iiifApiImage, canvas, manifestId)
 
-      return image
-    }))).reduce((imagesObj, image, index, images) => ({
-      ...imagesObj,
-      [image.id]: {
-        ...image,
-        index,
-        previousImageId: images[index - 1] && images[index - 1].id,
-        nextImageId: images[index + 1] && images[index + 1].id
-      }
-    }), {})
+    return image
+  }))).reduce((imagesObj, image, index, images) => ({
+    ...imagesObj,
+    [image.id]: {
+      ...image,
+      index,
+      previousImageId: images[index - 1] && images[index - 1].id,
+      nextImageId: images[index + 1] && images[index + 1].id
+    }
+  }), {})
 
-    // TODO: this functions seems to be called twice on init
-
-    return images
-  } catch (err) {
-    console.log(err)
-  }
+  return images
 }
 
 export function getProfileLevel (profileUri) {

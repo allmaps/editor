@@ -8,9 +8,12 @@ function getString (value) {
   if (Array.isArray(value)) {
     // TODO: don't pick first value, return list of values
     return getString(value[0])
+  } else if (typeof value === 'object' && value.en) {
+    // TODO: support other languages!
+    return getString(value.en)
   } else if (typeof value === 'object' && value['@value']) {
     return getString(value['@value'])
-  } else if (value.includes('<')) {
+  } else if (value && value.includes('<')) {
     let doc = new DOMParser().parseFromString(value, 'text/html')
     return doc.body.textContent || ''
   } else {
@@ -48,11 +51,13 @@ const getters = {
   },
   metadata: (state) => {
     if (state.manifest) {
-      return state.manifest.iiif.metadata
-        .map(({ label, value }) => ({
-          label,
-          value: getString(value)
-        }))
+      if (state.manifest.iiif.metadata && state.manifest.iiif.metadata.length) {
+        return state.manifest.iiif.metadata
+          .map(({ label, value }) => ({
+            label: getString(label),
+            value: getString(value)
+          }))
+      }
     }
   }
 }
