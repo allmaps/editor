@@ -1,8 +1,8 @@
 <template>
   <div class="drawer-content content">
-    <h3>{{ label }}</h3>
-    <p>{{ description }}</p>
-    <dl>
+    <h3 v-if="label">{{ label }}</h3>
+    <p v-if="description">{{ description }}</p>
+    <dl v-if="metadata">
       <div v-for="(item, index) in metadata" :key="index">
         <dt>{{ item.label }} </dt>
         <dd>{{ item.value }} </dd>

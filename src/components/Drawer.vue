@@ -82,6 +82,7 @@ export default {
     ...mapGetters('iiif', {
       label: 'label',
       metadata: 'metadata',
+      description: 'description',
       imageCount: 'imageCount'
     }),
     ...mapGetters('ui', {
@@ -91,7 +92,7 @@ export default {
       drawerOpen: (state) => state.ui.drawerOpen
     }),
     hasMetadata: function () {
-      return this.label || this.metadata
+      return this.label || this.metadata || this.description
     }
   }
 }
