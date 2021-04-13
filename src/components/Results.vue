@@ -14,17 +14,27 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 
 export default {
   name: 'Results',
   computed: {
+    ...mapGetters('iiif', {
+      manifestId: 'manifestId'
+    }),
     ...mapState({
       activeImageId: (state) => state.ui.activeImageId
     }),
     viewerUrl: function () {
       const baseUrl = 'https://viewer.allmaps.org/#type=annotation&data=data:text/x-url,'
-      const annotationUrl = `https://annotations.allmaps.org/images/${this.activeImageId}`
+      const annotationBaseUrl = 'https://annotations.allmaps.org'
+
+      let annotationUrl
+      if (this.manifestId) {
+        annotationUrl = `${annotationBaseUrl}/manifests/${this.manifestId}`
+      } else {
+        annotationUrl = `${annotationBaseUrl}/images/${this.activeImageId}`
+      }
 
       return `${baseUrl}${encodeURIComponent(annotationUrl)}`
     }

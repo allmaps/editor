@@ -40,6 +40,9 @@ const initialState = {
 const state = () => initialState
 
 const getters = {
+  manifestId: (state) => {
+    return state.manifest && state.manifest.id
+  },
   imageCount: (state) => {
     return Object.keys(state.images).length
   },
