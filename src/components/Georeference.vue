@@ -25,7 +25,7 @@ import IIIFInfo from 'ol/format/IIIFInfo'
 import { fromLonLat } from 'ol/proj'
 
 import { deleteCondition } from '../lib/openlayers'
-import { randomId } from '../lib/id'
+import { createRandomId } from '../lib/id'
 import { createFullImageMap } from '../lib/map'
 import { round } from '../lib/functions'
 
@@ -62,7 +62,10 @@ export default {
 
       const mapId = mutation.payload.mapId
 
-      if (this.activeMapId !== mapId) {
+      if (mutation.type === 'maps/removeMap') {
+        this.clearGcps()
+        return
+      } else if (this.activeMapId !== mapId) {
         return
       }
 
@@ -198,12 +201,15 @@ export default {
         world: mapPoint
       }
     },
-    initalizeGCPs: function (map) {
+    clearGcps: function () {
       this.mapSource.clear()
       this.iiifSource.clear()
 
       this.singleIiifFeatures = []
       this.singleMapFeatures = []
+    },
+    initalizeGCPs: function (map) {
+      this.clearGcps()
 
       const gcps = (map && Object.values(map.gcps)) || []
 
@@ -289,7 +295,7 @@ export default {
       return geometry.getCoordinates()
         .map((coordinate) => round(coordinate, 7))
     },
-    onEdited: function (event) {
+    onEdited: async function (event) {
       if (event.type === 'addfeature') {
         const feature = event.feature
 
@@ -303,7 +309,7 @@ export default {
         const pointDifference = this.pointDifference()
         if ((pointDifference > 0 && event.target === this.iiifSource) ||
           (pointDifference < 0 && event.target === this.mapSource)) {
-          gcpId = randomId()
+          gcpId = await createRandomId()
           newGcpId = true
 
           if (event.target === this.iiifSource) {
@@ -344,11 +350,10 @@ export default {
           if (newGcpId) {
             this.insertGcp({ mapId, gcpId, gcp, source: this.source })
           } else {
-
             this.replaceGcp({ mapId, gcpId, gcp, source: this.source })
           }
         } else {
-          const map = createFullImageMap(this.activeImage)
+          const map = await createFullImageMap(this.activeImage)
           const { id: mapId, image, pixelMask } = map
 
           const gcps = {
@@ -417,7 +422,7 @@ export default {
       //     this.image.height
       //   ]
 
-      //   const mapId = this.activeMapId || randomId()
+      //   const mapId = this.activeMapId || await createRandomId()
 
       //   let pixelMask
       //   if (this.activeMap && this.activeMap.pixelMask && this.activeMap.pixelMask.length) {
@@ -535,12 +540,26 @@ export default {
       target: 'iiif'
     })
 
+    const tileSources = [
+      {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+        attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+      },
+      {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
+      },
+      {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+      }
+    ]
+
     this.mapLayer = new TileLayer({
-      // source: new XYZ({
-      //   // TODO: move to config
-      //   url: 'https://a.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png'
-      // })
-      source: new OSM()
+      source: new XYZ({
+        // TODO: move to config
+        url: tileSources[0].url
+      })
     })
     this.mapSource = new VectorSource()
 
@@ -602,7 +621,7 @@ export default {
     this.updateImage(this.activeImage)
     this.initalizeGCPs(this.activeMap)
   },
-  beforeUnmount: function () {
+  beforeDestroy: function () {
     this.iiifSource.un('addfeature', this.onEdited)
     this.iiifModify.un('modifyend', this.onEdited)
 

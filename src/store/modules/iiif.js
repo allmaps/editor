@@ -3,6 +3,7 @@
 import { router } from '../../main.js'
 
 import { getIIIF } from '../../lib/iiif'
+import { submitIiif } from '../../lib/api'
 
 function getString (value) {
   if (Array.isArray(value)) {
@@ -27,14 +28,16 @@ function sortImageIds (images) {
     .sort((a, b) => a.index - b.index)
 }
 
-const state = () => ({
+const initialState = {
   loaded: false,
   url: undefined,
   manifest: undefined,
   type: undefined,
   images: {},
   sortedImageIds: []
-})
+}
+
+const state = () => initialState
 
 const getters = {
   imageCount: (state) => {
@@ -68,10 +71,16 @@ const actions = {
       return
     }
 
-    const { type, manifest, images } = await getIIIF(url)
-    const sortedImageIds = sortImageIds(images)
+    // TODO: set loading, make sure old images are not displayed
 
     commit('maps/setMaps', { maps: {} }, { root: true })
+
+    const { id, type, manifest, images, data } = await getIIIF(url)
+
+    submitIiif(url, type, id, data)
+
+    const sortedImageIds = sortImageIds(images)
+
     commit('setIiif', { url, type, manifest, images, sortedImageIds })
 
     if (imageId && images[imageId]) {

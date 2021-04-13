@@ -1,7 +1,6 @@
 import axios from 'axios'
 
-import {fetchManifest, fetchImage} from './api'
-import {databaseId} from './id'
+import { createId } from './id'
 
 function getJson (url) {
   // TODO: use fetch instead
@@ -14,38 +13,6 @@ function toObjectById (arr) {
     ...obj,
     [item.id]: item
   }), {})
-}
-
-async function getMapsFromManifestApi (id) {
-  // try {
-  //   const apiManifest = await fetchManifest(id)
-
-  //   const maps = apiManifest.images
-  //     .map((apiImage) => apiImage.maps
-  //       .map((map) => ({imageId: apiImage.id, ...map})))
-  //     .flat()
-
-  //   return toObjectById(maps)
-  // } catch (err) {
-  //   console.log(`Can't connect to allmaps API`)
-  // }
-
-  return {}
-}
-
-async function getMapsFromImageApi (id) {
-  // try {
-  //   const apiImage = await fetchImage(id)
-
-  //   const maps = apiImage.maps
-  //     .map((map) => ({imageId: id, ...map}))
-
-  //   return toObjectById(maps)
-  // } catch (err) {
-  //   console.log(`Can't connect to allmaps API`)
-  // }
-
-  return {}
 }
 
 export async function getIIIF (url) {
@@ -61,7 +28,7 @@ export async function getIIIF (url) {
   // TODO: check IIIF Manifest version
   const uri = iiifObject['@id'] || iiifObject['id']
 
-  const id = databaseId(uri)
+  const id = await createId(uri)
 
   const contextRegex = /http:\/\/iiif\.io\/api\/(?<type>\w+)\/(?<version>\d+\.?\d*)\/context\.json/
   const match = iiifContext.match(contextRegex)
@@ -73,6 +40,8 @@ export async function getIIIF (url) {
     const manifest = iiifObject
 
     const iiif = {
+      data: iiifObject,
+      id,
       type: 'manifest',
       version,
       manifest: {
@@ -88,6 +57,8 @@ export async function getIIIF (url) {
     const image = await initializeImage(iiifObject)
 
     const iiif = {
+      data: iiifObject,
+      id: image.id,
       type: 'image',
       version,
       manifest: undefined,
@@ -108,7 +79,7 @@ export function getManifest (manifestUrl) {
 
 async function initializeImage (manifestImage, canvas, manifestId) {
   const uri = manifestImage['@id'] || manifestImage.id
-  const id = databaseId(uri)
+  const id = await createId(uri)
 
   const image = await getJson(`${uri}/info.json`)
 
@@ -238,7 +209,11 @@ export function getSizes (image, width = 100) {
 
 export function getThumbnailUrls (image, thumbnailWidth = 100) {
   const sizes = getSizes(image)
-  const dimensions = image.dimensions
+
+  const dimensions = [
+    image.width,
+    image.height
+  ]
 
   const baseUrl = image['@id']
   const suffix = `0/${getQuality(image)}.${getFormat(image)}`

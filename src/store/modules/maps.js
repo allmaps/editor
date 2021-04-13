@@ -14,8 +14,9 @@ function makeOtherMapActive (rootState, mapId, commit) {
   }
 
   let otherMapId
-  for (otherMapId of Object.keys(rootState.maps.maps)) {
-    if (otherMapId !== mapId) {
+  for (let loopMapId of Object.keys(rootState.maps.maps)) {
+    if (loopMapId !== mapId) {
+      otherMapId = loopMapId
       break
     }
   }

@@ -12,7 +12,7 @@
         <h3 class="label">{{ label }}</h3>
         <div class="controls">
           <div class="select-image">
-            <template v-if="activeImage">
+            <template v-if="activeImage && imageCount > 1">
               <span>
                 Editing image {{ activeImage.index + 1 }}/{{ imageCount }}
               </span>

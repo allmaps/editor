@@ -17,7 +17,7 @@ import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 
 import { round } from '../lib/functions'
-import { randomId } from '../lib/id'
+import { createRandomId } from '../lib/id'
 import { deleteCondition } from '../lib/openlayers'
 
 export default {
@@ -142,7 +142,7 @@ export default {
         }
       }
     },
-    onEdited: function (event) {
+    onEdited: async function (event) {
       if (event.type === 'addfeature') {
         const feature = event.feature
 
@@ -154,7 +154,7 @@ export default {
           index: Object.keys(this.maps).length
         })
 
-        const mapId = randomId()
+        const mapId = await createRandomId()
         feature.setId(mapId)
 
         this.insertMap({
@@ -272,7 +272,7 @@ export default {
     },
     maskLabel: function (feature) {
       const properties = feature.getProperties()
-      return String(properties.index + 1)
+      return `Map ${properties.index + 1}`
     },
     maskStyle: function (feature) {
       const active = this.activeMapId === feature.getId()
@@ -324,7 +324,7 @@ export default {
     this.initializePixelMasks(this.maps)
     this.updateStyles()
   },
-  beforeUnmount: function () {
+  beforeDestroy: function () {
     this.iiifSource.un('addfeature', this.onEdited)
     this.iiifModify.un('modifystart', this.onEdited)
     this.iiifModify.un('modifyend', this.onEdited)

@@ -95,7 +95,7 @@ export default {
       const source = 'ShareDB'
 
       let message
-      if (!this.doc.version || !this.doc.data || Object.keys(this.doc.data).length === 0) {
+      if (!this.doc.type) {
         this.doc.create({}, json1.type.name)
         message = 'You’re editing a new map.'
       } else {
@@ -197,33 +197,35 @@ export default {
 
       if (mutation.type === 'maps/insertMap') {
         const { mapId, map } = mutation.payload
-        this.doc.submitOp(json1.insertOp([mapId], map))
+
+        // TODO: make map immutable, or use this.doc as store
+        this.doc.submitOp(json1.insertOp([mapId], JSON.parse(JSON.stringify(map))))
       } else if (mutation.type === 'maps/removeMap') {
         const { mapId } = mutation.payload
         this.doc.submitOp(json1.removeOp([mapId]))
       } else if (mutation.type === 'maps/insertPixelMaskPoint') {
-        const { mapId, index, pixelMaskPoint} = mutation.payload
+        const { mapId, index, pixelMaskPoint } = mutation.payload
         this.doc.submitOp(json1.insertOp([mapId, 'pixelMask', index], pixelMaskPoint))
       } else if (mutation.type === 'maps/removePixelMaskPoint') {
-        const { mapId, index, pixelMaskPoint} = mutation.payload
+        const { mapId, index, pixelMaskPoint } = mutation.payload
         this.doc.submitOp(json1.removeOp([mapId, 'pixelMask', index], pixelMaskPoint))
       } else if (mutation.type === 'maps/replacePixelMaskPoint') {
-        const { mapId, index, pixelMaskPoint} = mutation.payload
+        const { mapId, index, pixelMaskPoint } = mutation.payload
         // TODO: replace true with oldVal
         this.doc.submitOp(json1.replaceOp([mapId, 'pixelMask', index], true, pixelMaskPoint))
       } else if (mutation.type === 'maps/insertGcp') {
-        const { mapId, gcpId, gcp} = mutation.payload
+        const { mapId, gcpId, gcp } = mutation.payload
         // if (gcp.image && gcp.world) {
-          this.doc.submitOp(json1.insertOp([mapId, 'gcps', gcpId], gcp))
+          this.doc.submitOp(json1.insertOp([mapId, 'gcps', gcpId], {...gcp}))
         // }
       } else if (mutation.type === 'maps/replaceGcp') {
-        const { mapId, gcpId, gcp} = mutation.payload
+        const { mapId, gcpId, gcp } = mutation.payload
         // if (gcp.image && gcp.world) {
           // TODO: replace true with oldVal
-          this.doc.submitOp(json1.replaceOp([mapId, 'gcps', gcpId], true, gcp))
+          this.doc.submitOp(json1.replaceOp([mapId, 'gcps', gcpId], true, {...gcp}))
         // }
       } else if (mutation.type === 'maps/removeGcp') {
-        const { mapId, gcpId, gcp} = mutation.payload
+        const { mapId, gcpId, gcp } = mutation.payload
         // if (gcp.image && gcp.world) {
           this.doc.submitOp(json1.removeOp([mapId, 'gcps', gcpId]))
         // }
@@ -365,7 +367,7 @@ main p a, main ul a, main ol a {
 }
 
 .banner {
-  background-color: rgb(226, 88, 70);
+  background-color: #E22D3F;
   color: white;
   padding: 0.5em;
   font-size: 75%;

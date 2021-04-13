@@ -23,7 +23,7 @@ export default {
       activeImageId: (state) => state.ui.activeImageId
     }),
     viewerUrl: function () {
-      const baseUrl = 'https://viewer.allmaps.org/#data=data%3Atext%2Fx-url%2C'
+      const baseUrl = 'https://viewer.allmaps.org/#type=annotation&data=data:text/x-url,'
       const annotationUrl = `https://annotations.allmaps.org/images/${this.activeImageId}`
 
       return `${baseUrl}${encodeURIComponent(annotationUrl)}`

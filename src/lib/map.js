@@ -1,7 +1,7 @@
-import { randomId } from './id'
+import { createRandomId } from './id'
 
-export function createFullImageMap (image) {
-  const mapId = randomId()
+export async function createFullImageMap (image) {
+  const mapId = await createRandomId()
 
   const pixelMask = [
     [0, 0],
