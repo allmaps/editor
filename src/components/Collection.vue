@@ -2,7 +2,7 @@
   <div class="background">
     <section class="container below-header">
       <ol class="images">
-        <li v-for="(image, imageId) in images" :key="imageId"
+        <li v-for="(image, imageId) in imagesById" :key="imageId"
           :class="{
             active: activeImageId === imageId
           }">
@@ -12,8 +12,20 @@
               image: imageId,
               url: $route.query.url
             }}">
-            <img class="image" :src="getThumbnailUrls(image.iiif, 200)" />
-            <span v-if="image.label">{{ image.label }}</span>
+            <template v-if="!image.stub">
+              <Thumbnail v-if="!image.stub" :image="image"  />
+              <!-- TODO: add label, or index -->
+              <!-- <span v-if="image.label">{{ image.label }}</span> -->
+            </template>
+            <template v-else>
+              <div>
+                <b-icon
+                  pack="fas"
+                  icon="sync-alt"
+                  size="is-large"
+                  custom-class="fa-spin" />
+              </div>
+            </template>
           </router-link>
           <div class="icons">
             <!-- <img :class="{present: hasGcps(id)}" src="../assets/icon-georeferenced.svg" /> -->
@@ -28,13 +40,16 @@
 <script>
 import { mapState } from 'vuex'
 
-import { getThumbnailUrls } from '../lib/iiif'
+import Thumbnail from './Thumbnail.vue'
 
 export default {
   name: 'Collection',
+  components: {
+    Thumbnail
+  },
   computed: {
     ...mapState({
-      images: (state) => state.iiif.images,
+      imagesById: (state) => state.iiif.imagesById,
       maps: (state) => state.maps.maps,
       activeImageId: (state) => state.ui.activeImageId
     })
@@ -45,7 +60,6 @@ export default {
         url: this.inputUrl
       }})
     },
-    getThumbnailUrls: getThumbnailUrls,
     mapsForImage: function (imageId) {
       return Object.values(this.maps)
         .filter((map) => map.imageId === imageId)
@@ -83,7 +97,11 @@ export default {
 .images li {
   position: relative;
   margin: 10px;
+
+  width: 200px;
   height: 200px;
+  max-width: 200px;
+
   flex-grow: 1;
   box-sizing: border-box;
   border-width: 3px;
@@ -112,16 +130,9 @@ export default {
 .images li a {
   width: 100%;
   height: 100%;
-}
-
-.images li img.image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  max-height: 100%;
-  min-width: 100%;
-  object-fit: cover;
-  vertical-align: bottom;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .icons {

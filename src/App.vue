@@ -52,7 +52,7 @@ import ReconnectingWebSocket from 'reconnecting-websocket'
 import ShareDB from 'sharedb/lib/client'
 const json1 = require('ot-json1')
 
-import { parseOperations } from './lib/json1-operations'
+import { parseOperations } from './lib/json1-operations.js'
 
 const serverUrl = process.env.VUE_APP_SERVER_URL
 
@@ -71,12 +71,14 @@ export default {
   methods: {
     ...mapActions('ui', [
       'setActiveImageId',
+      'setActiveMapId',
       'toggleDrawer',
       'setSidebarOpen'
     ]),
 
     ...mapActions('maps', [
       'setMaps',
+      'resetMaps',
       'insertMap',
       'removeMap',
       'insertPixelMaskPoint',
@@ -253,6 +255,10 @@ export default {
           ...this.$route.query,
           image: this.activeImage.nextImageId
         }})
+      } else if (event.key === '{') {
+        this.setActiveMapId({ mapId: this.previousMapId })
+      } else if (event.key === '}') {
+        this.setActiveMapId({ mapId: this.nextMapId })
       } else if (event.key === '1') {
         this.goToRoute('collection')
       } else if (event.key === '2') {
@@ -278,7 +284,9 @@ export default {
       maps: (state) => state.maps.maps
     }),
     ...mapGetters('ui', {
-      activeImage: 'activeImage'
+      activeImage: 'activeImage',
+      previousMapId: 'previousMapId',
+      nextMapId: 'nextMapId'
     }),
     fullscreen: function () {
       return this.$route.name === 'mask' || this.$route.name === 'georeference' || this.$route.name === 'results'
@@ -299,6 +307,7 @@ export default {
       }
     },
     activeImageId: function () {
+      this.resetMaps()
       this.getDoc()
     }
   },

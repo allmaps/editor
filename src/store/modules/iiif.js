@@ -1,17 +1,24 @@
 /* global DOMParser */
 
+import Vue from 'vue'
+
 import { router } from '../../main.js'
 
-import { getIIIF } from '../../lib/iiif'
-import { submitIiif } from '../../lib/api'
+import { createId } from '@allmaps/id'
+import { parseIiif } from '@allmaps/iiif-parser'
+
+import { fetchJson, submitIiif } from '../../lib/api.js'
 
 function getString (value) {
   if (Array.isArray(value)) {
     // TODO: don't pick first value, return list of values
     return getString(value[0])
-  } else if (typeof value === 'object' && value.en) {
-    // TODO: support other languages!
-    return getString(value.en)
+  } else if (typeof value === 'object') {
+    if (value.en) {
+      return getString(value.en)
+    } else {
+      return getString(Object.values(value)[0])
+    }
   } else if (typeof value === 'object' && value['@value']) {
     return getString(value['@value'])
   } else if (value && value.includes('<')) {
@@ -22,54 +29,45 @@ function getString (value) {
   }
 }
 
-function sortImageIds (images) {
-  return Object.values(images)
-    .map(({ id, index }) => ({ id, index }))
-    .sort((a, b) => a.index - b.index)
-}
-
 const initialState = {
   loaded: false,
   url: undefined,
-  manifest: undefined,
   type: undefined,
-  images: {},
-  sortedImageIds: []
+  parsedIiif: undefined,
+  imagesById: {}
 }
 
 const state = () => initialState
 
 const getters = {
   manifestId: (state) => {
-    return state.manifest && state.manifest.id
+    return state.parsedIiif.type === 'manifest' && state.parsedIiif.id
   },
   imageCount: (state) => {
-    return Object.keys(state.images).length
-  },
-  sortedImageIds: (state) => {
-    return state.sortedImageIds
+    return Object.keys(state.imagesById).length
   },
   label: (state) => {
-    return state.manifest && getString(state.manifest.iiif.label)
+    return state.parsedIiif && getString(state.parsedIiif.sourceData.label)
   },
   description: (state) => {
-    return state.manifest && getString(state.manifest.iiif.description)
+    return state.parsedIiif && getString(state.parsedIiif.sourceData.description)
   },
   metadata: (state) => {
-    if (state.manifest) {
-      if (state.manifest.iiif.metadata && state.manifest.iiif.metadata.length) {
-        return state.manifest.iiif.metadata
+    if (state.parsedIiif) {
+      if (state.parsedIiif.sourceData.metadata && state.parsedIiif.sourceData.metadata.length) {
+        return state.parsedIiif.sourceData.metadata
           .map(({ label, value }) => ({
             label: getString(label),
             value: getString(value)
           }))
+          .filter(({ label, value }) => label && value)
       }
     }
   }
 }
 
 const actions = {
-  async setIiifUrl ({ state, commit, rootState }, { url, imageId }) {
+  async setIiifUrl ({ commit, dispatch }, { url, imageId }) {
     if (!url) {
       return
     }
@@ -78,41 +76,120 @@ const actions = {
 
     commit('maps/setMaps', { maps: {} }, { root: true })
 
-    const { id, type, manifest, images, data } = await getIIIF(url)
+    const sourceIiif = await fetchJson(url)
+    let parsedIiif = parseIiif(sourceIiif)
+    const type = parsedIiif.type
 
-    submitIiif(url, type, id, data)
+    // Add IDs to parsed IIIF data
+    parsedIiif.id = await createId(parsedIiif.uri)
+    if (type === 'image') {
+      parsedIiif.stub = false
+    } else if (type === 'manifest') {
+      for (let image of parsedIiif.images) {
+        image.id = await createId(image.uri)
 
-    const sortedImageIds = sortImageIds(images)
-
-    commit('setIiif', { url, type, manifest, images, sortedImageIds })
-
-    if (imageId && images[imageId]) {
-      commit('ui/setActiveImageId', { imageId }, { root: true })
+        // Image data comes from manifest.
+        // For each image, we need to download the info.json file.
+        // Until then, mark the image as stub.
+        // TODO: consider moving this to iiif-parser
+        image.stub = true
+      }
     } else {
-      imageId = sortedImageIds[0].id
+      throw new Error(`Unsupported IIIF type: ${type}`)
+    }
 
-      const newRoute = {
+    submitIiif(url, parsedIiif.type, parsedIiif.id, sourceIiif)
+
+    const images = type === 'image' ? [parsedIiif] : parsedIiif.images
+    const imagesById = images.reduce((imagesById, image, index) => ({
+      ...imagesById,
+      [image.id]: {
+        ...image,
+        index,
+        previousImageId: images[index - 1] && images[index - 1].id,
+        nextImageId: images[index + 1] && images[index + 1].id
+      }
+    }), {})
+
+    commit('setIiif', { url, type, parsedIiif, imagesById })
+
+    let newRoute
+    let newImageId
+
+    if (imageId && imagesById[imageId]) {
+      newImageId = imageId
+    } else {
+      newImageId = images[0].id
+
+      newRoute = {
         name: router.currentRoute.name,
         query: {
           ...router.currentRoute.query,
-          image: imageId
+          image: newImageId
         }
       }
+    }
 
+    if (imagesById[newImageId].stub) {
+      dispatch('loadImageInfo', { imageId: newImageId })
+    }
+
+    if (newRoute) {
       router.push(newRoute)
-      commit('ui/setActiveImageId', { imageId: sortedImageIds[0].id }, { root: true })
+    }
+
+    commit('ui/setActiveImageId', { imageId: newImageId }, { root: true })
+
+    if (parsedIiif.type === 'manifest') {
+      images
+        .filter((image) => image.stub)
+        .forEach((image) => dispatch('loadImageInfo', { imageId: image.id }))
+    }
+  },
+
+  async loadImageInfo ({ state, commit }, { imageId }) {
+    if (state.imagesById[imageId] && state.imagesById[imageId].stub) {
+      const imageStub = state.imagesById[imageId]
+
+      const url = `${imageStub.uri}/info.json`
+      const sourceIiif = await fetchJson(url)
+      let parsedIiif = parseIiif(sourceIiif)
+      const type = parsedIiif.type
+
+      if (type === 'image') {
+        // Add ID and previously computed data to parsed IIIF image data
+        const parsedImage = {
+          ...parsedIiif,
+          id: await createId(parsedIiif.uri),
+          stub: false,
+          index: imageStub.index,
+          previousImageId: imageStub.previousImageId,
+          nextImageId: imageStub.nextImageId
+        }
+
+        if (parsedImage.id === imageId) {
+          commit('setImage', { imageId, parsedImage })
+        } else {
+          throw new Error(`Image IDs don't match`)
+        }
+      } else {
+        throw new Error(`IIIF data is not an image`)
+      }
     }
   }
 }
 
 const mutations = {
-  setIiif (state, { url, type, manifest, images, sortedImageIds }) {
+  setIiif (state, { url, type, parsedIiif, imagesById }) {
     state.loaded = true
     state.url = url
     state.type = type
-    state.manifest = manifest
-    state.images = images
-    state.sortedImageIds = sortedImageIds
+    state.parsedIiif = parsedIiif
+    state.imagesById = imagesById
+  },
+
+  setImage (state, { imageId, parsedImage }) {
+    Vue.set(state.imagesById, imageId, parsedImage)
   }
 }
 

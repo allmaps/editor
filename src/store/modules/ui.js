@@ -9,27 +9,45 @@ const state = () => ({
 
 const getters = {
   activeImage: (state, getters, rootState) => {
-    return rootState.iiif.images[state.activeImageId]
+    return rootState.iiif.imagesById[state.activeImageId]
+  },
+
+  previousMapId: (state, getters, rootState) => {
+    if (!state.activeMapId) {
+      return
+    }
+
+    const mapIds = Object.keys(rootState.maps.maps)
+    const currentMapIndex = mapIds.indexOf(state.activeMapId)
+    const newMapIndex = (currentMapIndex - 1 + mapIds.length) % mapIds.length
+    return mapIds[newMapIndex]
+  },
+
+  nextMapId: (state, getters, rootState) => {
+    if (!state.activeMapId) {
+      return
+    }
+
+    const mapIds = Object.keys(rootState.maps.maps)
+    const currentMapIndex = mapIds.indexOf(state.activeMapId)
+    const newMapIndex = (currentMapIndex + 1 + mapIds.length) % mapIds.length
+    return mapIds[newMapIndex]
   }
 }
 
 const actions = {
-  setActiveImageId ({ state, commit, rootState }, { imageId }) {
-    if (!rootState.iiif.images[imageId]) {
+  setActiveImageId ({ commit, dispatch, rootState }, { imageId }) {
+    if (!rootState.iiif.imagesById[imageId]) {
       throw new Error(`Image ID does not exist in IIIF source: ${imageId}`)
     }
 
-    commit('setActiveImageId', { imageId })
+    dispatch('maps/resetMaps', { maps: {} }, { root: true })
 
-    const maps = rootState.maps.maps
-    if (Object.keys(maps).length) {
-      // TODO: get first map, maybe add property?
-      const mapId = Object.keys(maps)[0]
-      commit('setActiveMapId', { mapId })
-    }
+    commit('setActiveImageId', { imageId })
+    commit('setActiveMapId', { mapId: undefined })
   },
 
-  setActiveMapId ({ state, commit, rootState }, { mapId }) {
+  setActiveMapId ({ commit, rootState }, { mapId }) {
     if (rootState.maps.maps[mapId]) {
       commit('setActiveMapId', { mapId })
     }

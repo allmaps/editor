@@ -16,9 +16,11 @@ import { Fill, Stroke, Style, Text } from 'ol/style'
 import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 
+import { createRandomId } from '@allmaps/id'
+
 import { round } from '../lib/functions'
-import { createRandomId } from '../lib/id'
 import { deleteCondition } from '../lib/openlayers'
+
 
 export default {
   name: 'PixelMask',
@@ -33,6 +35,7 @@ export default {
       this.initializePixelMasks(this.maps)
     },
     activeImage: function () {
+      this.initializePixelMasks(this.maps)
       this.updateImage(this.activeImage)
     }
   },
@@ -162,7 +165,11 @@ export default {
           image: {
             id: this.activeImage.id,
             uri: this.activeImage.uri,
-            dimensions: [...this.activeImage.dimensions]
+            width: this.activeImage.width,
+            height: this.activeImage.height,
+            version: this.activeImage.version,
+            quality: this.activeImage.quality,
+            format: this.activeImage.format
           },
           pixelMask: this.featurePolygon(feature),
           source: this.source
@@ -206,11 +213,11 @@ export default {
       }
     },
     updateImage: function (image) {
-      if (!image) {
+      if (!image || image.stub) {
         return
       }
 
-      const options = new IIIFInfo(image.iiif).getTileSourceOptions()
+      const options = new IIIFInfo(image.sourceData).getTileSourceOptions()
       if (options === undefined || options.version === undefined) {
         throw new Error('Data seems to be no valid IIIF image information.')
       }

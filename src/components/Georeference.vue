@@ -17,15 +17,15 @@ import { Point } from 'ol/geom'
 import { GeoJSON } from 'ol/format'
 import { Vector as VectorSource } from 'ol/source'
 import Zoom from 'ol/control/Zoom'
-import OSM from 'ol/source/OSM'
 import XYZ from 'ol/source/XYZ'
 import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style'
 import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 import { fromLonLat } from 'ol/proj'
 
+import { createRandomId } from '@allmaps/id'
+
 import { deleteCondition } from '../lib/openlayers'
-import { createRandomId } from '../lib/id'
 import { createFullImageMap } from '../lib/map'
 import { round } from '../lib/functions'
 
@@ -46,6 +46,7 @@ export default {
     },
     activeImage: function () {
       this.updateImage(this.activeImage)
+      this.initalizeGCPs(this.activeMap)
     }
   },
   methods: {
@@ -452,11 +453,11 @@ export default {
       // }
     },
     updateImage: function (image) {
-      if (!image || !image.iiif) {
+      if (!image || image.stub) {
         return
       }
 
-      const options = new IIIFInfo(image.iiif).getTileSourceOptions()
+      const options = new IIIFInfo(image.sourceData).getTileSourceOptions()
       if (options === undefined || options.version === undefined) {
         throw new Error('Data seems to be no valid IIIF image information.')
       }

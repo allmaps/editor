@@ -3,11 +3,11 @@
     <b-sidebar type="is-light" :fullheight="true"
       :overlay="true" :right="true" v-model="open">
       <div class="padding">
-        <div class="title">
+        <div class="sidebar-title">
           <div>
             <img alt="Allmaps"
               src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg" />
-            <span>Allmaps Editor</span>
+            <h2>Editor</h2>
           </div>
           <b-button @click="open = false"
             class="is-light" icon-right="times" />
@@ -47,6 +47,9 @@ export default {
         { label: 'Previous image', key: '[' },
         { label: 'Next image', key: ']' },
 
+        { label: 'Previous map', key: '{' },
+        { label: 'Next map', key: '}' },
+
         { label: 'Open new IIIF URL', key: '0' },
         { label: 'Collection view', key: '1' },
         { label: 'Mask view', key: '2' },
@@ -80,12 +83,19 @@ export default {
 </script>
 
 <style scoped>
-.title {
+.sidebar-title {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.title img {
+.sidebar-title img {
   width: 1em;
+}
+
+.sidebar-title h2 {
+  padding-left: 0.25em;
+  display: inline-block;
 }
 
 .shortcuts {

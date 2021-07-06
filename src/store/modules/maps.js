@@ -53,6 +53,7 @@ const actions = {
       type: 'is-danger'
     })
   },
+
   redo () {
     Toast.open({
       message: 'Not yet implemented 😔',
@@ -60,7 +61,7 @@ const actions = {
     })
   },
 
-  setMaps ({ state, commit, rootState }, { maps, source }) {
+  setMaps ({ commit, rootState }, { maps, source }) {
     commit('setMaps', { maps, source })
 
     if (Object.keys(maps).length) {
@@ -70,9 +71,14 @@ const actions = {
       }
     }
   },
-  insertMap ({ state, commit, rootState }, { mapId, pixelMask = [], gcps = {}, image, source }) {
+
+  resetMaps ({ dispatch }) {
+    dispatch('setMaps', { maps: {} })
+  },
+
+  insertMap ({ commit, rootState }, { mapId, pixelMask = [], gcps = {}, image, source }) {
     const map = {
-      version: 1,
+      version: 2,
       id: mapId,
       image,
       pixelMask,
@@ -83,7 +89,7 @@ const actions = {
     makeMapActive(rootState, mapId, commit)
   },
 
-  removeMap ({ state, commit, rootState }, { mapId, source }) {
+  removeMap ({ commit, rootState }, { mapId, source }) {
     makeOtherMapActive(rootState, mapId, commit)
     commit('removeMap', { mapId, source })
   },
@@ -100,7 +106,7 @@ const actions = {
     makeMapActive(rootState, mapId, commit)
   },
 
-  replacePixelMaskPoint ({ state, commit, rootState }, { mapId, index, pixelMaskPoint, source }) {
+  replacePixelMaskPoint ({ commit, rootState }, { mapId, index, pixelMaskPoint, source }) {
     commit('replacePixelMaskPoint', {
       mapId, index, pixelMaskPoint, source
     })
@@ -108,7 +114,7 @@ const actions = {
     makeMapActive(rootState, mapId, commit)
   },
 
-  removePixelMaskPoint ({ state, commit, rootState }, { mapId, index, source }) {
+  removePixelMaskPoint ({ commit, rootState }, { mapId, index, source }) {
     commit('removePixelMaskPoint', {
       mapId, index, source
     })

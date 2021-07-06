@@ -26,8 +26,7 @@
 export default {
   name: 'Home',
   props: {
-    images: Object,
-
+    images: Object
   },
   data () {
     return {

@@ -1,8 +1,13 @@
-import axios from 'axios'
+/* global fetch */
 
-import { createChecksum } from './id'
+import { createChecksum } from '@allmaps/id'
 
 const API_URL = process.env.VUE_APP_API_URL
+
+export function fetchJson (url) {
+  return fetch(url)
+    .then((response) => response.json())
+}
 
 export async function submitIiif (url, type, id, data) {
   const checksum = await createChecksum(data)
@@ -14,5 +19,14 @@ export async function submitIiif (url, type, id, data) {
     checksum
   }
 
-  axios.put(apiUrl, apiData)
+  const response = await fetch(apiUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-type': 'application/json'
+    },
+    body: JSON.stringify(apiData)
+  })
+
+  const responseData = await response.json()
+  return responseData
 }

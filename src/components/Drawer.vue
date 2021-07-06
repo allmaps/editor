@@ -1,6 +1,7 @@
 <template>
   <footer class="padding">
-    <div class="drawer box column is-three-quarters-mobile is-two-thirds-tablet is-half-desktop is-one-third-widescreen">
+    <!-- <div class="drawer box column is-three-quarters-mobile is-two-thirds-tablet is-half-desktop is-one-third-widescreen"> -->
+    <div class="drawer box">
       <template v-if="drawerOpen">
         <Metadata v-if="drawerOpen === 'metadata'" />
         <Maps v-else-if="drawerOpen === 'maps'" />
@@ -9,12 +10,12 @@
       </template>
 
       <div class="base">
-        <h3 class="label">{{ label }}</h3>
-        <div class="controls">
+        <div>
+          <h3 class="label">{{ label }}</h3>
           <div class="select-image">
             <template v-if="activeImage && imageCount > 1">
               <span>
-                Editing image {{ activeImage.index + 1 }}/{{ imageCount }}
+                Image {{ activeImage.index + 1 }}/{{ imageCount }}
               </span>
               <div class="buttons prev-next-buttons">
                 <b-button size="is-small" icon-left="arrow-left"
@@ -36,7 +37,8 @@
               </div>
             </template>
           </div>
-
+        </div>
+        <div class="controls">
           <div class="buttons drawer-buttons">
             <b-button @click="toggleDrawer('metadata')" v-if="hasMetadata"
               :active="drawerOpen === 'metadata'" icon-right="info" />
@@ -106,7 +108,7 @@ footer {
   width: 100%;
 
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
 
   pointer-events: none;
 }
@@ -114,6 +116,13 @@ footer {
 .drawer {
   pointer-events: all;
   background-color: white;
+}
+
+.base {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .controls {

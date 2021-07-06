@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 import { generate } from '@allmaps/annotation'
 
@@ -30,15 +30,17 @@ export default {
       activeImageId: (state) => state.ui.activeImageId,
       maps: (state) => state.maps.maps
     }),
+    ...mapGetters('ui', {
+      activeImage: 'activeImage'
+    }),
     annotation: function () {
       const maps = Object.values(this.maps)
         .map((map) => {
-
           return {
             ...map,
             pixelMask: [...map.pixelMask, map.pixelMask[0]],
             gcps: Object.values(map.gcps),
-            image: map.image
+            image: this.getAnnotationImage(map, this.activeImage)
           }
         })
 
@@ -49,7 +51,22 @@ export default {
     }
   },
   methods: {
-     copy: function () {
+    getAnnotationImage: function (map, image) {
+      if (map.version === 1) {
+        return {
+          ...map.image,
+          dimensions: undefined,
+          width: image.width,
+          height: image.height,
+          quality: image.quality,
+          format: image.format,
+          version: image.version
+        }
+      } else {
+        return map
+      }
+    },
+    copy: function () {
       navigator.clipboard.writeText(this.annotationString)
 
       this.$buefy.toast.open({
