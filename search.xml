@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+	<ShortName>Allmaps Editor</ShortName>
+	<Description>Open IIIF URL with Allmaps Editor</Description>
+	<Url type="application/rss+xml" template="https://allmaps.org/editor/#/?url={searchTerms}"/>
+</OpenSearchDescription>
