@@ -73,7 +73,6 @@ const actions = {
     }
 
     // TODO: set loading, make sure old images are not displayed
-
     commit('maps/setMaps', { maps: {} }, { root: true })
 
     const sourceIiif = await fetchJson(url)
