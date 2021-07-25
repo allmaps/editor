@@ -11,7 +11,7 @@
   "dependencies": {
     "@allmaps/annotation": "^1.0.0-alpha.15",
     "@allmaps/id": "^1.0.0-alpha.5",
-    "@allmaps/iiif-parser": "^1.0.0-alpha.9",
+    "@allmaps/iiif-parser": "^1.0.0-alpha.13",
     "@allmaps/transform": "^1.0.0-alpha.5",
     "buefy": "^0.9.7",
     "core-js": "^3.8.2",
@@ -39,26 +39,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/allmaps/editor.git"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true,
-      "browser": true,
-      "es6": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "rules": {
-      "no-console": "off",
-      "no-unused-vars": "off"
-    },
-    "parserOptions": {
-      "parser": "babel-eslint",
-      "ecmaVersion": 2017
-    }
   },
   "browserslist": [
     "> 1%",
