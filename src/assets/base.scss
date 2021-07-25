@@ -1,3 +1,4 @@
+@use 'openlayers';
 @import "~bulma/sass/utilities/_all";
 
 $custom-colors: null !default;
@@ -116,69 +117,4 @@ nav a.button span.icon {
   @include mobile {
     margin-right: calc(-0.5em - 1px) !important;
   }
-}
-
-/* h1 {
-  font-family: "Roboto-Bold";
-  font-size: 44px;
-  letter-spacing: 0.5px;
-  text-align: center;
-  line-height: 52px;
-}
-
-h2 {
-  font-family: "Roboto-Bold";
-  font-size: 32px;
-  letter-spacing: 0.36px;
-}
-
-h3 {
-  font-family: "Karla-Bold";
-  font-size: 20px;
-  color: #3B44AD;
-  letter-spacing: 0.23px;
-  line-height: 32px;
-}
-
-body {
-  font-family: "Karla-Regular";
-  font-size: 20px;
-  letter-spacing: 0.23px;
-  line-height: 32px;
-}
-
-button, .button {
-  font-family: "RobotoMono-Bold";
-  font-size: 18px;
-  letter-spacing: 0.2px;
-  text-align: center;
-  line-height: 20px;
-  background: #FFFFFF;
-  border: 3px solid #000000;
-}
-
-.input-field {
-  background: #FFFFFF;
-  border: 1px solid var(--gray);
-  font-family: "Karla-Regular";
-  font-size: 20px;
-  color: var(--black);
-  letter-spacing: 0.23px;
-  line-height: 32px;
-} */
-
-/* OpenLayers */
-
-.zoom-controls-bottom-left .ol-zoom {
-  top: auto;
-  bottom: .5em;
-  left: .5em;
-  right: auto;
-}
-
-.zoom-controls-bottom-right .ol-zoom {
-  top: auto;
-  bottom: .5em;
-  left: auto;
-  right: .5em;
 }

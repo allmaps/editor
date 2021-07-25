@@ -1,7 +1,7 @@
 <template>
   <div class="panes">
-    <div id="iiif" class="iiif zoom-controls-bottom-left"></div>
-    <div id="map" class="map zoom-controls-bottom-right"></div>
+    <div id="iiif" class="iiif ol-controls-left"></div>
+    <div id="map" class="map ol-controls-right"></div>
   </div>
 </template>
 
@@ -25,7 +25,7 @@ import { fromLonLat } from 'ol/proj'
 
 import { createRandomId } from '@allmaps/id'
 
-import { deleteCondition } from '../lib/openlayers'
+import { deleteCondition, TileLayerControl } from '../lib/openlayers'
 import { createFullImageMap } from '../lib/map'
 import { round } from '../lib/functions'
 
@@ -541,25 +541,9 @@ export default {
       target: 'iiif'
     })
 
-    const tileSources = [
-      {
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-        attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
-      },
-      {
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
-      },
-      {
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-      }
-    ]
-
     this.mapLayer = new TileLayer({
       source: new XYZ({
-        // TODO: move to config
-        url: tileSources[0].url
+        // url: tileSources[0].url
       })
     })
     this.mapSource = new VectorSource()
@@ -572,7 +556,10 @@ export default {
     this.mapOl = new Map({
       layers: [this.mapLayer, this.mapVector],
       controls: [
-        new Zoom()
+        new Zoom(),
+        new TileLayerControl({
+          tileLayer: this.mapLayer
+        })
       ],
       target: 'map',
       view: new View({

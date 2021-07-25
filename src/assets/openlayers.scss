@@ -1,0 +1,20 @@
+.ol-overlaycontainer-stopevent {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 0.5em;
+}
+
+.ol-control button {
+  background-color: white !important;
+  color: #363636 !important;
+  border: 1px solid #dbdbdb !important;
+}
+
+.ol-controls-left .ol-overlaycontainer-stopevent .ol-control,
+.ol-controls-right .ol-overlaycontainer-stopevent .ol-control {
+  top: initial;
+  bottom: initial;
+  position: initial;
+}

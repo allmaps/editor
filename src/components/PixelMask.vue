@@ -1,5 +1,5 @@
 <template>
-  <div id="iiif" class="iiif zoom-controls-bottom-left"></div>
+  <div id="iiif" class="iiif ol-controls-left"></div>
 </template>
 
 <script>
