@@ -13,7 +13,6 @@
         <span>Open in new tab</span>
       </a>
 
-
     </div>
   </div>
 </template>
@@ -113,6 +112,7 @@ pre {
   border-radius: 0.5em;
   /* height: 400px; */
   overflow: auto;
+  margin-bottom: 0.5em;
 }
 
 code {
