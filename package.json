@@ -15,7 +15,7 @@
     "@allmaps/transform": "^1.0.0-alpha.6",
     "buefy": "^0.9.7",
     "core-js": "^3.8.2",
-    "highlight.js": "^10.5.0",
+    "highlight.js": "^11.1.0",
     "ol": "^6.5.0",
     "ot-json1": "^1.0.1",
     "reconnecting-websocket": "^4.4.0",
