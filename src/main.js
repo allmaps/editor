@@ -29,7 +29,7 @@ Vue.directive('highlightjs', {
       if (binding.value) {
         target.textContent = binding.value
       }
-      hljs.highlightBlock(target)
+      hljs.highlightElement(target)
     })
   },
   componentUpdated: function (el, binding) {
@@ -38,7 +38,7 @@ Vue.directive('highlightjs', {
     targets.forEach((target) => {
       if (binding.value) {
         target.textContent = binding.value
-        hljs.highlightBlock(target)
+        hljs.highlightElement(target)
       }
     })
   }
