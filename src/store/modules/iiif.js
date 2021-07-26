@@ -1,5 +1,3 @@
-/* global DOMParser */
-
 import Vue from 'vue'
 
 import { router } from '../../main.js'
@@ -16,11 +14,11 @@ function getString (value) {
   } else if (typeof value === 'object') {
     if (value.en) {
       return getString(value.en)
+    } else if (value['@value']) {
+      return getString(value['@value'])
     } else {
       return getString(Object.values(value)[0])
     }
-  } else if (typeof value === 'object' && value['@value']) {
-    return getString(value['@value'])
   } else if (value && value.includes('<')) {
     let doc = new DOMParser().parseFromString(value, 'text/html')
     return doc.body.textContent || ''
