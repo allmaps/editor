@@ -62,7 +62,7 @@ export default {
           version: image.version
         }
       } else {
-        return map
+        return map.image
       }
     },
     copy: function () {
