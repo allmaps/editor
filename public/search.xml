@@ -2,5 +2,5 @@
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
 	<ShortName>Allmaps Editor</ShortName>
 	<Description>Open IIIF URL with Allmaps Editor</Description>
-	<Url type="application/rss+xml" template="https://allmaps.org/editor/#/?url={searchTerms}"/>
+	<Url type="application/rss+xml" template="https://editor.allmaps.org/#/?url={searchTerms}"/>
 </OpenSearchDescription>
