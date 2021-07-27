@@ -1,3 +1,3 @@
 # Allmaps Editor
 
-https://allmaps.org/editor
+https://editor.allmaps.org/
