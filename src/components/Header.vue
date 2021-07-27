@@ -135,27 +135,22 @@ nav a.button:hover, nav a.button:active {
   color: black;
 }
 
-a.button.router-link-exact-active.collection {
+a.button.router-link-exact-active.is-collection {
   background-color: var(--blue-1);
   border-color: var(--blue-2);
 }
 
-/* a.router-link-exact-active.collection {
-  background-color: var(--blue-1);
-  border-color: var(--blue-2);
-} */
-
-a.router-link-exact-active.mask {
+a.button.router-link-exact-active.is-mask {
   background-color: var(--purple-1);
   border-color: var(--purple-2);
 }
 
-a.router-link-exact-active.georeference {
+a.button.router-link-exact-active.is-georeference {
   background-color: var(--green-1);
   border-color: var(--green-2);
 }
 
-a.router-link-exact-active.results {
+a.button.router-link-exact-active.is-results {
   background-color: var(--yellow-1);
   border-color: var(--yellow-2);
 }
