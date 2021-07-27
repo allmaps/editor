@@ -5,7 +5,7 @@
         <p class="block">
           Results page coming soon. <span v-if="activeImageId">
           For now, you can view this map in
-          the <a :href="viewerUrl">Allmaps Viewer</a>.
+          <a :href="viewerUrl">Allmaps Viewer</a>.
           </span>
         </p>
       </div>
@@ -53,5 +53,10 @@ export default {
   justify-content: center;
   width: 100%;
   height: 100%;
+}
+
+.container a, .container a:visited {
+  text-decoration: underline;
+  color: black;
 }
 </style>
