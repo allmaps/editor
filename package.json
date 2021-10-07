@@ -11,7 +11,7 @@
   "dependencies": {
     "@allmaps/annotation": "^1.0.0-alpha.16",
     "@allmaps/id": "^1.0.0-alpha.13",
-    "@allmaps/iiif-parser": "^1.0.0-alpha.15",
+    "@allmaps/iiif-parser": "^1.0.0-alpha.16",
     "@allmaps/transform": "^1.0.0-alpha.6",
     "buefy": "^0.9.7",
     "core-js": "^3.8.2",
