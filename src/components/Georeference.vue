@@ -275,6 +275,7 @@ export default {
       if (mapFeatures.length > 0) {
         const extent = this.mapSource.getExtent()
         this.mapOl.getView().fit(extent, {
+          // TODO: get from config
           padding: [25, 25, 25, 25],
           maxZoom: 18
         })
@@ -553,6 +554,20 @@ export default {
       style: this.gcpStyle
     })
 
+    let bbox
+    if (this.$route.query.bbox) {
+      const bboxString = this.$route.query.bbox
+      const bboxStringParts = bboxString.split(',')
+
+      if (bboxStringParts.length === 4) {
+        try {
+          bbox = bboxStringParts.map((str) => parseFloat(str))
+        } catch (err) {
+          console.error('Error parsing bbox parameter:', bboxString)
+        }
+      }
+    }
+
     this.mapOl = new Map({
       layers: [this.mapLayer, this.mapVector],
       controls: [
@@ -568,6 +583,19 @@ export default {
         zoom: 2
       })
     })
+
+    if (bbox) {
+      const extent = [
+        ...fromLonLat([bbox[0], bbox[1]]),
+        ...fromLonLat([bbox[2], bbox[3]])
+      ]
+
+      this.mapOl.getView().fit(extent, {
+        // TODO: get from config
+        padding: [25, 25, 25, 25],
+        maxZoom: 18
+      })
+    }
 
     this.iiifModify = new Modify({
       source: this.iiifSource,
