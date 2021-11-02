@@ -82,15 +82,21 @@ export const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  // TODO: also include other query parameters?
-  //  or maybe all query parameters?
-  if (from.query.bbox && !to.query.bbox) {
-    next({path: to.path,
-      query: {
-        ...to.query,
-        bbox: from.query.bbox
-      }
-    })
+  if (to.name !== 'home') {
+    // TODO: also include other query parameters?
+    //  or maybe all query parameters?
+    if (from.query.bbox && !to.query.bbox) {
+      console.log('copy bbox')
+      next({
+        path: to.path,
+        query: {
+          ...to.query,
+          bbox: from.query.bbox
+        }
+      })
+
+      return
+    }
   }
 
   next()
