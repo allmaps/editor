@@ -2,35 +2,35 @@
   <div class="background">
     <section class="container below-header">
       <ol class="images">
-        <li v-for="(image, imageId) in imagesById" :key="imageId"
+        <li v-for="(image, index) in imagesByIndex" :key="index"
           :class="{
-            active: activeImageId === imageId
+            active: activeImageId === image.id
           }">
-          <router-link :to="{
-            name: 'collection',
-            query: {
-              image: imageId,
-              url: $route.query.url
-            }}">
-            <template v-if="!image.stub">
+          <template v-if="!image.stub">
+            <router-link :to="{
+              name: 'collection',
+              query: {
+                image: image.id,
+                url: $route.query.url
+              }}">
               <Thumbnail v-if="!image.stub" :image="image"  />
               <!-- TODO: add label, or index -->
               <!-- <span v-if="image.label">{{ image.label }}</span> -->
-            </template>
-            <template v-else>
-              <div>
-                <b-icon
-                  pack="fas"
-                  icon="sync-alt"
-                  size="is-large"
-                  custom-class="fa-spin" />
-              </div>
-            </template>
-          </router-link>
-          <div class="icons">
+            </router-link>
+          </template>
+          <template v-else>
+            <div class="icon">
+              <b-icon
+                pack="fas"
+                icon="sync-alt"
+                size="is-large"
+                custom-class="fa-spin" />
+            </div>
+          </template>
+          <!-- <div class="icons"> -->
             <!-- <img :class="{present: hasGcps(id)}" src="../assets/icon-georeferenced.svg" /> -->
             <!-- <img :class="{present: hasPixelMask(id)}" src="../assets/icon-masked.svg" /> -->
-          </div>
+          <!-- </div> -->
         </li>
       </ol>
     </section>
@@ -49,7 +49,7 @@ export default {
   },
   computed: {
     ...mapState({
-      imagesById: (state) => state.iiif.imagesById,
+      imagesByIndex: (state) => state.iiif.imagesByIndex,
       maps: (state) => state.maps.maps,
       activeImageId: (state) => state.ui.activeImageId
     })
@@ -63,15 +63,15 @@ export default {
     mapsForImage: function (imageId) {
       return Object.values(this.maps)
         .filter((map) => map.imageId === imageId)
-    },
-    hasGcps: function (imageId) {
-      const maps = this.mapsForImage(imageId)
-      return maps.some((map) => map.gcps && Object.keys(map.gcps).length)
-    },
-    hasPixelMask: function (imageId) {
-      const maps = this.mapsForImage(imageId)
-      return maps.some((map) => map.pixelMask && map.pixelMask.length)
     }
+    // hasGcps: function (imageId) {
+    //   const maps = this.mapsForImage(imageId)
+    //   return maps.some((map) => map.gcps && Object.keys(map.gcps).length)
+    // },
+    // hasPixelMask: function (imageId) {
+    //   const maps = this.mapsForImage(imageId)
+    //   return maps.some((map) => map.pixelMask && map.pixelMask.length)
+    // }
   }
 }
 </script>
@@ -127,7 +127,8 @@ export default {
   border-width: 3px;
 }
 
-.images li a {
+.images li a,
+.images li .icon {
   width: 100%;
   height: 100%;
   display: flex;
@@ -135,7 +136,7 @@ export default {
   justify-content: center;
 }
 
-.icons {
+/* .icons {
   position: absolute;
   bottom: 0;
   height: 2rem;
@@ -153,5 +154,5 @@ export default {
 
 .icons img.present {
   opacity: 1;
-}
+} */
 </style>

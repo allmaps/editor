@@ -32,7 +32,8 @@ const initialState = {
   url: undefined,
   type: undefined,
   parsedIiif: undefined,
-  imagesById: {}
+  imagesById: {},
+  imagesByIndex: []
 }
 
 const state = () => initialState
@@ -42,7 +43,7 @@ const getters = {
     return state.parsedIiif.type === 'manifest' && state.parsedIiif.id
   },
   imageCount: (state) => {
-    return Object.keys(state.imagesById).length
+    return state.imagesByIndex.length
   },
   label: (state) => {
     return state.parsedIiif && getString(state.parsedIiif.sourceData.label)
@@ -98,17 +99,22 @@ const actions = {
     submitIiif(url, parsedIiif.type, parsedIiif.id, sourceIiif)
 
     const images = type === 'image' ? [parsedIiif] : parsedIiif.images
-    const imagesById = images.reduce((imagesById, image, index) => ({
+
+    commit('setIiif', { url, type, parsedIiif })
+
+    const imagesByIndex = images.map((image, index) => ({
+      ...image,
+      index,
+      previousImageId: images[index - 1] && images[index - 1].id,
+      nextImageId: images[index + 1] && images[index + 1].id
+    }))
+
+    const imagesById = imagesByIndex.reduce((imagesById, image) => ({
       ...imagesById,
-      [image.id]: {
-        ...image,
-        index,
-        previousImageId: images[index - 1] && images[index - 1].id,
-        nextImageId: images[index + 1] && images[index + 1].id
-      }
+      [image.id]: image
     }), {})
 
-    commit('setIiif', { url, type, parsedIiif, imagesById })
+    commit('setImages', { imagesByIndex, imagesById })
 
     let newRoute
     let newImageId
@@ -154,21 +160,24 @@ const actions = {
       const type = parsedIiif.type
 
       if (type === 'image') {
-        // Add ID and previously computed data to parsed IIIF image data
-        const parsedImage = {
+        const imageIndex = imageStub.index
+        // Sometimes, the ID of images in the manifest
+        // differ from the ones in the image's info.json.
+        // See for example https://iiif.library.utoronto.ca/presentation/v2/mdl:1685/manifest
+        // This can happen when URL encoding is not done consistantly.
+        const newImageId = await createId(parsedIiif.uri)
+
+        const image = {
           ...parsedIiif,
-          id: await createId(parsedIiif.uri),
-          stub: false,
-          index: imageStub.index,
-          previousImageId: imageStub.previousImageId,
-          nextImageId: imageStub.nextImageId
+          stub: false
         }
 
-        if (parsedImage.id === imageId) {
-          commit('setImage', { imageId, parsedImage })
-        } else {
-          throw new Error(`Image IDs don't match`)
-        }
+        let oldImageId = (imageId !== newImageId) && imageId
+
+        // TODO: do we need to delete the old image stub if
+        // it has a different ID?
+        // commit('deleteImage', { imageId: imageStub.id })
+        commit('setImage', { imageIndex, imageId: newImageId, oldImageId, image })
       } else {
         throw new Error(`IIIF data is not an image`)
       }
@@ -177,16 +186,51 @@ const actions = {
 }
 
 const mutations = {
-  setIiif (state, { url, type, parsedIiif, imagesById }) {
+  setIiif (state, { url, type, parsedIiif }) {
     state.loaded = true
     state.url = url
     state.type = type
     state.parsedIiif = parsedIiif
+    state.imagesByIndex = []
+    state.imagesById = {}
+  },
+
+  setImages (state, { imagesByIndex, imagesById }) {
+    state.imagesByIndex = imagesByIndex
     state.imagesById = imagesById
   },
 
-  setImage (state, { imageId, parsedImage }) {
-    Vue.set(state.imagesById, imageId, parsedImage)
+  setImage (state, { imageIndex, imageId, image, oldImageId }) {
+    const previousImageIndex = imageIndex - 1
+    const nextImageIndex = imageIndex + 1
+
+    let previousImageId
+    let nextImageId
+
+    if (previousImageIndex >= 0) {
+      previousImageId = state.imagesByIndex[previousImageIndex].id
+    }
+
+    if (nextImageIndex < state.imagesByIndex.length) {
+      nextImageId = state.imagesByIndex[nextImageIndex].id
+    }
+
+    if (state.imagesByIndex[previousImageIndex]) {
+      state.imagesByIndex[previousImageIndex].nextImageId = imageId
+    }
+
+    if (state.imagesByIndex[nextImageIndex]) {
+      state.imagesByIndex[nextImageIndex].previousImageId = imageId
+    }
+
+    image.id = imageId
+    image.index = imageIndex
+    image.previousImageId = previousImageId
+    image.nextImageId = nextImageId
+
+    Vue.set(state.imagesByIndex, imageIndex, image)
+    Vue.set(state.imagesById, imageId, image)
+    Vue.delete(state.imagesById, oldImageId)
   }
 }
 
