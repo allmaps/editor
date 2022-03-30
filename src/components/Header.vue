@@ -8,7 +8,7 @@
     </h1>
 
     <!-- TODO: replace !$route.query.url with store.ui.loaded -->
-    <nav v-if="$route.query.url">
+    <nav v-if="$route.query.url && !error">
       <div class="buttons field has-addons">
         <p class="control">
           <b-button tag="router-link"
@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapGetters } from 'vuex'
 
 export default {
   name: 'Header',
@@ -72,6 +72,9 @@ export default {
     ...mapState({
       activeImageId: (state) => state.ui.activeImageId,
       maps: (state) => state.maps.maps
+    }),
+    ...mapGetters('errors', {
+      error: 'error'
     }),
     maskTooltipTriggers: function () {
       return []

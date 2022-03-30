@@ -31,7 +31,7 @@ import { round } from '../lib/functions'
 
 export default {
   name: 'Georeference',
-  data () {
+  data: function () {
     return {
       singleIiifFeatures: [],
       singleMapFeatures: [],
