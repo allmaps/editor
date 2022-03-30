@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div v-if="error.type === 'iiif'">
-      <div class="title">Error parsing IIIF URL</div>
+      <div class="title">Error parsing IIIF data</div>
       <p class="description">
         The URL you entered does not seem to point to a valid
         <a href="https://iiif.io/api/presentation/3.0/#52-manifest"
@@ -13,7 +13,7 @@
         >. Allmaps Editor supports IIIF APIs version 2 and 3.
       </p>
       <p>
-        If the URL does point to a IIIF Manifest or IIIF Image the IIIF data
+        If the URL does point to a IIIF Manifest or IIIF Image the data
         returned by the server might be incorrect or there might be a bug in the
         <a href="https://github.com/allmaps/iiif-parser">IIIF parser</a> used by
         Allmaps Editor.
