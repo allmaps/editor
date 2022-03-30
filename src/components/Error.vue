@@ -87,7 +87,7 @@
         </td>
       </tr>
       <tr>
-        <td>Message:</td>
+        <td>Error:</td>
         <td class="error-message">{{ error.message }}</td>
       </tr>
     </table>
