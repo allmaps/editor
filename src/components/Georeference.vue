@@ -31,7 +31,7 @@ import { round } from '../lib/functions'
 
 export default {
   name: 'Georeference',
-  data () {
+  data: function () {
     return {
       singleIiifFeatures: [],
       singleMapFeatures: [],
@@ -472,7 +472,6 @@ export default {
       this.dimensions = [extent[2], -extent[1]]
 
       this.iiifOl.setView(new View({
-        enableRotation: false,
         resolutions: iiifTileSource.getTileGrid().getResolutions(),
         extent,
         constrainOnlyCenter: true

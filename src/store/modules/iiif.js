@@ -128,7 +128,7 @@ const actions = {
     }
 
     if (imagesById[newImageId].stub) {
-      dispatch('loadImageInfo', { imageId: newImageId })
+      await dispatch('loadImageInfo', { imageId: newImageId })
     }
 
     if (newRoute) {
@@ -138,12 +138,12 @@ const actions = {
     commit('ui/setActiveImageId', { imageId: newImageId }, { root: true })
 
     if (parsedIiif.type === 'manifest') {
-      images
-        .filter((image) => image.stub)
-        .forEach((image) => dispatch('loadImageInfo', { imageId: image.id }))
+      const imageStubs = images.filter(image => image.stub)
+      for (let imageStub of imageStubs) {
+        await dispatch('loadImageInfo', { imageId: imageStub.id })
+      }
     }
   },
-
   async loadImageInfo ({ state, commit }, { imageId }) {
     if (state.imagesById[imageId] && state.imagesById[imageId].stub) {
       const imageStub = state.imagesById[imageId]
@@ -167,7 +167,14 @@ const actions = {
         if (parsedImage.id === imageId) {
           commit('setImage', { imageId, parsedImage })
         } else {
-          throw new Error(`Image IDs don't match`)
+          const error = new Error(`Image IDs don't match`)
+          error.name = 'ImageIDMismatchError'
+          error.details = {
+            imageUri: parsedIiif.uri,
+            inlineImageUri: imageStub.uri
+          }
+
+          throw error
         }
       } else {
         throw new Error(`IIIF data is not an image`)

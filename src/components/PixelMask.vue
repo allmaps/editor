@@ -24,7 +24,7 @@ import { deleteCondition } from '../lib/openlayers'
 
 export default {
   name: 'PixelMask',
-  data () {
+  data: function () {
     return {
       dimensions: undefined
     }

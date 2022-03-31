@@ -28,12 +28,10 @@ export default {
   props: {
     images: Object
   },
-  data () {
+  data: function () {
     return {
       inputUrl: this.$route.query.url
     }
-  },
-  computed: {
   },
   watch: {
     '$route.query.url': function () {

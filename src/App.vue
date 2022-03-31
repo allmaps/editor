@@ -1,13 +1,14 @@
 <template>
   <div id="app">
     <div class="banner">
-    This website is not yet finished. Not everything will work as intended,
-    and some things will not work at all. Follow <a href="https://twitter.com/bertspaan">@bertspaan</a> for updates.
+      This website is not yet finished. Not everything will work as intended,
+      and some things will not work at all. Follow
+      <a href="https://twitter.com/bertspaan">@bertspaan</a> for updates.
     </div>
     <div class="main">
       <Header />
-      <!-- TODO: check ERROR -->
-      <main>
+      <Error v-if="error" />
+      <main v-else>
         <!-- TODO: replace !$route.query.url with store.ui.loaded -->
         <template v-if="$route.name === 'home' || !$route.query.url">
           <Home />
@@ -25,14 +26,14 @@
           <Results />
         </template>
       </main>
-      <Drawer v-if="$route.name !== 'home'" />
+      <Drawer v-if="$route.name !== 'home' && !error" />
       <Sidebar />
     </div>
   </div>
 </template>
 
-<style src='ol/ol.css'></style>
-<style src='highlight.js/styles/sunburst.css'></style>
+<style src="ol/ol.css"></style>
+<style src="highlight.js/styles/sunburst.css"></style>
 
 <script>
 import { mapState, mapActions, mapGetters } from 'vuex'
@@ -40,6 +41,7 @@ import { mapState, mapActions, mapGetters } from 'vuex'
 import Header from './components/Header.vue'
 import Drawer from './components/Drawer.vue'
 import Sidebar from './components/Sidebar.vue'
+import Error from './components/Error.vue'
 
 import Home from './components/Home.vue'
 import Collection from './components/Collection.vue'
@@ -62,6 +64,7 @@ export default {
     Header,
     Drawer,
     Sidebar,
+    Error,
     Home,
     Collection,
     Georeference,
@@ -89,9 +92,9 @@ export default {
       'removeGcp'
     ]),
 
-    ...mapActions('iiif', [
-      'setIiifUrl'
-    ]),
+    ...mapActions('iiif', ['setIiifUrl']),
+
+    ...mapActions('errors', ['setError']),
 
     initializeDoc: function () {
       const source = 'ShareDB'
@@ -101,7 +104,8 @@ export default {
         this.doc.create({}, json1.type.name)
         message = 'You’re editing a new map.'
       } else {
-        message = 'Someone has started georeferencing this map, you can continue editing to improve their work.'
+        message =
+          'Someone has started georeferencing this map, you can continue editing to improve their work.'
       }
 
       message += ' All edits are automatically saved in the Allmaps database.'
@@ -160,15 +164,24 @@ export default {
 
             if (instructions.r && pixelMaskPoint) {
               this.replacePixelMaskPoint({
-                mapId, index, pixelMaskPoint, source
+                mapId,
+                index,
+                pixelMaskPoint,
+                source
               })
             } else if (pixelMaskPoint) {
               this.insertPixelMaskPoint({
-                mapId, index, pixelMaskPoint, source
+                mapId,
+                index,
+                pixelMaskPoint,
+                source
               })
             } else if (instructions.r) {
               this.removePixelMaskPoint({
-                mapId, index, pixelMaskPoint, source
+                mapId,
+                index,
+                pixelMaskPoint,
+                source
               })
             }
           } else if (type === 'gcps') {
@@ -177,15 +190,23 @@ export default {
 
             if (instructions.r && gcp) {
               this.replaceGcp({
-                mapId, gcpId, gcp, source
+                mapId,
+                gcpId,
+                gcp,
+                source
               })
             } else if (gcp) {
               this.insertGcp({
-                mapId, gcpId, gcp, source
+                mapId,
+                gcpId,
+                gcp,
+                source
               })
             } else if (instructions.r) {
               this.removeGcp({
-                mapId, gcpId, source
+                mapId,
+                gcpId,
+                source
               })
             }
           }
@@ -201,35 +222,45 @@ export default {
         const { mapId, map } = mutation.payload
 
         // TODO: make map immutable, or use this.doc as store
-        this.doc.submitOp(json1.insertOp([mapId], JSON.parse(JSON.stringify(map))))
+        this.doc.submitOp(
+          json1.insertOp([mapId], JSON.parse(JSON.stringify(map)))
+        )
       } else if (mutation.type === 'maps/removeMap') {
         const { mapId } = mutation.payload
         this.doc.submitOp(json1.removeOp([mapId]))
       } else if (mutation.type === 'maps/insertPixelMaskPoint') {
         const { mapId, index, pixelMaskPoint } = mutation.payload
-        this.doc.submitOp(json1.insertOp([mapId, 'pixelMask', index], pixelMaskPoint))
+        this.doc.submitOp(
+          json1.insertOp([mapId, 'pixelMask', index], pixelMaskPoint)
+        )
       } else if (mutation.type === 'maps/removePixelMaskPoint') {
         const { mapId, index, pixelMaskPoint } = mutation.payload
-        this.doc.submitOp(json1.removeOp([mapId, 'pixelMask', index], pixelMaskPoint))
+        this.doc.submitOp(
+          json1.removeOp([mapId, 'pixelMask', index], pixelMaskPoint)
+        )
       } else if (mutation.type === 'maps/replacePixelMaskPoint') {
         const { mapId, index, pixelMaskPoint } = mutation.payload
         // TODO: replace true with oldVal
-        this.doc.submitOp(json1.replaceOp([mapId, 'pixelMask', index], true, pixelMaskPoint))
+        this.doc.submitOp(
+          json1.replaceOp([mapId, 'pixelMask', index], true, pixelMaskPoint)
+        )
       } else if (mutation.type === 'maps/insertGcp') {
         const { mapId, gcpId, gcp } = mutation.payload
         // if (gcp.image && gcp.world) {
-          this.doc.submitOp(json1.insertOp([mapId, 'gcps', gcpId], {...gcp}))
+        this.doc.submitOp(json1.insertOp([mapId, 'gcps', gcpId], { ...gcp }))
         // }
       } else if (mutation.type === 'maps/replaceGcp') {
         const { mapId, gcpId, gcp } = mutation.payload
         // if (gcp.image && gcp.world) {
-          // TODO: replace true with oldVal
-          this.doc.submitOp(json1.replaceOp([mapId, 'gcps', gcpId], true, {...gcp}))
+        // TODO: replace true with oldVal
+        this.doc.submitOp(
+          json1.replaceOp([mapId, 'gcps', gcpId], true, { ...gcp })
+        )
         // }
       } else if (mutation.type === 'maps/removeGcp') {
         const { mapId, gcpId, gcp } = mutation.payload
         // if (gcp.image && gcp.world) {
-          this.doc.submitOp(json1.removeOp([mapId, 'gcps', gcpId]))
+        this.doc.submitOp(json1.removeOp([mapId, 'gcps', gcpId]))
         // }
       }
     },
@@ -242,19 +273,25 @@ export default {
           return
         }
 
-        this.$router.push({name: this.$route.name, query: {
-          ...this.$route.query,
-          image: this.activeImage.previousImageId
-        }})
+        this.$router.push({
+          name: this.$route.name,
+          query: {
+            ...this.$route.query,
+            image: this.activeImage.previousImageId
+          }
+        })
       } else if (event.key === ']') {
         if (!this.activeImage || !this.activeImage.nextImageId) {
           return
         }
 
-        this.$router.push({name: this.$route.name, query: {
-          ...this.$route.query,
-          image: this.activeImage.nextImageId
-        }})
+        this.$router.push({
+          name: this.$route.name,
+          query: {
+            ...this.$route.query,
+            image: this.activeImage.nextImageId
+          }
+        })
       } else if (event.key === '{') {
         this.setActiveMapId({ mapId: this.previousMapId })
       } else if (event.key === '}') {
@@ -276,6 +313,34 @@ export default {
       } else if (event.key === 'a') {
         this.toggleDrawer('annotation')
       }
+    },
+    newIiifUrl: async function (url) {
+      try {
+        await this.setIiifUrl({ url, imageId: this.$route.query.image })
+      } catch (err) {
+        if (err.name === 'SyntaxError') {
+          this.setError({
+            type: 'json',
+            message: err.message
+          })
+        } else if (err.name === 'TypeError') {
+          this.setError({
+            type: 'fetch',
+            message: err.message
+          })
+        } else if (err.name === 'ImageIDMismatchError') {
+          this.setError({
+            type: 'imageIDs',
+            message: err.message,
+            details: err.details
+          })
+        } else {
+          this.setError({
+            type: 'iiif',
+            message: err.message
+          })
+        }
+      }
     }
   },
   computed: {
@@ -288,17 +353,25 @@ export default {
       previousMapId: 'previousMapId',
       nextMapId: 'nextMapId'
     }),
+    ...mapGetters('errors', {
+      error: 'error'
+    }),
     fullscreen: function () {
-      return this.$route.name === 'mask' || this.$route.name === 'georeference' || this.$route.name === 'results'
-    },
+      return (
+        this.$route.name === 'mask' ||
+        this.$route.name === 'georeference' ||
+        this.$route.name === 'results'
+      )
+    }
   },
   watch: {
     '$route.name': function () {
       this.setSidebarOpen({ open: false })
     },
     '$route.query.url': function (url) {
+      this.setError()
       this.setSidebarOpen({ open: false })
-      this.setIiifUrl({ url, imageId: this.$route.query.image })
+      this.newIiifUrl(url)
     },
     '$route.query.image': function (imageId) {
       if (imageId && this.activeImageId !== imageId) {
@@ -315,7 +388,7 @@ export default {
     const url = this.$route.query.url
 
     if (url) {
-      this.setIiifUrl({ url, imageId: this.$route.query.image })
+      this.newIiifUrl(url)
     }
 
     window.addEventListener('keypress', this.keyPressHandler)
@@ -354,15 +427,17 @@ body {
   height: 100%;
   position: absolute;
 
-	font-family: 'Roboto', sans-serif;
-	font-size: 18px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 18px;
 }
 
 .monospace {
-	font-family: 'Roboto Mono', monospace;
+  font-family: 'Roboto Mono', monospace;
 }
 
-main p a, main ul a, main ol a {
+main p a,
+main ul a,
+main ol a {
   word-break: break-all;
 }
 
@@ -376,13 +451,14 @@ main p a, main ul a, main ol a {
 }
 
 .banner {
-  background-color: #E22D3F;
+  background-color: #e22d3f;
   color: white;
   padding: 0.5em;
   font-size: 75%;
 }
 
-.banner a, .banner a:visited {
+.banner a,
+.banner a:visited {
   color: white;
 }
 
@@ -424,8 +500,10 @@ main > * {
   overflow-y: auto;
 }
 
-header, footer,
-a, a:visited {
+header,
+footer,
+a,
+a:visited {
   color: #2c3e50;
 }
 </style>
