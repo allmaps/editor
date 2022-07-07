@@ -1,25 +1,35 @@
 <template>
   <section>
-    <b-sidebar type="is-light" :fullheight="true"
-      :overlay="true" :right="true" v-model="open">
+    <b-sidebar
+      type="is-light"
+      :fullheight="true"
+      :overlay="true"
+      :right="true"
+      v-model="open"
+    >
       <div class="padding">
         <div class="sidebar-title">
           <div>
-            <img alt="Allmaps"
-              src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg" />
+            <img
+              alt="Allmaps"
+              src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg"
+            />
             <h2>Editor</h2>
           </div>
-          <b-button @click="open = false"
-            class="is-light" icon-right="times" />
+          <b-button @click="open = false" class="is-light" icon-right="times" />
         </div>
         <div class="container content">
           <p>
-           <router-link :to="{ name: 'home' }">Open new IIIF URL</router-link>
+            <router-link :to="{ name: 'home' }">Open new IIIF URL</router-link>
           </p>
           <h4>Keyboard shortcuts</h4>
 
           <dl class="shortcuts">
-            <div v-for="(shortcut, index) of shortcuts" :key="index" class="shortcut block">
+            <div
+              v-for="(shortcut, index) of shortcuts"
+              :key="index"
+              class="shortcut block"
+            >
               <dt>{{ shortcut.label }}</dt>
               <dd class="key">{{ shortcut.key }}</dd>
             </div>
@@ -65,18 +75,16 @@ export default {
     }
   },
   methods: {
-    ...mapActions('ui', [
-      'setSidebarOpen'
-    ])
+    ...mapActions('ui', ['setSidebarOpen'])
   },
   computed: {
     open: {
-      get () {
+      get() {
         return this.$store.state.ui.sidebarOpen
       },
-      set (open) {
+      set(open) {
         this.setSidebarOpen({ open })
-      },
+      }
     }
   }
 }
@@ -109,7 +117,7 @@ export default {
 
 .key {
   font-family: monospace;
-  box-shadow: 0 0 0 1px #dedede,1px 1px 0 1px #e8e8e8;
+  box-shadow: 0 0 0 1px #dedede, 1px 1px 0 1px #e8e8e8;
   padding: 0 0.25em;
   min-width: 1.5em;
   font-weight: bold;

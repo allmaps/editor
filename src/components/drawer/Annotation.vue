@@ -5,14 +5,17 @@
       <b-button @click="copy" icon-left="copy">Copy</b-button>
       <b-button @click="download" icon-left="file-download">Download</b-button>
 
-      <a target="_blank" :href="`https://annotations.allmaps.org/images/${activeImageId}`"
-        class="button is-link" type="button">
+      <a
+        target="_blank"
+        :href="`${annotationsUrl}/images/${activeImageId}`"
+        class="button is-link"
+        type="button"
+      >
         <span class="icon is-small">
           <i class="fas fa-external-link-alt"></i>
         </span>
         <span>Open in new tab</span>
       </a>
-
     </div>
   </div>
 </template>
@@ -20,10 +23,17 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 
-import { generate } from '@allmaps/annotation'
+import { generateAnnotation } from '@allmaps/annotation'
+
+const ANNOTATIONS_URL = process.env.VUE_APP_ANNOTATIONS_URL
 
 export default {
   name: 'Annotation',
+  data: function () {
+    return {
+      annotationsUrl: ANNOTATIONS_URL
+    }
+  },
   computed: {
     ...mapState({
       activeImageId: (state) => state.ui.activeImageId,
@@ -33,17 +43,17 @@ export default {
       activeImage: 'activeImage'
     }),
     annotation: function () {
-      const maps = Object.values(this.maps)
-        .map((map) => {
-          return {
-            ...map,
-            pixelMask: [...map.pixelMask, map.pixelMask[0]],
-            gcps: Object.values(map.gcps),
-            image: this.getAnnotationImage(map, this.activeImage)
-          }
-        })
+      const maps = Object.values(this.maps).map((map) => {
+        return {
+          version: 1,
+          ...map,
+          pixelMask: [...map.pixelMask, map.pixelMask[0]],
+          gcps: Object.values(map.gcps),
+          image: this.getAnnotationImage(map, this.activeImage)
+        }
+      })
 
-      return generate(maps)
+      return generateAnnotation(maps)
     },
     annotationString: function () {
       return JSON.stringify(this.annotation, null, 2)
@@ -51,18 +61,14 @@ export default {
   },
   methods: {
     getAnnotationImage: function (map, image) {
-      if (map.version === 1) {
-        return {
-          ...map.image,
-          dimensions: undefined,
-          width: image.width,
-          height: image.height,
-          quality: image.quality,
-          format: image.format,
-          version: image.version
-        }
-      } else {
-        return map.image
+      return {
+        uri: image.parsedImage.uri,
+        type:
+          image.parsedImage.majorVersion === 2
+            ? 'ImageService2'
+            : 'ImageService3',
+        width: image.parsedImage.width,
+        height: image.parsedImage.height
       }
     },
     copy: function () {
@@ -74,7 +80,9 @@ export default {
       })
     },
     download: function () {
-      const blob = new Blob([this.annotationString], {type : 'application/json'})
+      const blob = new Blob([this.annotationString], {
+        type: 'application/json'
+      })
       const dataUrl = window.URL.createObjectURL(blob)
 
       const a = document.createElement('a')

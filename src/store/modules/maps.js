@@ -2,13 +2,13 @@ import Vue from 'vue'
 
 import { ToastProgrammatic as Toast } from 'buefy'
 
-function makeMapActive (rootState, mapId, commit) {
+function makeMapActive(rootState, mapId, commit) {
   if (rootState.ui.activeMapId !== mapId) {
     commit('ui/setActiveMapId', { mapId }, { root: true })
   }
 }
 
-function makeOtherMapActive (rootState, mapId, commit) {
+function makeOtherMapActive(rootState, mapId, commit) {
   if (rootState.ui.activeMapId !== mapId) {
     return
   }
@@ -47,21 +47,21 @@ const getters = {
 }
 
 const actions = {
-  undo () {
+  undo() {
     Toast.open({
       message: 'Not yet implemented 😔',
       type: 'is-danger'
     })
   },
 
-  redo () {
+  redo() {
     Toast.open({
       message: 'Not yet implemented 😔',
       type: 'is-danger'
     })
   },
 
-  setMaps ({ commit, rootState }, { maps, source }) {
+  setMaps({ commit, rootState }, { maps, source }) {
     commit('setMaps', { maps, source })
 
     if (Object.keys(maps).length) {
@@ -72,13 +72,16 @@ const actions = {
     }
   },
 
-  resetMaps ({ dispatch }) {
+  resetMaps({ dispatch }) {
     dispatch('setMaps', { maps: {} })
   },
 
-  insertMap ({ commit, rootState }, { mapId, pixelMask = [], gcps = {}, image, source }) {
+  insertMap(
+    { commit, rootState },
+    { mapId, pixelMask = [], gcps = {}, image, source }
+  ) {
     const map = {
-      version: 2,
+      version: 1,
       id: mapId,
       image,
       pixelMask,
@@ -89,40 +92,54 @@ const actions = {
     makeMapActive(rootState, mapId, commit)
   },
 
-  removeMap ({ commit, rootState }, { mapId, source }) {
+  removeMap({ commit, rootState }, { mapId, source }) {
     makeOtherMapActive(rootState, mapId, commit)
     commit('removeMap', { mapId, source })
   },
 
-  insertPixelMaskPoint ({ state, commit, rootState }, { mapId, index, pixelMaskPoint, source }) {
+  insertPixelMaskPoint(
+    { state, commit, rootState },
+    { mapId, index, pixelMaskPoint, source }
+  ) {
     if (!state.maps[mapId]) {
       throw new Error(`Map ${mapId} does not exist`)
     }
 
     commit('insertPixelMaskPoint', {
-      mapId, index, pixelMaskPoint, source
+      mapId,
+      index,
+      pixelMaskPoint,
+      source
     })
 
     makeMapActive(rootState, mapId, commit)
   },
 
-  replacePixelMaskPoint ({ commit, rootState }, { mapId, index, pixelMaskPoint, source }) {
+  replacePixelMaskPoint(
+    { commit, rootState },
+    { mapId, index, pixelMaskPoint, source }
+  ) {
     commit('replacePixelMaskPoint', {
-      mapId, index, pixelMaskPoint, source
+      mapId,
+      index,
+      pixelMaskPoint,
+      source
     })
 
     makeMapActive(rootState, mapId, commit)
   },
 
-  removePixelMaskPoint ({ commit, rootState }, { mapId, index, source }) {
+  removePixelMaskPoint({ commit, rootState }, { mapId, index, source }) {
     commit('removePixelMaskPoint', {
-      mapId, index, source
+      mapId,
+      index,
+      source
     })
 
     makeMapActive(rootState, mapId, commit)
   },
 
-  insertGcp ({ state, commit }, { mapId, gcpId, gcp, source }) {
+  insertGcp({ state, commit }, { mapId, gcpId, gcp, source }) {
     if (!state.maps[mapId]) {
       throw new Error(`Map ${mapId} does not exist`)
     }
@@ -132,11 +149,14 @@ const actions = {
     }
 
     commit('insertGcp', {
-      mapId, gcpId, gcp, source
+      mapId,
+      gcpId,
+      gcp,
+      source
     })
   },
 
-  replaceGcp ({ state, commit }, { mapId, gcpId, gcp, source }) {
+  replaceGcp({ state, commit }, { mapId, gcpId, gcp, source }) {
     if (!state.maps[mapId]) {
       throw new Error(`Map ${mapId} does not exist`)
     }
@@ -146,11 +166,14 @@ const actions = {
     }
 
     commit('replaceGcp', {
-      mapId, gcpId, gcp, source
+      mapId,
+      gcpId,
+      gcp,
+      source
     })
   },
 
-  removeGcp ({ state, commit }, { mapId, gcpId, gcp, source }) {
+  removeGcp({ state, commit }, { mapId, gcpId, gcp, source }) {
     if (!state.maps[mapId]) {
       throw new Error(`Map ${mapId} does not exist`)
     }
@@ -160,17 +183,20 @@ const actions = {
     }
 
     commit('removeGcp', {
-      mapId, gcpId, gcp, source
+      mapId,
+      gcpId,
+      gcp,
+      source
     })
   }
 }
 
 const mutations = {
-  setMaps (state, { maps }) {
+  setMaps(state, { maps }) {
     state.maps = maps
   },
 
-  insertMap (state, { mapId, map }) {
+  insertMap(state, { mapId, map }) {
     if (!state.maps[mapId]) {
       Vue.set(state.maps, mapId, map)
 
@@ -184,14 +210,14 @@ const mutations = {
     }
   },
 
-  removeMap (state, { mapId }) {
+  removeMap(state, { mapId }) {
     Vue.delete(state.maps, mapId)
 
     // In Vue 3:
     // delete state.maps[mapId]
   },
 
-  insertPixelMaskPoint (state, { mapId, index, pixelMaskPoint }) {
+  insertPixelMaskPoint(state, { mapId, index, pixelMaskPoint }) {
     const map = state.maps[mapId]
 
     const pixelMask = map.pixelMask
@@ -206,7 +232,7 @@ const mutations = {
     // }
   },
 
-  replacePixelMaskPoint (state, { mapId, index, pixelMaskPoint }) {
+  replacePixelMaskPoint(state, { mapId, index, pixelMaskPoint }) {
     const map = state.maps[mapId]
     map.pixelMask[index] = pixelMaskPoint
 
@@ -219,7 +245,7 @@ const mutations = {
     // }
   },
 
-  removePixelMaskPoint (state, { mapId, index }) {
+  removePixelMaskPoint(state, { mapId, index }) {
     const map = state.maps[mapId]
     map.pixelMask.splice(index, 1)
 
@@ -232,7 +258,7 @@ const mutations = {
     // }
   },
 
-  insertGcp (state, { mapId, gcpId, gcp }) {
+  insertGcp(state, { mapId, gcpId, gcp }) {
     const map = state.maps[mapId]
 
     Vue.set(map.gcps, gcpId, {
@@ -257,7 +283,7 @@ const mutations = {
     // }
   },
 
-  replaceGcp (state, { mapId, gcpId, gcp }) {
+  replaceGcp(state, { mapId, gcpId, gcp }) {
     const map = state.maps[mapId]
 
     Vue.set(map.gcps, gcpId, {
@@ -282,7 +308,7 @@ const mutations = {
     // }
   },
 
-  removeGcp (state, { mapId, gcpId }) {
+  removeGcp(state, { mapId, gcpId }) {
     const map = state.maps[mapId]
 
     Vue.delete(map.gcps, gcpId)

@@ -2,18 +2,24 @@
   <div class="background">
     <section class="container below-header">
       <ol class="images">
-        <li v-for="(image, imageId) in imagesById" :key="imageId"
+        <li
+          v-for="(image, imageId) in imagesById"
+          :key="imageId"
           :class="{
             active: activeImageId === imageId
-          }">
-          <router-link :to="{
-            name: 'collection',
-            query: {
-              image: imageId,
-              url: $route.query.url
-            }}">
+          }"
+        >
+          <router-link
+            :to="{
+              name: 'collection',
+              query: {
+                image: imageId,
+                url: $route.query.url
+              }
+            }"
+          >
             <template v-if="!image.stub">
-              <Thumbnail v-if="!image.stub" :image="image"  />
+              <Thumbnail v-if="!image.stub" :image="image.parsedImage" />
               <!-- TODO: add label, or index -->
               <!-- <span v-if="image.label">{{ image.label }}</span> -->
             </template>
@@ -23,7 +29,8 @@
                   pack="fas"
                   icon="sync-alt"
                   size="is-large"
-                  custom-class="fa-spin" />
+                  custom-class="fa-spin"
+                />
               </div>
             </template>
           </router-link>
@@ -55,14 +62,16 @@ export default {
     })
   },
   methods: {
-    handleSubmit () {
-      this.$router.push({ name: this.$route.name, query: {
-        url: this.inputUrl
-      }})
+    handleSubmit() {
+      this.$router.push({
+        name: this.$route.name,
+        query: {
+          url: this.inputUrl
+        }
+      })
     },
     mapsForImage: function (imageId) {
-      return Object.values(this.maps)
-        .filter((map) => map.imageId === imageId)
+      return Object.values(this.maps).filter((map) => map.imageId === imageId)
     },
     hasGcps: function (imageId) {
       const maps = this.mapsForImage(imageId)
@@ -90,7 +99,7 @@ export default {
 }
 
 .images::after {
-  content: "";
+  content: '';
   flex-grow: 10;
 }
 
@@ -122,7 +131,7 @@ export default {
 } */
 
 .images li.active {
-  border-color: #C552B5;
+  border-color: #c552b5;
   border-style: solid;
   border-width: 3px;
 }

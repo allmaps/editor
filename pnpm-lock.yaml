@@ -3,13 +3,14 @@ lockfileVersion: 5.4
 specifiers:
   '@allmaps/annotation': ^1.0.0-beta.4
   '@allmaps/id': 1.0.0-beta.5
-  '@allmaps/iiif-parser': ^1.0.0-beta.2
+  '@allmaps/iiif-parser': 1.0.0-beta.4
   '@allmaps/transform': ^1.0.0-beta.2
   '@babel/eslint-parser': ^7.18.2
   '@vue/cli-plugin-babel': ^5.0.7
   '@vue/cli-plugin-eslint': ^5.0.7
   '@vue/cli-service': ^5.0.7
   buefy: ^0.9.7
+  bulma: ^0.9.4
   core-js: ^3.8.2
   eslint: ^7.32.0
   eslint-plugin-vue: ^7.20.0
@@ -29,9 +30,10 @@ specifiers:
 dependencies:
   '@allmaps/annotation': 1.0.0-beta.5
   '@allmaps/id': 1.0.0-beta.5
-  '@allmaps/iiif-parser': 1.0.0-beta.2
+  '@allmaps/iiif-parser': 1.0.0-beta.4
   '@allmaps/transform': 1.0.0-beta.2
   buefy: 0.9.19_vue@2.7.2
+  bulma: 0.9.4
   core-js: 3.21.1
   highlight.js: 11.5.1
   ol: 6.13.0
@@ -77,8 +79,8 @@ packages:
     engines: {node: ^14.13.1 || >=16.0.0}
     dev: false
 
-  /@allmaps/iiif-parser/1.0.0-beta.2:
-    resolution: {integrity: sha512-D7zJ4bVVMLqejny//R3vlHSTqaVxnCpTbu1uvZ3QQUyuC0UHDsj6Oe3mWiommK+ci1w/yN8FNvyC9p1hgI7G8g==}
+  /@allmaps/iiif-parser/1.0.0-beta.4:
+    resolution: {integrity: sha512-rgaJMIaAOmBEb2rhhcWFPnkMroat4xpi4KaEFdz7CzH5YCuqYJUeqqWiCLoASpk3tkplaiGHpA3ymA9DvmHQWA==}
     engines: {node: ^14.13.1 || >=16.0.0}
     dependencies:
       zod: 3.17.3
@@ -2625,6 +2627,10 @@ packages:
 
   /bulma/0.9.3:
     resolution: {integrity: sha512-0d7GNW1PY4ud8TWxdNcP6Cc8Bu7MxcntD/RRLGWuiw/s0a9P+XlH/6QoOIrmbj6o8WWJzJYhytiu9nFjTszk1g==}
+    dev: false
+
+  /bulma/0.9.4:
+    resolution: {integrity: sha512-86FlT5+1GrsgKbPLRRY7cGDg8fsJiP/jzTqXXVqiUZZ2aZT8uemEOHlU1CDU+TxklPEZ11HZNNWclRBBecP4CQ==}
     dev: false
 
   /bytes/3.0.0:

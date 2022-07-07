@@ -4,8 +4,8 @@
     <p v-if="description">{{ description }}</p>
     <dl v-if="metadata">
       <div v-for="(item, index) in metadata" :key="index">
-        <dt>{{ item.label }} </dt>
-        <dd>{{ item.value }} </dd>
+        <dt>{{ item.label }}</dt>
+        <dd>{{ item.value }}</dd>
       </div>
     </dl>
   </div>

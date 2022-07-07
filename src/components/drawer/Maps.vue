@@ -1,23 +1,28 @@
 <template>
   <ol class="drawer-content maps" v-if="maps && Object.keys(maps).length">
-    <li v-for="(map, mapId, index) in maps" :key="mapId"
-      @click="mapClicked(mapId)" :class="{
+    <li
+      v-for="(map, mapId, index) in maps"
+      :key="mapId"
+      @click="mapClicked(mapId)"
+      :class="{
         active: activeMapId === mapId
-      }">
+      }"
+    >
       <div class="map">
         <div class="index">
           <div class="thumbnail">
-            <svg v-if="hasPixelMask(map)"
-              :viewBox="thumbnailViewbox(map)">
-              <polygon
-                :points="thumbnailPolygonPoints(map)" />
+            <svg v-if="hasPixelMask(map)" :viewBox="thumbnailViewbox(map)">
+              <polygon :points="thumbnailPolygonPoints(map)" />
             </svg>
             <span>{{ index + 1 }}</span>
           </div>
           <span>Map {{ index + 1 }}</span>
         </div>
-        <b-button icon-left="trash" class="is-white"
-          @click.stop="removeMap({ mapId, source })" />
+        <b-button
+          icon-left="trash"
+          class="is-white"
+          @click.stop="removeMap({ mapId, source })"
+        />
       </div>
       <ol class="gcps" v-if="activeMapId === mapId && hasGcps(map)">
         <li class="gcp" v-for="(gcp, gcpId, index) in map.gcps" :key="gcpId">
@@ -25,13 +30,17 @@
             <div class="gcp-icon">
               <span class="circle"></span>
               <span class="index">
-              {{ index + 1 }}
+                {{ index + 1 }}
               </span>
             </div>
             <span class="gcp-coordinates">
               <template v-if="gcp.image">
-                <span class="gcp-image-coordinate">{{ printImageCoordinate(gcp.image[0]) }}</span>
-                <span class="gcp-image-coordinate">{{ printImageCoordinate(gcp.image[1]) }}</span>
+                <span class="gcp-image-coordinate">{{
+                  printImageCoordinate(gcp.image[0])
+                }}</span>
+                <span class="gcp-image-coordinate">{{
+                  printImageCoordinate(gcp.image[1])
+                }}</span>
               </template>
               <template v-else>
                 <!-- TODO: create placeholder -->
@@ -40,27 +49,30 @@
               </template>
 
               <template v-if="gcp.world">
-                <span class="gcp-world-coordinate">{{ printWorldCoordinate(gcp.world[0]) }}</span>
-                <span class="gcp-world-coordinate">{{ printWorldCoordinate(gcp.world[1]) }}</span>
+                <span class="gcp-world-coordinate">{{
+                  printWorldCoordinate(gcp.world[0])
+                }}</span>
+                <span class="gcp-world-coordinate">{{
+                  printWorldCoordinate(gcp.world[1])
+                }}</span>
               </template>
               <template v-else>
                 <!-- TODO: create placeholder -->
                 <span class="gcp-world-coordinate"></span>
                 <span class="gcp-world-coordinate"></span>
               </template>
-
-
             </span>
           </div>
-          <b-button icon-left="trash" class="is-white"
-            @click.stop="removeGcp({ mapId, gcpId, gcp, source })" />
+          <b-button
+            icon-left="trash"
+            class="is-white"
+            @click.stop="removeGcp({ mapId, gcpId, gcp, source })"
+          />
         </li>
       </ol>
     </li>
   </ol>
-  <div v-else>
-    Click and drag to draw mask.
-  </div>
+  <div v-else>Click and drag to draw mask.</div>
 </template>
 
 <script>
@@ -109,28 +121,24 @@ export default {
     thumbnailViewbox: function (map, padding = 5, maxHeight = 50) {
       const maskDimensions = this.maskDimensions(map)
       const scaleFactor = maxHeight / Math.max(...maskDimensions)
-      return `${-padding} ${-padding} ${maskDimensions[0] * scaleFactor + padding * 2} ${maskDimensions[1] * scaleFactor + padding * 2}`
+      return `${-padding} ${-padding} ${
+        maskDimensions[0] * scaleFactor + padding * 2
+      } ${maskDimensions[1] * scaleFactor + padding * 2}`
     },
     thumbnailPolygonPoints: function (map, maxHeight = 50) {
       const maskExtent = this.maskExtent(map)
       const maskDimensions = this.maskDimensions(map)
       const scaleFactor = maxHeight / Math.max(...maskDimensions)
 
-      const points = map.pixelMask.map((point) => ([
+      const points = map.pixelMask.map((point) => [
         (point[0] - maskExtent[0][0]) * scaleFactor,
         (point[1] - maskExtent[1][0]) * scaleFactor
-      ]))
+      ])
 
-      return points
-        .map((point) => point.join(',')).join(' ')
+      return points.map((point) => point.join(',')).join(' ')
     },
-    ...mapActions('maps', [
-      'removeMap',
-      'removeGcp'
-    ]),
-    ...mapActions('ui', [
-      'setActiveMapId'
-    ]),
+    ...mapActions('maps', ['removeMap', 'removeGcp']),
+    ...mapActions('ui', ['setActiveMapId']),
     mapClicked: function (mapId) {
       this.setActiveMapId({ mapId })
     }
@@ -186,7 +194,7 @@ ol li {
 }
 
 .thumbnail span {
-  padding: .1em;
+  padding: 0.1em;
   background-color: rgba(255, 255, 255, 0.9);
   text-shadow: 0 0 1em white;
   border-radius: 50%;

@@ -1,5 +1,5 @@
 @use 'openlayers';
-@import "~bulma/sass/utilities/_all";
+@import '~bulma/sass/utilities/_all';
 
 $custom-colors: null !default;
 $custom-shades: null !default;
@@ -9,24 +9,24 @@ $primary-light: findLightColor($primary);
 $primary-dark: findDarkColor($primary);
 $primary-invert: findColorInvert($primary);
 
-$blue-1: #C3F0F4;
-$blue-2: #63D8E6;
-$blue-3: #00618D;
-$blue-4: #3B44AD;
+$blue-1: #c3f0f4;
+$blue-2: #63d8e6;
+$blue-3: #00618d;
+$blue-4: #3b44ad;
 
-$purple-1: #F6E0F4;
-$purple-2: #D162C6;
-$purple-3: #AF69AC;
+$purple-1: #f6e0f4;
+$purple-2: #d162c6;
+$purple-3: #af69ac;
 $purple-4: #993694;
 
-$green-1: #BDE4CD;
-$green-2: #5BBC82;
-$green-3: #558F6C;
-$green-4: #1E7742;
+$green-1: #bde4cd;
+$green-2: #5bbc82;
+$green-3: #558f6c;
+$green-4: #1e7742;
 
-$yellow-1: #FFE4A4;
-$yellow-2: #FFC742;
-$yellow-3: #E0B45C;
+$yellow-1: #ffe4a4;
+$yellow-2: #ffc742;
+$yellow-3: #e0b45c;
 
 $colors: mergeColorMaps(
   (
@@ -61,34 +61,34 @@ $colors: mergeColorMaps(
 @import "~buefy/src/scss/buefy";
 
 :root {
-  --blue-1: #C3F0F4;
-  --blue-2: #63D8E6;
-  --blue-3: #00618D;
-  --blue-4: #3B44AD;
-  --yellow-1: #FFE4A4;
-  --yellow-2: #FFC742;
-  --yellow-3: #E0B45C;
-  --green-1: #BDE4CD;
-  --green-2: #5BBC82;
-  --green-3: #558F6C;
-  --green-4: #1E7742;
-  --red-1: #FFDFDF;
-  --red-2: #FF4D56;
-  --red-3: #C14456;
-  --red-4: #E22D3F;
-  --purple-1: #F6E0F4;
-  --purple-2: #D162C6;
-  --purple-3: #AF69AC;
+  --blue-1: #c3f0f4;
+  --blue-2: #63d8e6;
+  --blue-3: #00618d;
+  --blue-4: #3b44ad;
+  --yellow-1: #ffe4a4;
+  --yellow-2: #ffc742;
+  --yellow-3: #e0b45c;
+  --green-1: #bde4cd;
+  --green-2: #5bbc82;
+  --green-3: #558f6c;
+  --green-4: #1e7742;
+  --red-1: #ffdfdf;
+  --red-2: #ff4d56;
+  --red-3: #c14456;
+  --red-4: #e22d3f;
+  --purple-1: #f6e0f4;
+  --purple-2: #d162c6;
+  --purple-3: #af69ac;
   --purple-4: #993694;
-  --pink-1: #FFD8EF;
-  --pink-2: #FF56BA;
-  --pink-4: #B73B85;
-  --orange-1: #FFE3D0;
-  --orange-2: #FF7415;
-  --orange-3: #C67844;
-  --orange-4: #DB5800;
-  --black: #1D1D1D;
-  --gray: #DDDDDD;
+  --pink-1: #ffd8ef;
+  --pink-2: #ff56ba;
+  --pink-4: #b73b85;
+  --orange-1: #ffe3d0;
+  --orange-2: #ff7415;
+  --orange-3: #c67844;
+  --orange-4: #db5800;
+  --black: #1d1d1d;
+  --gray: #dddddd;
 }
 
 .below-header {

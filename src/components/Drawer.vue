@@ -14,38 +14,58 @@
           <h3 class="label">{{ label }}</h3>
           <div class="select-image">
             <template v-if="activeImage && imageCount > 1">
-              <span>
-                Image {{ activeImage.index + 1 }}/{{ imageCount }}
-              </span>
+              <span> Image {{ activeImage.index + 1 }}/{{ imageCount }} </span>
               <div class="buttons prev-next-buttons">
-                <b-button size="is-small" icon-left="arrow-left"
+                <b-button
+                  size="is-small"
+                  icon-left="arrow-left"
                   :disabled="!activeImage.previousImageId"
-                  tag="router-link" type="is-link" :to="{
-                  name: $route.name,
-                  query: {
-                    url: $route.query.url,
-                    image: activeImage.previousImageId
-                  }}" />
-                <b-button size="is-small" icon-left="arrow-right"
+                  tag="router-link"
+                  type="is-link"
+                  :to="{
+                    name: $route.name,
+                    query: {
+                      url: $route.query.url,
+                      image: activeImage.previousImageId
+                    }
+                  }"
+                />
+                <b-button
+                  size="is-small"
+                  icon-left="arrow-right"
                   :disabled="!activeImage.nextImageId"
-                  tag="router-link" type="is-link" :to="{
-                  name: $route.name,
-                  query: {
-                    url: $route.query.url,
-                    image: activeImage.nextImageId
-                  }}" />
+                  tag="router-link"
+                  type="is-link"
+                  :to="{
+                    name: $route.name,
+                    query: {
+                      url: $route.query.url,
+                      image: activeImage.nextImageId
+                    }
+                  }"
+                />
               </div>
             </template>
           </div>
         </div>
         <div class="controls">
           <div class="buttons drawer-buttons">
-            <b-button @click="toggleDrawer('metadata')" v-if="hasMetadata"
-              :active="drawerOpen === 'metadata'" icon-right="info" />
-            <b-button @click="toggleDrawer('maps')"
-              :active="drawerOpen === 'maps'" icon-right="list" />
-            <b-button @click="toggleDrawer('annotation')"
-              :active="drawerOpen === 'annotation'" icon-right="code" />
+            <b-button
+              @click="toggleDrawer('metadata')"
+              v-if="hasMetadata"
+              :active="drawerOpen === 'metadata'"
+              icon-right="info"
+            />
+            <b-button
+              @click="toggleDrawer('maps')"
+              :active="drawerOpen === 'maps'"
+              icon-right="list"
+            />
+            <b-button
+              @click="toggleDrawer('annotation')"
+              :active="drawerOpen === 'annotation'"
+              icon-right="code"
+            />
             <!-- <b-button
               icon-right="undo" @click="undo" />
             <b-button
@@ -72,13 +92,8 @@ export default {
     Annotation
   },
   methods: {
-    ...mapActions('ui', [
-      'toggleDrawer'
-    ]),
-    ...mapActions('maps', [
-      'undo',
-      'redo'
-    ])
+    ...mapActions('ui', ['toggleDrawer']),
+    ...mapActions('maps', ['undo', 'redo'])
   },
   computed: {
     ...mapGetters('iiif', {
@@ -148,6 +163,7 @@ footer {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+  max-width: 400px;
 }
 
 .drawer-content {

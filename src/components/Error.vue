@@ -13,14 +13,17 @@
         >. Allmaps Editor supports IIIF APIs version 2 and 3.
       </p>
       <p>
-        If the URL does point to a IIIF Manifest or IIIF Image the data
-        returned by the server might be incorrect or there might be a bug in the
+        If the URL does point to a IIIF Manifest or IIIF Image the data returned
+        by the server might be incorrect or there might be a bug in the
         <a href="https://github.com/allmaps/iiif-parser">IIIF parser</a> used by
         Allmaps Editor.
       </p>
       <p>
-        Contact the owner of the IIIF server, or <a href="https://github.com/allmaps/iiif-map-collections/issues">open an issue</a> in the GitHub
-        repo used by Allmaps to track problems like this.
+        Contact the owner of the IIIF server, or
+        <a href="https://github.com/allmaps/iiif-map-collections/issues"
+          >open an issue</a
+        >
+        in the GitHub repo used by Allmaps to track problems like this.
       </p>
     </div>
 
@@ -47,8 +50,7 @@
           >Image Information</a
         >
         (the <code>info.json</code> file) of the IIIF Images linked to in the
-        Manifest. The IIIF and Linked Data specifications requires these IDs to
-        be identical.
+        Manifest.
       </p>
       <p>This error was caused by a the following IIIF Image IDs:</p>
 
@@ -56,8 +58,8 @@
         <tr>
           <td>Manifest:</td>
           <td class="url">
-            <a :href="error.details.inlineImageUri">{{
-              error.details.inlineImageUri
+            <a :href="error.details.embeddedImageUri">{{
+              error.details.embeddedImageUri
             }}</a>
           </td>
         </tr>
@@ -70,8 +72,11 @@
       </table>
 
       <p>
-        Contact the owner of the IIIF server, or <a href="https://github.com/allmaps/iiif-map-collections/issues">open an issue</a> in the GitHub
-        repo used by Allmaps to track problems like this.
+        Contact the owner of the IIIF server, or
+        <a href="https://github.com/allmaps/iiif-map-collections/issues"
+          >open an issue</a
+        >
+        in the GitHub repo used by Allmaps to track problems like this.
       </p>
     </div>
 
@@ -116,7 +121,7 @@ export default {
   padding: 1em;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* justify-content: center; */
   align-items: center;
   height: 100%;
   width: 700px;
@@ -143,6 +148,7 @@ table {
 
 .error-message {
   font-family: monospace;
+  max-height: ;
 }
 
 table tr td:first-child {

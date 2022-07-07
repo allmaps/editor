@@ -1,23 +1,39 @@
 <template>
   <div class="container below-header content section">
     <p class="block">
-      Start georeferencing a map by typing its IIIF Manifest or Image URL in the input box:
+      Start georeferencing a map by typing its IIIF Manifest or Image URL in the
+      input box:
     </p>
 
     <form class="block">
       <b-field>
-        <b-input placeholder="IIIF manifest or image URL" expanded
-          v-model="inputUrl" class="is-link" type="search">
+        <b-input
+          placeholder="IIIF manifest or image URL"
+          expanded
+          v-model="inputUrl"
+          class="is-link"
+          type="search"
+          autofocus="autofocus"
+        >
         </b-input>
         <p class="control">
-          <b-button @click="handleSubmit" native-type="submit"
-            type="is-primary" label="Load" />
+          <b-button
+            @click="handleSubmit"
+            native-type="submit"
+            type="is-primary"
+            label="Load"
+          />
         </p>
       </b-field>
     </form>
 
     <p class="block">
-      For examples of map collections that are accessible with IIIF and URLs you can use, see <a href="https://next.observablehq.com/d/8c38533260c50483?collection=@bertspaan/iiif-maps">this Observable notebook</a>.
+      For examples of map collections that are accessible with IIIF and URLs you
+      can use, see
+      <a
+        href="https://next.observablehq.com/d/8c38533260c50483?collection=@bertspaan/iiif-maps"
+        >this Observable notebook</a
+      >.
     </p>
   </div>
 </template>
@@ -39,10 +55,13 @@ export default {
     }
   },
   methods: {
-    handleSubmit () {
-      this.$router.push({ name: 'collection', query: {
-        url: this.inputUrl
-      }})
+    handleSubmit() {
+      this.$router.push({
+        name: 'collection',
+        query: {
+          url: this.inputUrl
+        }
+      })
     }
   }
 }
@@ -77,14 +96,14 @@ export default {
 }
 
 .images li::before {
-  content: "";
+  content: '';
   padding-bottom: 100%;
   display: inline-block;
   vertical-align: top;
 }
 
 .images li.active {
-  border-color: #C552B5;
+  border-color: #c552b5;
   border-style: solid;
   border-width: 3px;
 }

@@ -50,6 +50,7 @@ import PixelMask from './components/PixelMask.vue'
 import Results from './components/Results.vue'
 
 const WS_API_URL = process.env.VUE_APP_WS_API_URL
+
 import ReconnectingWebSocket from 'reconnecting-websocket'
 import ShareDB from 'sharedb/lib/client'
 const json1 = require('ot-json1')
@@ -334,9 +335,14 @@ export default {
             message: err.message,
             details: err.details
           })
-        } else {
+        } else if (err.name === 'ZodError') {
           this.setError({
             type: 'iiif',
+            message: err.issues
+          })
+        } else {
+          this.setError({
+            type: 'unknown',
             message: err.message
           })
         }

@@ -36,46 +36,50 @@ const getters = {
 }
 
 const actions = {
-  setActiveImageId ({ commit, dispatch, rootState }, { imageId }) {
+  setActiveImageId({ commit, dispatch, rootState }, { imageId }) {
     if (!rootState.iiif.imagesById[imageId]) {
       throw new Error(`Image ID does not exist in IIIF source: ${imageId}`)
     }
 
     dispatch('maps/resetMaps', { maps: {} }, { root: true })
 
+    if (rootState.iiif.imagesById[imageId].parsedImage.embedded) {
+      dispatch('iiif/loadImageInfo', { imageId }, { root: true })
+    }
+
     commit('setActiveImageId', { imageId })
     commit('setActiveMapId', { mapId: undefined })
   },
 
-  setActiveMapId ({ commit, rootState }, { mapId }) {
+  setActiveMapId({ commit, rootState }, { mapId }) {
     if (rootState.maps.maps[mapId]) {
       commit('setActiveMapId', { mapId })
     }
   },
 
-  setSidebarOpen ({ state, commit }, { open }) {
+  setSidebarOpen({ state, commit }, { open }) {
     if (state.sidebarOpen !== open) {
       commit('setSidebarOpen', { open })
     }
   },
 
-  toggleDrawer ({ state, commit }, drawer) {
+  toggleDrawer({ state, commit }, drawer) {
     const drawerOpen = state.drawerOpen === drawer ? undefined : drawer
     commit('setDrawerOpen', { drawer: drawerOpen })
   }
 }
 
 const mutations = {
-  setActiveImageId (state, { imageId }) {
+  setActiveImageId(state, { imageId }) {
     state.activeImageId = imageId
   },
-  setActiveMapId (state, { mapId }) {
+  setActiveMapId(state, { mapId }) {
     state.activeMapId = mapId
   },
-  setSidebarOpen (state, { open }) {
+  setSidebarOpen(state, { open }) {
     state.sidebarOpen = open
   },
-  setDrawerOpen (state, { drawer }) {
+  setDrawerOpen(state, { drawer }) {
     state.drawerOpen = drawer
   }
 }

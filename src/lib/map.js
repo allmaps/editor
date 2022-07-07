@@ -1,7 +1,7 @@
-import { createRandomId } from '@allmaps/id'
+import { generateRandomId } from '@allmaps/id/browser'
 
-export async function createFullImageMap (image) {
-  const mapId = await createRandomId()
+export async function createFullImageMap(image) {
+  const mapId = await generateRandomId()
 
   const pixelMask = [
     [0, 0],
@@ -17,9 +17,7 @@ export async function createFullImageMap (image) {
       uri: image.uri,
       width: image.width,
       height: image.height,
-      version: image.version,
-      quality: image.quality,
-      format: image.format
+      type: image.majorVersion === 2 ? 'ImageService2' : 'ImageService3'
     },
     pixelMask
   }

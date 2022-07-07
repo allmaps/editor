@@ -2,7 +2,7 @@ const isObject = (obj) => typeof obj === 'object'
 
 const isArray = (obj) => Array.isArray(obj)
 
-export function parseOperations (op) {
+export function parseOperations(op) {
   if (isArray(op[0])) {
     return op.map(parseOperations).flat()
   } else {
@@ -11,7 +11,7 @@ export function parseOperations (op) {
   }
 }
 
-function parseMapOp (mapId, op) {
+function parseMapOp(mapId, op) {
   if (isArray(op[0])) {
     return op.map((op) => parseMapOp(mapId, op))
   } else if (isObject(op[0])) {
@@ -26,7 +26,7 @@ function parseMapOp (mapId, op) {
   }
 }
 
-function parsePropOp (mapId, prop, op) {
+function parsePropOp(mapId, prop, op) {
   if (isArray(op[0])) {
     return op.map((op) => parsePropOp(mapId, prop, op))
   } else if (isObject(op[0])) {

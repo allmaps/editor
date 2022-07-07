@@ -10,17 +10,16 @@ import Feature from 'ol/Feature'
 import View from 'ol/View'
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'
 import { Draw, Modify } from 'ol/interaction'
-import { Polygon} from 'ol/geom'
-import { Vector as VectorSource} from 'ol/source'
+import { Polygon } from 'ol/geom'
+import { Vector as VectorSource } from 'ol/source'
 import { Fill, Stroke, Style, Text } from 'ol/style'
 import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 
-import { createRandomId } from '@allmaps/id'
+import { generateRandomId } from '@allmaps/id/browser'
 
 import { round } from '../lib/functions'
 import { deleteCondition } from '../lib/openlayers'
-
 
 export default {
   name: 'PixelMask',
@@ -84,14 +83,18 @@ export default {
         if (iiifFeature) {
           this.iiifSource.removeFeature(iiifFeature)
         }
-      } else if ([
-        'maps/insertPixelMaskPoint',
-        'maps/replacePixelMaskPoint',
-        'maps/removePixelMaskPoint',
-        ].includes(mutation.type)) {
-          const iiifFeature = this.iiifSource.getFeatureById(mapId)
-          iiifFeature.setGeometry(new Polygon(this.maskToPolygon(this.maps[mapId].pixelMask)))
-        }
+      } else if (
+        [
+          'maps/insertPixelMaskPoint',
+          'maps/replacePixelMaskPoint',
+          'maps/removePixelMaskPoint'
+        ].includes(mutation.type)
+      ) {
+        const iiifFeature = this.iiifSource.getFeatureById(mapId)
+        iiifFeature.setGeometry(
+          new Polygon(this.maskToPolygon(this.maps[mapId].pixelMask))
+        )
+      }
     },
     onResize: function () {
       if (this.iiifOl) {
@@ -105,8 +108,7 @@ export default {
       this.iiifSource.clear()
 
       if (maps) {
-        Object.values(maps)
-          .forEach(this.addFeature)
+        Object.values(maps).forEach(this.addFeature)
       }
     },
     pointsEqual: function (point1, point2) {
@@ -157,7 +159,7 @@ export default {
           index: Object.keys(this.maps).length
         })
 
-        const mapId = await createRandomId()
+        const mapId = await generateRandomId()
         feature.setId(mapId)
 
         this.insertMap({
@@ -167,9 +169,10 @@ export default {
             uri: this.activeImage.uri,
             width: this.activeImage.width,
             height: this.activeImage.height,
-            version: this.activeImage.version,
-            quality: this.activeImage.quality,
-            format: this.activeImage.format
+            type: this.activeImage.majorVersion
+            // version: this.activeImage.version,
+            // quality: this.activeImage.quality,
+            // format: this.activeImage.format
           },
           pixelMask: this.featurePolygon(feature),
           source: this.source
@@ -190,7 +193,10 @@ export default {
         const feature = event.features.item(0)
         const mapId = feature.getId()
 
-        const diff = this.polygonDifference(this.modifyingPolygon, this.featurePolygon(feature))
+        const diff = this.polygonDifference(
+          this.modifyingPolygon,
+          this.featurePolygon(feature)
+        )
         if (diff) {
           const { operation, index, pixelMaskPoint } = diff
           const payload = {
@@ -213,11 +219,11 @@ export default {
       }
     },
     updateImage: function (image) {
-      if (!image || image.stub) {
+      if (!image || !image.sourceIiif) {
         return
       }
 
-      const options = new IIIFInfo(image.sourceData).getTileSourceOptions()
+      const options = new IIIFInfo(image.sourceIiif).getTileSourceOptions()
       if (options === undefined || options.version === undefined) {
         throw new Error('Data seems to be no valid IIIF image information.')
       }
@@ -230,12 +236,14 @@ export default {
 
       this.dimensions = [extent[2], -extent[1]]
 
-      this.iiifOl.setView(new View({
-        enableRotation: false,
-        resolutions: iiifTileSource.getTileGrid().getResolutions(),
-        extent,
-        constrainOnlyCenter: true
-      }))
+      this.iiifOl.setView(
+        new View({
+          enableRotation: false,
+          resolutions: iiifTileSource.getTileGrid().getResolutions(),
+          extent,
+          constrainOnlyCenter: true
+        })
+      )
 
       this.iiifOl.getView().fit(iiifTileSource.getTileGrid().getExtent(), {
         // TODO: move to settings file
@@ -243,22 +251,19 @@ export default {
       })
     },
     polygonToMask: function (polygon) {
-      return polygon[0].slice(0, -1).map((coordinate) => ([
-        coordinate[0],
-        -coordinate[1]
-      ].map((coordinate) => round(coordinate, 0))))
+      return polygon[0]
+        .slice(0, -1)
+        .map((coordinate) =>
+          [coordinate[0], -coordinate[1]].map((coordinate) =>
+            round(coordinate, 0)
+          )
+        )
     },
     maskToPolygon: function (pixelMask) {
       return [
         [
-          ...pixelMask.map((coordinate) => ([
-            coordinate[0],
-            -coordinate[1]
-          ])),
-          [
-            pixelMask[0][0],
-            -pixelMask[0][1]
-          ]
+          ...pixelMask.map((coordinate) => [coordinate[0], -coordinate[1]]),
+          [pixelMask[0][0], -pixelMask[0][1]]
         ]
       ]
     },
@@ -269,8 +274,8 @@ export default {
       return new Text({
         scale: 1.5,
         text: this.maskLabel(feature),
-        fill: new Fill({color: '#000'}),
-        stroke: new Stroke({color: '#fff', width: 2}),
+        fill: new Fill({ color: '#000' }),
+        stroke: new Stroke({ color: '#fff', width: 2 }),
         placement: 'point',
         align: 'center',
         baseline: 'middle',

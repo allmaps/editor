@@ -23,7 +23,7 @@ import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 import { fromLonLat } from 'ol/proj'
 
-import { createRandomId } from '@allmaps/id'
+import { generateRandomId } from '@allmaps/id/browser'
 
 import { deleteCondition, TileLayerControl } from '../lib/openlayers'
 import { createFullImageMap } from '../lib/map'
@@ -84,26 +84,25 @@ export default {
         if (mapFeature) {
           this.mapSource.removeFeature(mapFeature)
         }
-      } else if (mutation.type === 'maps/insertGcp' || mutation.type === 'maps/replaceGcp') {
+      } else if (
+        mutation.type === 'maps/insertGcp' ||
+        mutation.type === 'maps/replaceGcp'
+      ) {
         const iiifFeature = this.iiifSource.getFeatureById(gcpId)
         const mapFeature = this.mapSource.getFeatureById(gcpId)
 
         if (gcp.image) {
           const coordinates = gcp.image
           if (iiifFeature) {
-            iiifFeature.getGeometry().setCoordinates([
-              coordinates[0],
-              -coordinates[1]
-            ])
+            iiifFeature
+              .getGeometry()
+              .setCoordinates([coordinates[0], -coordinates[1]])
           } else {
             const index = this.iiifSource.getFeatures().length
 
             const iiifFeature = new Feature({
               index,
-              geometry: new Point([
-                coordinates[0],
-                -coordinates[1]
-              ])
+              geometry: new Point([coordinates[0], -coordinates[1]])
             })
 
             iiifFeature.setId(gcp.id)
@@ -123,17 +122,20 @@ export default {
           } else {
             const index = this.mapSource.getFeatures().length
 
-            const mapFeature = (new GeoJSON()).readFeature({
-              type: 'Feature',
-              id: gcp.id,
-              properties: {
-                index
+            const mapFeature = new GeoJSON().readFeature(
+              {
+                type: 'Feature',
+                id: gcp.id,
+                properties: {
+                  index
+                },
+                geometry: {
+                  type: 'Point',
+                  coordinates
+                }
               },
-              geometry: {
-                type: 'Point',
-                coordinates
-              }
-            }, { featureProjection: 'EPSG:3857' })
+              { featureProjection: 'EPSG:3857' }
+            )
 
             mapFeature.setId(gcp.id)
 
@@ -224,10 +226,7 @@ export default {
           if (coordinates) {
             const feature = new Feature({
               index,
-              geometry: new Point([
-                coordinates[0],
-                -coordinates[1]
-              ])
+              geometry: new Point([coordinates[0], -coordinates[1]])
             })
 
             feature.setId(gcp.id)
@@ -246,17 +245,20 @@ export default {
           const coordinates = gcp.world
 
           if (coordinates) {
-            const feature = (new GeoJSON()).readFeature({
-              type: 'Feature',
-              id: gcp.id,
-              properties: {
-                index
+            const feature = new GeoJSON().readFeature(
+              {
+                type: 'Feature',
+                id: gcp.id,
+                properties: {
+                  index
+                },
+                geometry: {
+                  type: 'Point',
+                  coordinates
+                }
               },
-              geometry: {
-                type: 'Point',
-                coordinates
-              }
-            }, { featureProjection: 'EPSG:3857' })
+              { featureProjection: 'EPSG:3857' }
+            )
 
             feature.setId(gcp.id)
 
@@ -283,10 +285,7 @@ export default {
     },
     iiifFeatureToPoint: function (feature) {
       const coordinate = feature.getGeometry().getCoordinates()
-      return [
-        Math.round(coordinate[0]),
-        Math.round(-coordinate[1])
-      ]
+      return [Math.round(coordinate[0]), Math.round(-coordinate[1])]
     },
     mapFeatureToPoint: function (feature) {
       const geometry = feature.getGeometry().clone()
@@ -294,8 +293,7 @@ export default {
 
       // 7 decimal places should be enough...
       // See https://gis.stackexchange.com/questions/8650/measuring-accuracy-of-latitude-and-longitude
-      return geometry.getCoordinates()
-        .map((coordinate) => round(coordinate, 7))
+      return geometry.getCoordinates().map((coordinate) => round(coordinate, 7))
     },
     onEdited: async function (event) {
       if (event.type === 'addfeature') {
@@ -309,9 +307,11 @@ export default {
         let newGcpId
 
         const pointDifference = this.pointDifference()
-        if ((pointDifference > 0 && event.target === this.iiifSource) ||
-          (pointDifference < 0 && event.target === this.mapSource)) {
-          gcpId = await createRandomId()
+        if (
+          (pointDifference > 0 && event.target === this.iiifSource) ||
+          (pointDifference < 0 && event.target === this.mapSource)
+        ) {
+          gcpId = await generateRandomId()
           newGcpId = true
 
           if (event.target === this.iiifSource) {
@@ -454,11 +454,11 @@ export default {
       // }
     },
     updateImage: function (image) {
-      if (!image || image.stub) {
+      if (!image || !image.sourceIiif) {
         return
       }
 
-      const options = new IIIFInfo(image.sourceData).getTileSourceOptions()
+      const options = new IIIFInfo(image.sourceIiif).getTileSourceOptions()
       if (options === undefined || options.version === undefined) {
         throw new Error('Data seems to be no valid IIIF image information.')
       }
@@ -471,11 +471,13 @@ export default {
 
       this.dimensions = [extent[2], -extent[1]]
 
-      this.iiifOl.setView(new View({
-        resolutions: iiifTileSource.getTileGrid().getResolutions(),
-        extent,
-        constrainOnlyCenter: true
-      }))
+      this.iiifOl.setView(
+        new View({
+          resolutions: iiifTileSource.getTileGrid().getResolutions(),
+          extent,
+          constrainOnlyCenter: true
+        })
+      )
 
       this.iiifOl.getView().fit(iiifTileSource.getTileGrid().getExtent(), {
         // TODO: move to settings file
@@ -501,8 +503,8 @@ export default {
       return new Text({
         scale: 1.5,
         text: this.gcpLabel(feature),
-        fill: new Fill({color: '#000'}),
-        stroke: new Stroke({color: '#fff', width: 2}),
+        fill: new Fill({ color: '#000' }),
+        stroke: new Stroke({ color: '#fff', width: 2 }),
         offsetX: 14,
         offsetY: 14
       })

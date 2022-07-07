@@ -3,9 +3,10 @@
     <div class="container content">
       <div>
         <p class="block">
-          Results page coming soon. <span v-if="activeImageId">
-          For now, you can view this map in
-          <a :href="viewerUrl">Allmaps Viewer</a>.
+          Results page coming soon.
+          <span v-if="activeImageId">
+            For now, you can view this map in
+            <a :href="viewerUrl">Allmaps Viewer</a>.
           </span>
         </p>
       </div>
@@ -15,6 +16,9 @@
 
 <script>
 import { mapGetters, mapState } from 'vuex'
+
+const VIEWER_URL = process.env.VUE_APP_VIEWER_URL
+const ANNOTATIONS_URL = process.env.VUE_APP_ANNOTATIONS_URL
 
 export default {
   name: 'Results',
@@ -26,8 +30,8 @@ export default {
       activeImageId: (state) => state.ui.activeImageId
     }),
     viewerUrl: function () {
-      const baseUrl = 'https://viewer.allmaps.org/#type=annotation&data=data:text/x-url,'
-      const annotationBaseUrl = 'https://annotations.allmaps.org'
+      const baseUrl = `${VIEWER_URL}/#type=annotation&data=data:text/x-url,`
+      const annotationBaseUrl = ANNOTATIONS_URL
 
       let annotationUrl
       if (this.manifestId) {
@@ -55,7 +59,8 @@ export default {
   height: 100%;
 }
 
-.container a, .container a:visited {
+.container a,
+.container a:visited {
   text-decoration: underline;
   color: black;
 }

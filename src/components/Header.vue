@@ -2,8 +2,10 @@
   <header class="padding">
     <h1>
       <a href="https://allmaps.org/">
-        <img alt="Allmaps"
-          src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg" />
+        <img
+          alt="Allmaps"
+          src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg"
+        />
       </a>
     </h1>
 
@@ -11,55 +13,71 @@
     <nav v-if="$route.query.url && !error">
       <div class="buttons field has-addons">
         <p class="control">
-          <b-button tag="router-link"
+          <b-button
+            tag="router-link"
             icon-left="layer-group"
             :to="{ name: 'collection', query }"
-            type="is-link is-collection">
+            type="is-link is-collection"
+          >
             Collection
           </b-button>
         </p>
 
         <p class="control">
-          <b-tooltip position="is-bottom" multilined
-            :triggers="maskTooltipTriggers" :auto-close="['outside', 'escape']">
-            <b-button tag="router-link"
+          <b-tooltip
+            position="is-bottom"
+            multilined
+            :triggers="maskTooltipTriggers"
+            :auto-close="['outside', 'escape']"
+          >
+            <b-button
+              tag="router-link"
               icon-left="draw-polygon"
-              :to="{name: 'mask', query}"
-              type="is-link is-mask">Mask</b-button>
-              <template v-slot:content>
-                <b-field>
-                  <b-switch :value="true"
-                    type="is-success">
-                    This image contains one or more maps.
-                  </b-switch>
-                </b-field>
-                <!-- <p></p> -->
+              :to="{ name: 'mask', query }"
+              type="is-link is-mask"
+              >Mask</b-button
+            >
+            <template v-slot:content>
+              <b-field>
+                <b-switch :value="true" type="is-success">
+                  This image contains one or more maps.
+                </b-switch>
+              </b-field>
+              <!-- <p></p> -->
             </template>
           </b-tooltip>
         </p>
 
         <p class="control">
-          <b-button tag="router-link"
+          <b-button
+            tag="router-link"
             icon-left="map-pin"
             :to="{ name: 'georeference', query }"
-            type="is-link is-georeference">
+            type="is-link is-georeference"
+          >
             Georeference
           </b-button>
         </p>
 
         <p class="control">
-          <b-button tag="router-link"
+          <b-button
+            tag="router-link"
             icon-left="globe"
             :to="{ name: 'results', query }"
-            type="is-link is-results">
+            type="is-link is-results"
+          >
             Results
           </b-button>
         </p>
       </div>
     </nav>
 
-    <b-button class="is-light" @click="setSidebarOpen({ open: true })"
-      pack="fas" icon-right="bars" />
+    <b-button
+      class="is-light"
+      @click="setSidebarOpen({ open: true })"
+      pack="fas"
+      icon-right="bars"
+    />
   </header>
 </template>
 
@@ -93,14 +111,15 @@ export default {
     }
   },
   methods: {
-    ...mapActions('ui', [
-      'setSidebarOpen'
-    ]),
+    ...mapActions('ui', ['setSidebarOpen']),
 
-    handleSubmit () {
-      this.$router.push({ name: this.$route.name, query: {
-        url: this.inputUrl
-      }})
+    handleSubmit() {
+      this.$router.push({
+        name: this.$route.name,
+        query: {
+          url: this.inputUrl
+        }
+      })
     }
   }
 }
@@ -134,7 +153,8 @@ nav a.button {
   border-color: #bbb;
 }
 
-nav a.button:hover, nav a.button:active {
+nav a.button:hover,
+nav a.button:active {
   color: black;
 }
 
@@ -157,5 +177,4 @@ a.button.router-link-exact-active.is-results {
   background-color: var(--yellow-1);
   border-color: var(--yellow-2);
 }
-
 </style>
