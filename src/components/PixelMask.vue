@@ -165,14 +165,11 @@ export default {
         this.insertMap({
           mapId,
           image: {
-            id: this.activeImage.id,
-            uri: this.activeImage.uri,
-            width: this.activeImage.width,
-            height: this.activeImage.height,
-            type: this.activeImage.majorVersion
-            // version: this.activeImage.version,
-            // quality: this.activeImage.quality,
-            // format: this.activeImage.format
+            id: this.activeImage.imageId,
+            uri: this.activeImage.parsedImage.uri,
+            width: this.activeImage.parsedImage.width,
+            height: this.activeImage.parsedImage.height,
+            type: this.activeImage.parsedImage.majorVersion === 2 ? 'ImageService2' : 'ImageService3'
           },
           pixelMask: this.featurePolygon(feature),
           source: this.source

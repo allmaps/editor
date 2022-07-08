@@ -48,7 +48,7 @@ export default {
           version: 1,
           ...map,
           pixelMask: [...map.pixelMask, map.pixelMask[0]],
-          gcps: Object.values(map.gcps),
+          gcps: Object.values(map.gcps).filter(({image, world}) => image && world),
           image: this.getAnnotationImage(map, this.activeImage)
         }
       })

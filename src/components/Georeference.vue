@@ -545,7 +545,7 @@ export default {
 
     this.mapLayer = new TileLayer({
       source: new XYZ({
-        // url: tileSources[0].url
+        maxZoom: 19
       })
     })
     this.mapSource = new VectorSource()
@@ -581,7 +581,8 @@ export default {
       view: new View({
         enableRotation: false,
         center: fromLonLat([0, 0]),
-        zoom: 2
+        zoom: 2,
+        maxZoom: 22
       })
     })
 
