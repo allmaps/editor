@@ -3,7 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@allmaps/annotation': ^1.0.0-beta.6
   '@allmaps/id': 1.0.0-beta.5
-  '@allmaps/iiif-parser': 1.0.0-beta.7
+  '@allmaps/iiif-parser': 1.0.0-beta.8
   '@allmaps/transform': ^1.0.0-beta.2
   '@babel/eslint-parser': ^7.18.2
   '@vue/cli-plugin-babel': ^5.0.7
@@ -30,7 +30,7 @@ specifiers:
 dependencies:
   '@allmaps/annotation': 1.0.0-beta.6
   '@allmaps/id': 1.0.0-beta.5
-  '@allmaps/iiif-parser': 1.0.0-beta.7
+  '@allmaps/iiif-parser': 1.0.0-beta.8
   '@allmaps/transform': 1.0.0-beta.2
   buefy: 0.9.19_vue@2.7.2
   bulma: 0.9.4
@@ -79,8 +79,8 @@ packages:
     engines: {node: ^14.13.1 || >=16.0.0}
     dev: false
 
-  /@allmaps/iiif-parser/1.0.0-beta.7:
-    resolution: {integrity: sha512-3/5/zsjVORt70rgRLKtDgmLIGuLrmvfeYBEOJ3nEU5BGp+qmt+Zl9ChQUvCD0TzAFnfSSxP/JFmLb/fchdtmJA==}
+  /@allmaps/iiif-parser/1.0.0-beta.8:
+    resolution: {integrity: sha512-V0y1jJXO2KikWF+1Q43M+CwJnxC1ClB/yCnFEgCRA7ojSCh0tMq6SS+5q29SivA+4i2Rr20gVbmSeoPt/xhOKg==}
     engines: {node: ^14.13.1 || >=16.0.0}
     dependencies:
       zod: 3.17.3
