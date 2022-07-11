@@ -1,9 +1,9 @@
 lockfileVersion: 5.4
 
 specifiers:
-  '@allmaps/annotation': ^1.0.0-beta.4
+  '@allmaps/annotation': ^1.0.0-beta.6
   '@allmaps/id': 1.0.0-beta.5
-  '@allmaps/iiif-parser': 1.0.0-beta.6
+  '@allmaps/iiif-parser': 1.0.0-beta.7
   '@allmaps/transform': ^1.0.0-beta.2
   '@babel/eslint-parser': ^7.18.2
   '@vue/cli-plugin-babel': ^5.0.7
@@ -28,9 +28,9 @@ specifiers:
   vuex: ^3.6.2
 
 dependencies:
-  '@allmaps/annotation': 1.0.0-beta.5
+  '@allmaps/annotation': 1.0.0-beta.6
   '@allmaps/id': 1.0.0-beta.5
-  '@allmaps/iiif-parser': 1.0.0-beta.6
+  '@allmaps/iiif-parser': 1.0.0-beta.7
   '@allmaps/transform': 1.0.0-beta.2
   buefy: 0.9.19_vue@2.7.2
   bulma: 0.9.4
@@ -67,8 +67,8 @@ packages:
       js-message: 1.0.7
     dev: true
 
-  /@allmaps/annotation/1.0.0-beta.5:
-    resolution: {integrity: sha512-WcQAAa+bs/29kBAXw4NCrXWNOCjFxSaWXu0iEbdV5tMcTFbSV8e8QTP5xkztV7+5wTlbXq7DUQpN79LSu8mFgA==}
+  /@allmaps/annotation/1.0.0-beta.6:
+    resolution: {integrity: sha512-baAIxaFC3jIB7DNoRhA7291g64WmKL6S/vaZ9tpM14gRCq87IPRyqBH1t8dhTG+Hdnq34aeN+KGJRwx/FK49Ag==}
     engines: {node: ^14.13.1 || >=16.0.0}
     dependencies:
       zod: 3.17.3
@@ -79,8 +79,8 @@ packages:
     engines: {node: ^14.13.1 || >=16.0.0}
     dev: false
 
-  /@allmaps/iiif-parser/1.0.0-beta.6:
-    resolution: {integrity: sha512-oV2KjjyzNmljKcXWvAmTf5Uuc6rsN6f5IYcbIGLWzLBVSVDjwsYlAJBSr7x93Hx312M7Dxx+vbD08CDW9qq0eg==}
+  /@allmaps/iiif-parser/1.0.0-beta.7:
+    resolution: {integrity: sha512-3/5/zsjVORt70rgRLKtDgmLIGuLrmvfeYBEOJ3nEU5BGp+qmt+Zl9ChQUvCD0TzAFnfSSxP/JFmLb/fchdtmJA==}
     engines: {node: ^14.13.1 || >=16.0.0}
     dependencies:
       zod: 3.17.3
