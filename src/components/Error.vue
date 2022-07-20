@@ -15,7 +15,7 @@
       <p>
         If the URL does point to a IIIF Manifest or IIIF Image the data returned
         by the server might be incorrect or there might be a bug in the
-        <a href="https://github.com/allmaps/iiif-parser">IIIF parser</a> used by
+        <a href="https://github.com/allmaps/allmaps/tree/main/packages/iiif-parser">IIIF parser</a> used by
         Allmaps Editor.
       </p>
       <p>
