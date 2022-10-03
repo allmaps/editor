@@ -138,4 +138,8 @@ export default {
 .icons img.present {
   opacity: 1;
 }
+
+a {
+  text-decoration: underline;
+}
 </style>

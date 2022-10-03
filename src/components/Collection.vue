@@ -17,26 +17,21 @@
                 url: $route.query.url
               }
             }"
+            @dblclick.native="goToMask(imageId)"
           >
-            <template v-if="!image.stub">
-              <Thumbnail v-if="!image.stub" :image="image.parsedImage" />
-              <!-- TODO: add label, or index -->
-              <!-- <span v-if="image.label">{{ image.label }}</span> -->
-            </template>
-            <template v-else>
-              <div>
-                <b-icon
-                  pack="fas"
-                  icon="sync-alt"
-                  size="is-large"
-                  custom-class="fa-spin"
-                />
-              </div>
-            </template>
+            <Thumbnail :imageId="imageId" :image="image.parsedImage" />
+            <!-- TODO: add label, or index -->
+            <!-- <span v-if="image.label">{{ image.label }}</span> -->
           </router-link>
           <div class="icons">
-            <!-- <img :class="{present: hasGcps(id)}" src="../assets/icon-georeferenced.svg" /> -->
-            <!-- <img :class="{present: hasPixelMask(id)}" src="../assets/icon-masked.svg" /> -->
+            <img
+              :class="{ present: hasGcps(imageId) }"
+              src="../assets/icon-georeferenced.svg"
+            />
+            <img
+              :class="{ present: hasPixelMask(imageId) }"
+              src="../assets/icon-masked.svg"
+            />
           </div>
         </li>
       </ol>
@@ -45,7 +40,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 import Thumbnail from './Thumbnail.vue'
 
@@ -58,10 +53,25 @@ export default {
     ...mapState({
       imagesById: (state) => state.iiif.imagesById,
       maps: (state) => state.maps.maps,
-      activeImageId: (state) => state.ui.activeImageId
+      activeImageId: (state) => state.ui.activeImageId,
+      iiifUrl: (state) => state.iiif.url,
+      apiMapsByImageId: (state) => state.api.mapsByImageId
+    }),
+    ...mapGetters('maps', {
+      mapsByImageId: 'mapsByImageId',
+      previousMapsByImageId: 'previousMapsByImageId'
     })
   },
   methods: {
+    goToMask(imageId) {
+      this.$router.push({
+        name: 'mask',
+        query: {
+          image: imageId,
+          url: this.$route.query.url
+        }
+      })
+    },
     handleSubmit() {
       this.$router.push({
         name: this.$route.name,
@@ -70,15 +80,20 @@ export default {
         }
       })
     },
-    mapsForImage: function (imageId) {
-      return Object.values(this.maps).filter((map) => map.imageId === imageId)
+    mapsForImageId: function (imageId) {
+      const maps =
+        this.mapsByImageId[imageId] ||
+        this.previousMapsByImageId[imageId] ||
+        this.apiMapsByImageId[imageId] ||
+        []
+      return maps
     },
     hasGcps: function (imageId) {
-      const maps = this.mapsForImage(imageId)
+      const maps = this.mapsForImageId(imageId)
       return maps.some((map) => map.gcps && Object.keys(map.gcps).length)
     },
     hasPixelMask: function (imageId) {
-      const maps = this.mapsForImage(imageId)
+      const maps = this.mapsForImageId(imageId)
       return maps.some((map) => map.pixelMask && map.pixelMask.length)
     }
   }
@@ -113,27 +128,16 @@ export default {
 
   flex-grow: 1;
   box-sizing: border-box;
-  border-width: 3px;
-  border-color: white;
+  border-width: 5px;
+  border-color: rgba(255, 255, 255, 0);
   border-style: solid;
-  transition: border-color 0.08s;
+  transition: border-color 0.01s;
 }
 
-/* li:last-child {
-  flex-grow: 10;
-} */
-
-/* .images li::before {
-  content: "";
-  padding-bottom: 100%;
-  display: inline-block;
-  vertical-align: top;
-} */
-
 .images li.active {
-  border-color: #c552b5;
+  border-color: #48c78e;
   border-style: solid;
-  border-width: 3px;
+  border-width: 5px;
 }
 
 .images li a {

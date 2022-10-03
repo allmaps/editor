@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import Vue, { ref } from 'vue'
 import VueRouter from 'vue-router'
 import Buefy from 'buefy'
 
@@ -83,13 +83,15 @@ export const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
   if (to.name !== 'home') {
-    // TODO: also include other query parameters?
-    //  or maybe all query parameters?
-    if (from.query.bbox && !to.query.bbox) {
+    const addReferer = !to.query.referer && from.query.referer
+    const addBbox = !to.query.bbox && from.query.bbox
+
+    if (addReferer || addBbox) {
       next({
-        path: to.path,
+        ...to,
         query: {
           ...to.query,
+          referer: from.query.referer,
           bbox: from.query.bbox
         }
       })

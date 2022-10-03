@@ -9,19 +9,16 @@
     >
       <div class="padding">
         <div class="sidebar-title">
-          <div>
-            <img
-              alt="Allmaps"
-              src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg"
-            />
-            <h2>Editor</h2>
-          </div>
+          <div />
           <b-button @click="open = false" class="is-light" icon-right="times" />
         </div>
         <div class="container content">
-          <p>
-            <router-link :to="{ name: 'home' }">Open new IIIF URL</router-link>
-          </p>
+          <div class="notification is-warning">
+            <strong>Allmaps Editor</strong> is not yet finished. Not everything will work as
+            intended, and some things will not work at all. Follow
+            <a href="https://twitter.com/bertspaan">@bertspaan</a> for updates.
+          </div>
+
           <h4>Keyboard shortcuts</h4>
 
           <dl class="shortcuts">

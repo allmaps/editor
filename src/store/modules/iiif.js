@@ -7,6 +7,8 @@ import { IIIF, Image } from '@allmaps/iiif-parser'
 
 import { fetchJson, submitIiif } from '../../lib/api.js'
 
+const API_URL = process.env.VUE_APP_API_URL
+
 function getString(value) {
   let strings = []
 
@@ -29,7 +31,7 @@ function getString(value) {
   return strings.join('\n')
 }
 
-const initialState = {
+const state = () => ({
   loaded: false,
   url: undefined,
   type: undefined,
@@ -37,13 +39,11 @@ const initialState = {
   sourceIiif: undefined,
   parsedIiif: undefined,
   imagesById: {}
-}
-
-const state = () => initialState
+})
 
 const getters = {
   manifestId: (state) => {
-    return state.parsedIiif.type === 'manifest' && state.id
+    return state.parsedIiif && state.parsedIiif.type === 'manifest' && state.id
   },
   imageCount: (state) => {
     return Object.keys(state.imagesById).length
@@ -84,16 +84,24 @@ const actions = {
     const id = await generateId(parsedIiif.uri)
 
     let parsedImages
+    let apiUrl
 
     if (type === 'image') {
       parsedImages = [parsedIiif]
+      apiUrl = `${API_URL}/images/${id}`
     } else if (type === 'manifest') {
       parsedImages = parsedIiif.canvases.map((canvas) => canvas.image)
+      apiUrl = `${API_URL}/manifests/${id}/maps`
     } else {
       throw new Error(`Unsupported IIIF type: ${type}`)
     }
 
     submitIiif(url, type, id, sourceIiif)
+
+    // Wait for API for precess new IIIF URL
+    setTimeout(() => {
+      dispatch('api/fetchMaps', { url: apiUrl }, {root: true})
+    }, 2000)
 
     let imageIds = []
     for (let parsedImage of parsedImages) {
@@ -159,6 +167,7 @@ const actions = {
       const url = `${imageUri}/info.json`
       const sourceIiif = await fetchJson(url)
       let parsedImage = Image.parse(sourceIiif)
+
       const type = parsedImage.type
       if (type === 'image') {
         if (imageUri === parsedImage.uri) {
