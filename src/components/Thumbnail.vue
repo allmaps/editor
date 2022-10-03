@@ -102,14 +102,12 @@ export default {
       this.loaded = true
     },
     onError: function (err) {
-      if (this.image.constructor.name === 'EmbeddedImage') {
+      if (this.image.embedded) {
         this.loadImageInfo({ imageId: this.imageId })
       } else {
         this.error = true
       }
-    },
-
-
+    }
   }
 }
 </script>
