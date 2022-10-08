@@ -1,7 +1,7 @@
 <template>
   <footer class="padding">
     <!-- <div class="drawer box column is-three-quarters-mobile is-two-thirds-tablet is-half-desktop is-one-third-widescreen"> -->
-    <div class="drawer box">
+    <div class="drawer box padding">
       <template v-if="drawerOpen">
         <Metadata v-if="drawerOpen === 'metadata'" />
         <Maps v-else-if="drawerOpen === 'maps'" />

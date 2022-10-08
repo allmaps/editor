@@ -1,6 +1,6 @@
 <template>
   <div class="background section">
-    <div class="container content">
+    <div class="container content below-header">
       <div v-if="viewerUrls.length">
         <p>
           Results page coming soon. For now, you can view georeferenced maps in
@@ -115,11 +115,16 @@ export default {
 }
 
 .container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 100%;
   height: 100%;
+}
+
+.container > div {
+  width: 100%;
+}
+
+.container > div:last-child {
+  padding-bottom: 10rem;
 }
 
 .container a,
@@ -131,5 +136,6 @@ export default {
 code {
   background: none;
   color: black;
+  word-break: break-all;
 }
 </style>

@@ -8,7 +8,7 @@ const state = () => ({
   activeMapId: undefined,
   loading: false,
   projects: [],
-  referer: undefined
+  callback: undefined
 })
 
 const getters = {
@@ -38,15 +38,16 @@ const getters = {
     return mapIds[newMapIndex]
   },
 
-  refererProject: (state) => {
-    if (!state.referer) {
+  callbackProject: (state) => {
+    if (!state.callback) {
       return
     }
 
     for (let project of state.projects) {
-      for (let url of project.urls) {
-        if (state.referer.startsWith(url)) {
-          return project.title
+      for (let hostname of project.hostnames) {
+        const url = new URL(state.callback)
+        if (url.hostname === hostname) {
+          return project.label
         }
       }
     }
@@ -86,12 +87,12 @@ const actions = {
     commit('setDrawerOpen', { drawer: drawerOpen })
   },
 
-  setReferer({ commit }, referer) {
-    if (!referer || referer.length === 0) {
+  setCallback({ commit }, callback) {
+    if (!callback || callback.length === 0) {
       return
     }
 
-    commit('setReferer', { referer })
+    commit('setCallback', { callback })
   },
 
   async setProjectsUrl({ commit }, url) {
@@ -120,8 +121,8 @@ const mutations = {
   setProjects(state, { projects }) {
     state.projects = projects
   },
-  setReferer(state, { referer }) {
-    state.referer = referer
+  setCallback(state, { callback }) {
+    state.callback = callback
   }
 }
 

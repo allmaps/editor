@@ -1,32 +1,32 @@
 <template>
   <header class="padding">
-    <h1>
-      <span v-if="referer" class="link">
+    <h1 class="grid-item-logo">
+      <span v-if="callback" class="link">
         <img
           alt="Allmaps"
           src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg"
         />
-        <span class="padding">Allmaps Editor</span>
+        <span>Allmaps Editor</span>
       </span>
       <router-link v-else class="link" :to="{ name: 'home' }">
         <img
           alt="Allmaps"
           src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg"
         />
-        <span class="padding">Allmaps Editor</span>
+        <span>Allmaps Editor</span>
       </router-link>
     </h1>
 
-    <div>
-      <template v-if="iiifUrl">
-        <div v-if="refererProject" class="referer">
-          <span class="padding"
-            >You’re editing a map from
-            <strong>{{ refererProject }}</strong></span
-          >
+    <div class="grid-item-input">
+      <template v-if="$route.query.url">
+        <div v-if="callbackProject" class="callback smaller">
+          <span
+            >You’re georeferencing {{ imageText }} from
+            <span v-html="callbackProject"
+          /></span>
           <a
-            v-if="referer"
-            :href="referer"
+            v-if="callback"
+            :href="callback"
             class="button is-link is-success"
             type="button"
           >
@@ -39,11 +39,11 @@
         <b-field v-else class="header-url">
           <b-input
             ref="input"
-            placeholder="IIIF manifest or image URL"
+            placeholder="IIIF Manifest or Image URL"
             expanded
             type="search"
             v-model="inputUrl"
-            @focus="focusInput"
+            @focus="onInputFocus"
           />
           <p class="control">
             <b-button
@@ -57,11 +57,10 @@
       </template>
     </div>
 
-    <div class="menu">
-      <span v-if="$route.name !== 'home'" class="padding"
+    <div class="grid-item-menu smaller">
+      <span v-if="$route.name !== 'home'"
         >All edits are automatically saved</span
       >
-
       <b-button
         class="is-light"
         @click="setSidebarOpen({ open: true })"
@@ -84,30 +83,37 @@ export default {
   name: 'Header',
   data: function () {
     return {
-      inputUrl: this.$route.query.url
+      inputUrl: this.$route.query.url,
+      imageText: 'an image'
     }
   },
   watch: {
     '$route.query.url': function () {
       this.inputUrl = this.$route.query.url
+    },
+    imageCount: function () {
+      this.imageText = this.imageCount === 1 ? 'an image' : 'images'
     }
   },
   computed: {
     ...mapState({
       activeImageId: (state) => state.ui.activeImageId,
       iiifUrl: (state) => state.iiif.url,
-      referer: (state) => state.ui.referer
+      callback: (state) => state.ui.callback
     }),
     ...mapGetters('errors', {
       error: 'error'
     }),
     ...mapGetters('ui', {
-      refererProject: 'refererProject'
+      callbackProject: 'callbackProject'
+    }),
+    ...mapGetters('iiif', {
+      imageCount: 'imageCount'
     })
   },
   methods: {
     ...mapActions('ui', ['setSidebarOpen']),
-    focusInput () {
+    onInputFocus() {
       const inputElement = this.$refs.input.$el.querySelector('input')
       // inputElement.setSelectionRange(0, inputElement.value.length);
       inputElement.select()
@@ -130,22 +136,59 @@ export default {
 header {
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr minmax(200px, 1fr) 1fr;
-
+  grid-template-rows: auto;
+  grid-template-columns: max-content 1fr max-content;
+  gap: 1rem;
+  grid-template-areas: 'logo input menu';
   box-shadow: 0 0 6px 0px rgb(0 0 0 / 20%);
   z-index: 30;
 }
 
-h1 {
+h1 .link,
+.callback,
+.link,
+.grid-item-menu {
+  display: grid;
+  /* grid-template-rows: auto; */
+  gap: 5px;
+  grid-template-columns: auto auto;
+  justify-items: center;
+  align-items: center;
+}
+
+@media (max-width: 1200px) {
+  header .smaller {
+    font-size: 75%;
+  }
+}
+
+@media (max-width: 700px) {
+  header {
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      'logo menu'
+      'input input';
+  }
+}
+
+.grid-item-logo {
+  grid-area: logo;
   font-weight: bold;
   flex-shrink: 0;
+  display: flex;
+}
+
+.grid-item-input {
+  grid-area: input;
+  place-self: center;
+  width: 100%;
 }
 
 h1 .link {
+  font-weight: bold;
   line-height: 1;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+  grid-template-columns: 40px auto;
 }
 
 h1 .link img {
@@ -157,19 +200,30 @@ h1 .link img {
 .header-url {
   width: 100%;
   margin-bottom: 0;
-  max-width: 800px;
 }
 
-.referer {
-  display: flex;
-  align-items: center;
+.callback > :first-child {
+  place-self: center end;
 }
 
-.menu {
+.callback > :last-child {
+  place-self: center start;
+}
+
+.callback > span {
+  text-align: right;
+}
+
+.grid-item-menu {
+  grid-area: menu;
   display: flex;
   flex-shrink: 0;
   flex-direction: row;
   align-items: center;
   justify-content: flex-end;
+}
+
+.grid-item-menu > span {
+  text-align: right;
 }
 </style>

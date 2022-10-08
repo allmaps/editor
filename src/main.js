@@ -83,15 +83,15 @@ export const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
   if (to.name !== 'home') {
-    const addReferer = !to.query.referer && from.query.referer
+    const addCallback = !to.query.callback && from.query.callback
     const addBbox = !to.query.bbox && from.query.bbox
 
-    if (addReferer || addBbox) {
+    if (addCallback || addBbox) {
       next({
         ...to,
         query: {
           ...to.query,
-          referer: from.query.referer,
+          callback: from.query.callback,
           bbox: from.query.bbox
         }
       })

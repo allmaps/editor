@@ -75,7 +75,7 @@ export default {
       'setActiveMapId',
       'toggleDrawer',
       'setSidebarOpen',
-      'setReferer',
+      'setCallback',
       'setProjectsUrl'
     ]),
 
@@ -97,6 +97,10 @@ export default {
     ...mapActions('errors', ['setError']),
 
     initializeDoc: function () {
+      if (!this.doc) {
+        return
+      }
+
       const source = 'ShareDB'
 
       if (!this.doc.type) {
@@ -260,6 +264,12 @@ export default {
       this.$router.push({ name, query: this.$route.query })
     },
     keyPressHandler: function (event) {
+      const tagName = event.target.tagName.toLowerCase()
+
+      if (tagName === 'input' || tagName === 'textarea') {
+        return
+      }
+
       if (event.key === '[') {
         if (!this.activeImage || !this.activeImage.previousImageId) {
           return
@@ -409,7 +419,7 @@ export default {
 
     this.storeUnsubscribe = this.$store.subscribe(this.onStoreMutation)
 
-    this.setReferer(this.$route.query.referer)
+    this.setCallback(this.$route.query.callback)
 
     // TODO: read projectsUrl from config
     const projectsUrl = 'projects.json'

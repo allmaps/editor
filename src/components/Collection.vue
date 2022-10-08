@@ -23,12 +23,15 @@
             <!-- TODO: add label, or index -->
             <!-- <span v-if="image.label">{{ image.label }}</span> -->
           </router-link>
+          <div class="border"></div>
           <div class="icons">
             <img
+              alt="Image contains georeferenced map"
               :class="{ present: hasGcps(imageId) }"
               src="../assets/icon-georeferenced.svg"
             />
             <img
+              alt="Image contains masked map"
               :class="{ present: hasPixelMask(imageId) }"
               src="../assets/icon-masked.svg"
             />
@@ -106,35 +109,53 @@ export default {
 }
 
 .images {
-  margin: 10px;
-  padding: 0;
   list-style-type: none;
-  display: flex;
-  flex-wrap: wrap;
-}
+  display: grid;
 
-.images::after {
-  content: '';
-  flex-grow: 10;
+  gap: 10px;
+  margin: 10px;
+
+  /* From:
+      https://css-tricks.com/an-auto-filling-css-grid-with-max-columns/
+  */
+
+  --grid-layout-gap: 10px;
+  --grid-column-count: 5;
+  --grid-item--min-width: 180px;
+
+  --gap-count: calc(var(--grid-column-count) - 1);
+  --total-gap-width: calc(var(--gap-count) * var(--grid-layout-gap));
+  --grid-item--max-width: calc(
+    (100% - var(--total-gap-width)) / var(--grid-column-count)
+  );
+
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(max(var(--grid-item--min-width), var(--grid-item--max-width)), 1fr)
+  );
 }
 
 .images li {
   position: relative;
-  margin: 10px;
+  aspect-ratio: 1 / 1;
+  border-radius: 5px;
+  overflow: hidden;
+}
 
-  width: 200px;
-  height: 200px;
-  max-width: 200px;
-
-  flex-grow: 1;
-  box-sizing: border-box;
+.images li .border {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
   border-width: 5px;
   border-color: rgba(255, 255, 255, 0);
   border-style: solid;
-  transition: border-color 0.01s;
+  transition: border-color 0.1s;
+  border-radius: 5px;
 }
 
-.images li.active {
+.images li.active .border {
   border-color: #48c78e;
   border-style: solid;
   border-width: 5px;
@@ -143,16 +164,13 @@ export default {
 .images li a {
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .icons {
   position: absolute;
-  bottom: 0;
+  bottom: 5px;
   height: 2rem;
-  padding: 2px;
+  padding: 4px;
   width: 100%;
   display: flex;
   flex-direction: row;

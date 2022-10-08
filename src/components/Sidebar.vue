@@ -13,9 +13,14 @@
           <b-button @click="open = false" class="is-light" icon-right="times" />
         </div>
         <div class="container content">
+          <p>
+            Allmaps Editor can georeference any map that's available via
+            <a href="https://iiif.io">IIIF</a>. For more information about
+            Allmaps, see <a href="https://allmaps.org">allmaps.org</a>.
+          </p>
           <div class="notification is-warning">
-            <strong>Allmaps Editor</strong> is not yet finished. Not everything will work as
-            intended, and some things will not work at all. Follow
+            <strong>Allmaps Editor</strong> is not yet finished. Not everything
+            will work as intended, and some things will not work at all. Follow
             <a href="https://twitter.com/bertspaan">@bertspaan</a> for updates.
           </div>
 
@@ -32,12 +37,6 @@
             </div>
           </dl>
         </div>
-        <!-- <ul>
-          <li>About</li>
-          <li>Open source</li>
-          <li>Explore map collections</li>
-          <li>Terms of use</li>
-        </ul> -->
       </div>
     </b-sidebar>
   </section>

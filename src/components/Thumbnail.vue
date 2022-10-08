@@ -1,6 +1,6 @@
 <template>
   <div v-if="singleImage" class="single-container">
-    <b-skeleton v-if="!loaded" active :height="`${200}px`"></b-skeleton>
+    <b-skeleton v-if="!loaded" active></b-skeleton>
     <img
       @load="onLoad"
       @error="onError"
@@ -12,19 +12,17 @@
     v-else
     class="tiled"
     :style="{
-      width: `${tilesWidth * scale}px`,
-      height: `${tilesHeight * scale}px`,
-      gridTemplateRows: `repeat(${rowCount}, max-content)`,
-      gridTemplateColumns: `repeat(${columnCount}, max-content)`
+      gridTemplateColumns: columnPercentages
+        .map((percentage) => `${percentage}%`)
+        .join(' '),
+      aspectRatio: `${tilesWidth} / ${tilesHeight}`,
+      left: `${(100 - (tilesWidth / tilesHeight) * 100) / 2}%`
     }"
   >
     <template v-for="(row, rowIndex) in thumbnail">
       <template v-for="(cell, columnIndex) in row">
         <img
           :src="image.getImageUrl(removeHeight(cell))"
-          :style="{
-            width: `${cell.size.width * scale}px`
-          }"
           :key="`${columnIndex},${rowIndex}`"
         />
       </template>
@@ -63,13 +61,6 @@ export default {
         height: this.width
       })
     },
-    rowCount: function () {
-      return this.thumbnail.length
-    },
-    columnCount: function () {
-      const firstRow = this.thumbnail[0]
-      return firstRow.length
-    },
     tilesWidth: function () {
       const firstRow = this.thumbnail[0]
       return firstRow.reduce((acc, row) => acc + row.size.width, 0)
@@ -80,12 +71,9 @@ export default {
         0
       )
     },
-    scale: function () {
-      return (
-        this.width /
-        Math.min(this.tilesWidth, this.tilesHeight) /
-        window.devicePixelRatio
-      )
+    columnPercentages: function () {
+      const firstRow = this.thumbnail[0]
+      return firstRow.map((row) => (row.size.width / this.tilesWidth) * 100)
     }
   },
   methods: {
@@ -105,6 +93,7 @@ export default {
       if (this.image.embedded) {
         this.loadImageInfo({ imageId: this.imageId })
       } else {
+        // TODO: show error message
         this.error = true
       }
     }
@@ -116,6 +105,15 @@ export default {
 .single-container {
   width: 100%;
   height: 100%;
+  position: relative;
+}
+
+.b-skeleton {
+  height: 100%;
+}
+
+.b-skeleton.is-animated > .b-skeleton-item {
+  height: 100%;
 }
 
 .single {
@@ -123,6 +121,7 @@ export default {
   height: 100%;
   object-fit: cover;
   visibility: hidden;
+  border-radius: 5px;
 }
 
 .single.loaded {
@@ -131,8 +130,7 @@ export default {
 
 .tiled {
   display: grid;
-  overflow: hidden;
-  justify-content: center;
-  align-content: center;
+  position: relative;
+  height: 100%;
 }
 </style>
