@@ -1,0 +1,14 @@
+[
+  {
+    "label": "the <strong>Leventhal Map & Education Center</strong>",
+    "hostnames": [
+      "leventhalmap.org",
+      "www.leventhalmap.org",
+      "collections.leventhalmap.org"
+    ]
+  },
+  {
+    "label": "<strong>DigHimapper<strong>",
+    "hostnames": ["dighimapper.eu"]
+  }
+]

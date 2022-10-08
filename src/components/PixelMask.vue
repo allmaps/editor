@@ -235,7 +235,6 @@ export default {
 
       this.iiifOl.setView(
         new View({
-          enableRotation: false,
           resolutions: iiifTileSource.getTileGrid().getResolutions(),
           extent,
           constrainOnlyCenter: true

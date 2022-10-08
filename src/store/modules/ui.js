@@ -1,10 +1,14 @@
+import { fetchJson } from '../../lib/api.js'
+
 const state = () => ({
   sidebarOpen: false,
   drawerOpen: undefined,
   lastError: undefined,
   activeImageId: undefined,
   activeMapId: undefined,
-  loading: false
+  loading: false,
+  projects: [],
+  callback: undefined
 })
 
 const getters = {
@@ -32,6 +36,21 @@ const getters = {
     const currentMapIndex = mapIds.indexOf(state.activeMapId)
     const newMapIndex = (currentMapIndex + 1 + mapIds.length) % mapIds.length
     return mapIds[newMapIndex]
+  },
+
+  callbackProject: (state) => {
+    if (!state.callback) {
+      return
+    }
+
+    for (let project of state.projects) {
+      for (let hostname of project.hostnames) {
+        const url = new URL(state.callback)
+        if (url.hostname === hostname) {
+          return project.label
+        }
+      }
+    }
   }
 }
 
@@ -66,6 +85,23 @@ const actions = {
   toggleDrawer({ state, commit }, drawer) {
     const drawerOpen = state.drawerOpen === drawer ? undefined : drawer
     commit('setDrawerOpen', { drawer: drawerOpen })
+  },
+
+  setCallback({ commit }, callback) {
+    if (!callback || callback.length === 0) {
+      return
+    }
+
+    commit('setCallback', { callback })
+  },
+
+  async setProjectsUrl({ commit }, url) {
+    if (!url) {
+      return
+    }
+
+    const projects = await fetchJson(url)
+    commit('setProjects', { projects })
   }
 }
 
@@ -81,6 +117,12 @@ const mutations = {
   },
   setDrawerOpen(state, { drawer }) {
     state.drawerOpen = drawer
+  },
+  setProjects(state, { projects }) {
+    state.projects = projects
+  },
+  setCallback(state, { callback }) {
+    state.callback = callback
   }
 }
 

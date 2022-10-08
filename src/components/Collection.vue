@@ -17,26 +17,24 @@
                 url: $route.query.url
               }
             }"
+            @dblclick.native="goToMask(imageId)"
           >
-            <template v-if="!image.stub">
-              <Thumbnail v-if="!image.stub" :image="image.parsedImage" />
-              <!-- TODO: add label, or index -->
-              <!-- <span v-if="image.label">{{ image.label }}</span> -->
-            </template>
-            <template v-else>
-              <div>
-                <b-icon
-                  pack="fas"
-                  icon="sync-alt"
-                  size="is-large"
-                  custom-class="fa-spin"
-                />
-              </div>
-            </template>
+            <Thumbnail :imageId="imageId" :image="image.parsedImage" />
+            <!-- TODO: add label, or index -->
+            <!-- <span v-if="image.label">{{ image.label }}</span> -->
           </router-link>
+          <div class="border"></div>
           <div class="icons">
-            <!-- <img :class="{present: hasGcps(id)}" src="../assets/icon-georeferenced.svg" /> -->
-            <!-- <img :class="{present: hasPixelMask(id)}" src="../assets/icon-masked.svg" /> -->
+            <img
+              alt="Image contains georeferenced map"
+              :class="{ present: hasGcps(imageId) }"
+              src="../assets/icon-georeferenced.svg"
+            />
+            <img
+              alt="Image contains masked map"
+              :class="{ present: hasPixelMask(imageId) }"
+              src="../assets/icon-masked.svg"
+            />
           </div>
         </li>
       </ol>
@@ -45,7 +43,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 import Thumbnail from './Thumbnail.vue'
 
@@ -58,10 +56,25 @@ export default {
     ...mapState({
       imagesById: (state) => state.iiif.imagesById,
       maps: (state) => state.maps.maps,
-      activeImageId: (state) => state.ui.activeImageId
+      activeImageId: (state) => state.ui.activeImageId,
+      iiifUrl: (state) => state.iiif.url,
+      apiMapsByImageId: (state) => state.api.mapsByImageId
+    }),
+    ...mapGetters('maps', {
+      mapsByImageId: 'mapsByImageId',
+      previousMapsByImageId: 'previousMapsByImageId'
     })
   },
   methods: {
+    goToMask(imageId) {
+      this.$router.push({
+        name: 'mask',
+        query: {
+          image: imageId,
+          url: this.$route.query.url
+        }
+      })
+    },
     handleSubmit() {
       this.$router.push({
         name: this.$route.name,
@@ -70,15 +83,20 @@ export default {
         }
       })
     },
-    mapsForImage: function (imageId) {
-      return Object.values(this.maps).filter((map) => map.imageId === imageId)
+    mapsForImageId: function (imageId) {
+      const maps =
+        this.mapsByImageId[imageId] ||
+        this.previousMapsByImageId[imageId] ||
+        this.apiMapsByImageId[imageId] ||
+        []
+      return maps
     },
     hasGcps: function (imageId) {
-      const maps = this.mapsForImage(imageId)
+      const maps = this.mapsForImageId(imageId)
       return maps.some((map) => map.gcps && Object.keys(map.gcps).length)
     },
     hasPixelMask: function (imageId) {
-      const maps = this.mapsForImage(imageId)
+      const maps = this.mapsForImageId(imageId)
       return maps.some((map) => map.pixelMask && map.pixelMask.length)
     }
   }
@@ -91,64 +109,68 @@ export default {
 }
 
 .images {
-  margin: 10px;
-  padding: 0;
   list-style-type: none;
-  display: flex;
-  flex-wrap: wrap;
-}
+  display: grid;
 
-.images::after {
-  content: '';
-  flex-grow: 10;
+  gap: 10px;
+  margin: 10px;
+
+  /* From:
+      https://css-tricks.com/an-auto-filling-css-grid-with-max-columns/
+  */
+
+  --grid-layout-gap: 10px;
+  --grid-column-count: 5;
+  --grid-item--min-width: 180px;
+
+  --gap-count: calc(var(--grid-column-count) - 1);
+  --total-gap-width: calc(var(--gap-count) * var(--grid-layout-gap));
+  --grid-item--max-width: calc(
+    (100% - var(--total-gap-width)) / var(--grid-column-count)
+  );
+
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(max(var(--grid-item--min-width), var(--grid-item--max-width)), 1fr)
+  );
 }
 
 .images li {
   position: relative;
-  margin: 10px;
-
-  width: 200px;
-  height: 200px;
-  max-width: 200px;
-
-  flex-grow: 1;
-  box-sizing: border-box;
-  border-width: 3px;
-  border-color: white;
-  border-style: solid;
-  transition: border-color 0.08s;
+  aspect-ratio: 1 / 1;
+  border-radius: 5px;
+  overflow: hidden;
 }
 
-/* li:last-child {
-  flex-grow: 10;
-} */
-
-/* .images li::before {
-  content: "";
-  padding-bottom: 100%;
-  display: inline-block;
-  vertical-align: top;
-} */
-
-.images li.active {
-  border-color: #c552b5;
+.images li .border {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-width: 5px;
+  border-color: rgba(255, 255, 255, 0);
   border-style: solid;
-  border-width: 3px;
+  transition: border-color 0.1s;
+  border-radius: 5px;
+}
+
+.images li.active .border {
+  border-color: #48c78e;
+  border-style: solid;
+  border-width: 5px;
 }
 
 .images li a {
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .icons {
   position: absolute;
-  bottom: 0;
+  bottom: 5px;
   height: 2rem;
-  padding: 2px;
+  padding: 4px;
   width: 100%;
   display: flex;
   flex-direction: row;

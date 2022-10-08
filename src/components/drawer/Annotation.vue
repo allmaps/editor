@@ -1,13 +1,43 @@
 <template>
   <div class="drawer-content">
     <pre v-highlightjs="annotationString"><code class="json"></code></pre>
+
+    <div class="row">
+      <span>Show annotation for:</span>
+    <b-field>
+      <b-radio-button
+        v-model="annotationLevel"
+        native-value="collection"
+        type="is-primary"
+      >
+        <span>Collection</span>
+      </b-radio-button>
+      <b-radio-button
+        v-model="annotationLevel"
+        native-value="image"
+        type="is-primary"
+      >
+        <span>Image</span>
+      </b-radio-button>
+      <b-radio-button
+        v-model="annotationLevel"
+        native-value="map"
+        type="is-primary"
+      >
+        Map
+      </b-radio-button>
+    </b-field>
+    </div>
+
+    <div class="row">
+      <span>Use annotation:</span>
+
     <div class="block actions buttons">
       <b-button @click="copy" icon-left="copy">Copy</b-button>
       <b-button @click="download" icon-left="file-download">Download</b-button>
-
       <a
         target="_blank"
-        :href="`${annotationsUrl}/images/${activeImageId}`"
+        :href="annotationUrl"
         class="button is-link"
         type="button"
       >
@@ -16,6 +46,7 @@
         </span>
         <span>Open in new tab</span>
       </a>
+    </div>
     </div>
   </div>
 </template>
@@ -31,45 +62,69 @@ export default {
   name: 'Annotation',
   data: function () {
     return {
-      annotationsUrl: ANNOTATIONS_URL
+      annotationLevel: 'image'
     }
   },
   computed: {
     ...mapState({
+      activeMapId: (state) => state.ui.activeMapId,
       activeImageId: (state) => state.ui.activeImageId,
-      maps: (state) => state.maps.maps
+      apiMapsByImageId: (state) => state.api.mapsByImageId
     }),
-    ...mapGetters('ui', {
-      activeImage: 'activeImage'
+    ...mapGetters('maps', {
+      mapsByImageId: 'mapsByImageId',
+      previousMapsByImageId: 'previousMapsByImageId'
     }),
-    annotation: function () {
-      const maps = Object.values(this.maps).map((map) => {
-        return {
-          version: 1,
-          ...map,
-          pixelMask: [...map.pixelMask, map.pixelMask[0]],
-          gcps: Object.values(map.gcps).filter(({image, world}) => image && world),
-          image: this.getAnnotationImage(map, this.activeImage)
-        }
-      })
+    allMapsByImageId: function () {
+      return {
+        ...this.apiMapsByImageId,
+        ...this.previousMapsByImageId,
+        ...this.mapsByImageId
+      }
+    },
+    maps: function () {
+      let maps = []
+      if (this.annotationLevel === 'collection') {
+        maps = Object.values(this.allMapsByImageId).flat()
+      } else if (this.annotationLevel === 'image') {
+        maps = Object.values(this.mapsByImageId).flat()
+      } else if (this.annotationLevel === 'map') {
+        maps = Object.values(this.mapsByImageId)
+          .flat()
+          .filter((map) => map.id === this.activeMapId)
+      }
 
-      return generateAnnotation(maps)
+      return maps
+    },
+    annotation: function () {
+      const viewableMaps = this.maps
+        .map((map) => ({
+          // version: 1,
+          ...map,
+          gcps: Object.values(map.gcps).filter(
+            ({ image, world }) => image && world
+          )
+        }))
+        .filter(this.mapIsViewable)
+
+      return generateAnnotation(viewableMaps)
     },
     annotationString: function () {
       return JSON.stringify(this.annotation, null, 2)
+    },
+    annotationUrl: function () {
+      const annotationBaseUrl = ANNOTATIONS_URL
+
+      if (this.manifestId) {
+        return `${annotationBaseUrl}/manifests/${this.manifestId}`
+      } else {
+        return `${annotationBaseUrl}/images/${this.activeImageId}`
+      }
     }
   },
   methods: {
-    getAnnotationImage: function (map, image) {
-      return {
-        uri: image.parsedImage.uri,
-        type:
-          image.parsedImage.majorVersion === 2
-            ? 'ImageService2'
-            : 'ImageService3',
-        width: image.parsedImage.width,
-        height: image.parsedImage.height
-      }
+    mapIsViewable: function (map) {
+      return map.gcps.length >= 3
     },
     copy: function () {
       navigator.clipboard.writeText(this.annotationString)
@@ -117,16 +172,27 @@ pre {
   margin: 0;
   padding: 0;
   white-space: pre-wrap;
+  word-wrap: break-word;
   border-radius: 0.5em;
-  /* height: 400px; */
-  overflow: auto;
   margin-bottom: 0.5em;
+  width: 600px;
 }
 
 code {
   height: 100%;
   width: 100%;
   padding: 0.5rem;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.row:not(:last-child) {
+  margin-bottom: 0.5em;
 }
 
 .actions {

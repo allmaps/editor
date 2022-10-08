@@ -579,7 +579,6 @@ export default {
       ],
       target: 'map',
       view: new View({
-        enableRotation: false,
         center: fromLonLat([0, 0]),
         zoom: 2,
         maxZoom: 22

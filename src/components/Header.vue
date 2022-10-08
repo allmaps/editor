@@ -1,125 +1,132 @@
 <template>
   <header class="padding">
-    <h1>
-      <a href="https://allmaps.org/">
+    <h1 class="grid-item-logo">
+      <span v-if="callback" class="link">
         <img
           alt="Allmaps"
           src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg"
         />
-      </a>
+        <span>Allmaps Editor</span>
+      </span>
+      <router-link v-else class="link" :to="{ name: 'home' }">
+        <img
+          alt="Allmaps"
+          src="https://raw.githubusercontent.com/allmaps/style/master/images/allmaps-logo.svg"
+        />
+        <span>Allmaps Editor</span>
+      </router-link>
     </h1>
 
-    <!-- TODO: replace !$route.query.url with store.ui.loaded -->
-    <nav v-if="$route.query.url && !error">
-      <div class="buttons field has-addons">
-        <p class="control">
-          <b-button
-            tag="router-link"
-            icon-left="layer-group"
-            :to="{ name: 'collection', query }"
-            type="is-link is-collection"
+    <div class="grid-item-input">
+      <template v-if="$route.query.url">
+        <div v-if="callbackProject" class="callback smaller">
+          <span
+            >You’re georeferencing {{ imageText }} from
+            <span v-html="callbackProject"
+          /></span>
+          <a
+            v-if="callback"
+            :href="callback"
+            class="button is-link is-success"
+            type="button"
           >
-            Collection
-          </b-button>
-        </p>
-
-        <p class="control">
-          <b-tooltip
-            position="is-bottom"
-            multilined
-            :triggers="maskTooltipTriggers"
-            :auto-close="['outside', 'escape']"
-          >
+            <span class="icon is-small">
+              <i class="fas fa-external-link-alt"></i>
+            </span>
+            <span>Return</span>
+          </a>
+        </div>
+        <b-field v-else class="header-url">
+          <b-input
+            ref="input"
+            placeholder="IIIF Manifest or Image URL"
+            expanded
+            type="search"
+            v-model="inputUrl"
+            @focus="onInputFocus"
+          />
+          <p class="control">
             <b-button
-              tag="router-link"
-              icon-left="draw-polygon"
-              :to="{ name: 'mask', query }"
-              type="is-link is-mask"
-              >Mask</b-button
-            >
-            <template v-slot:content>
-              <b-field>
-                <b-switch :value="true" type="is-success">
-                  This image contains one or more maps.
-                </b-switch>
-              </b-field>
-              <!-- <p></p> -->
-            </template>
-          </b-tooltip>
-        </p>
+              native-type="submit"
+              type="is-primary"
+              @click="handleSubmit"
+              label="Load"
+            />
+          </p>
+        </b-field>
+      </template>
+    </div>
 
-        <p class="control">
-          <b-button
-            tag="router-link"
-            icon-left="map-pin"
-            :to="{ name: 'georeference', query }"
-            type="is-link is-georeference"
-          >
-            Georeference
-          </b-button>
-        </p>
-
-        <p class="control">
-          <b-button
-            tag="router-link"
-            icon-left="globe"
-            :to="{ name: 'results', query }"
-            type="is-link is-results"
-          >
-            Results
-          </b-button>
-        </p>
-      </div>
-    </nav>
-
-    <b-button
-      class="is-light"
-      @click="setSidebarOpen({ open: true })"
-      pack="fas"
-      icon-right="bars"
-    />
+    <div class="grid-item-menu smaller">
+      <span v-if="$route.name !== 'home'"
+        >All edits are automatically saved</span
+      >
+      <b-button
+        class="is-light"
+        @click="setSidebarOpen({ open: true })"
+        pack="fas"
+        icon-right="question"
+      />
+    </div>
   </header>
 </template>
 
 <script>
 import { mapState, mapActions, mapGetters } from 'vuex'
 
+// TODO: add:
+// 'You’re editing a new map.'
+// 'Someone has started georeferencing this map, you can continue editing to improve their work.'
+// 'All edits are automatically saved in the Allmaps database.'
+
 export default {
   name: 'Header',
-  computed: {
-    ...mapState({
-      activeImageId: (state) => state.ui.activeImageId,
-      maps: (state) => state.maps.maps
-    }),
-    ...mapGetters('errors', {
-      error: 'error'
-    }),
-    maskTooltipTriggers: function () {
-      return []
-      // return Object.keys(this.maps).length ? [] : ['click']
-    },
-    query: function () {
-      return {
-        url: this.$route.query.url,
-        image: this.$route.query.image
-      }
+  data: function () {
+    return {
+      inputUrl: this.$route.query.url,
+      imageText: 'an image'
     }
   },
   watch: {
     '$route.query.url': function () {
       this.inputUrl = this.$route.query.url
+    },
+    imageCount: function () {
+      this.imageText = this.imageCount === 1 ? 'an image' : 'images'
     }
+  },
+  computed: {
+    ...mapState({
+      activeImageId: (state) => state.ui.activeImageId,
+      iiifUrl: (state) => state.iiif.url,
+      callback: (state) => state.ui.callback
+    }),
+    ...mapGetters('errors', {
+      error: 'error'
+    }),
+    ...mapGetters('ui', {
+      callbackProject: 'callbackProject'
+    }),
+    ...mapGetters('iiif', {
+      imageCount: 'imageCount'
+    })
   },
   methods: {
     ...mapActions('ui', ['setSidebarOpen']),
-
+    onInputFocus() {
+      const inputElement = this.$refs.input.$el.querySelector('input')
+      // inputElement.setSelectionRange(0, inputElement.value.length);
+      inputElement.select()
+    },
     handleSubmit() {
-      this.$router.push({
-        name: this.$route.name,
-        query: {
-          url: this.inputUrl
-        }
-      })
+      if (this.$route.query.url !== this.inputUrl) {
+        this.$router.push({
+          name: 'collection',
+          query: {
+            url: this.inputUrl
+          }
+        })
+      }
     }
   }
 }
@@ -127,54 +134,96 @@ export default {
 
 <style scoped>
 header {
-  position: absolute;
-
-  z-index: 35;
   width: 100%;
+  display: grid;
+  grid-template-rows: auto;
+  grid-template-columns: max-content 1fr max-content;
+  gap: 1rem;
+  grid-template-areas: 'logo input menu';
+  box-shadow: 0 0 6px 0px rgb(0 0 0 / 20%);
+  z-index: 30;
+}
 
+h1 .link,
+.callback,
+.link,
+.grid-item-menu {
+  display: grid;
+  /* grid-template-rows: auto; */
+  gap: 5px;
+  grid-template-columns: auto auto;
+  justify-items: center;
+  align-items: center;
+}
+
+@media (max-width: 1200px) {
+  header .smaller {
+    font-size: 75%;
+  }
+}
+
+@media (max-width: 700px) {
+  header {
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      'logo menu'
+      'input input';
+  }
+}
+
+.grid-item-logo {
+  grid-area: logo;
+  font-weight: bold;
+  flex-shrink: 0;
   display: flex;
+}
+
+.grid-item-input {
+  grid-area: input;
+  place-self: center;
+  width: 100%;
+}
+
+h1 .link {
+  font-weight: bold;
+  line-height: 1;
+  grid-template-columns: 40px auto;
+}
+
+h1 .link img {
+  width: 40px;
+  display: inline-block;
+  line-height: 1;
+}
+
+.header-url {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.callback > :first-child {
+  place-self: center end;
+}
+
+.callback > :last-child {
+  place-self: center start;
+}
+
+.callback > span {
+  text-align: right;
+}
+
+.grid-item-menu {
+  grid-area: menu;
+  display: flex;
+  flex-shrink: 0;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  pointer-events: none;
+  justify-content: flex-end;
 }
 
-header > * {
-  pointer-events: all;
-}
-
-h1 img {
-  width: 40px;
-}
-
-nav a.button {
-  color: black;
-  background: white;
-  border-color: #bbb;
-}
-
-nav a.button:hover,
-nav a.button:active {
-  color: black;
-}
-
-a.button.router-link-exact-active.is-collection {
-  background-color: var(--blue-1);
-  border-color: var(--blue-2);
-}
-
-a.button.router-link-exact-active.is-mask {
-  background-color: var(--purple-1);
-  border-color: var(--purple-2);
-}
-
-a.button.router-link-exact-active.is-georeference {
-  background-color: var(--green-1);
-  border-color: var(--green-2);
-}
-
-a.button.router-link-exact-active.is-results {
-  background-color: var(--yellow-1);
-  border-color: var(--yellow-2);
+.grid-item-menu > span {
+  text-align: right;
 }
 </style>

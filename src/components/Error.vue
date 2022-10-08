@@ -15,8 +15,11 @@
       <p>
         If the URL does point to a IIIF Manifest or IIIF Image the data returned
         by the server might be incorrect or there might be a bug in the
-        <a href="https://github.com/allmaps/allmaps/tree/main/packages/iiif-parser">IIIF parser</a> used by
-        Allmaps Editor.
+        <a
+          href="https://github.com/allmaps/allmaps/tree/main/packages/iiif-parser"
+          >IIIF parser</a
+        >
+        used by Allmaps Editor.
       </p>
       <p>
         Contact the owner of the IIIF server, or
@@ -25,6 +28,8 @@
         >
         in the GitHub repo used by Allmaps to track problems like this.
       </p>
+      <p>Details:</p>
+      <pre v-highlightjs="detailsString"><code class="json"></code></pre>
     </div>
 
     <div v-else-if="error.type === 'json'">
@@ -96,7 +101,9 @@
         <td class="error-message">{{ error.message }}</td>
       </tr>
     </table>
-    <b-button @click="$router.push({ name: 'home' })">Start over</b-button>
+    <b-button type="is-success" @click="$router.push({ name: 'home' })"
+      >Start over</b-button
+    >
   </div>
 </template>
 
@@ -109,8 +116,12 @@ export default {
     ...mapGetters('errors', {
       error: 'error'
     }),
+    // TODO: replace with state.ui.url
     url: function () {
       return this.$route.query.url
+    },
+    detailsString: function () {
+      return JSON.stringify(this.error.details, null, 2)
     }
   }
 }
@@ -133,7 +144,8 @@ a {
 }
 
 p,
-table {
+table,
+pre {
   margin-bottom: 1em;
 }
 
@@ -148,7 +160,6 @@ table {
 
 .error-message {
   font-family: monospace;
-  max-height: ;
 }
 
 table tr td:first-child {
@@ -157,5 +168,20 @@ table tr td:first-child {
 
 table td {
   word-break: break-all;
+}
+
+pre {
+  background-color: black;
+  padding: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  border-radius: 0.5em;
+  max-height: 200px;
+}
+
+code {
+  height: 100%;
+  width: 100%;
+  padding: 0.5rem;
 }
 </style>

@@ -1,14 +1,36 @@
 <template>
   <div class="background section">
-    <div class="container content">
-      <div>
-        <p class="block">
-          Results page coming soon.
-          <span v-if="activeImageId">
-            For now, you can view this map in
-            <a :href="viewerUrl">Allmaps Viewer</a>.
-          </span>
+    <div class="container content below-header">
+      <div v-if="viewerUrls.length">
+        <p>
+          Results page coming soon. For now, you can view georeferenced maps in
+          Allmaps Viewer:
         </p>
+        <ul>
+          <li v-for="({ label, url }, index) in viewerUrls" :key="index">
+            <a :href="url">{{ label }}</a>
+          </li>
+        </ul>
+        <template v-if="activeMapId">
+        <p>
+          To view this map in GIS software that supports XYZ map tiles, you can
+          use
+          <a href="https://observablehq.com/@bertspaan/allmaps-tile-server"
+            >Allmaps Tile Server</a
+          >
+          and copy the following template URL:
+        </p>
+        <ul>
+          <li>
+            <code
+              >https://allmaps.xyz/maps/{{ activeMapId }}/{z}/{x}/{y}.png</code
+            >
+          </li>
+        </ul>
+        </template>
+      </div>
+      <div v-else>
+        To view the results on a map, georeference one or more image.
       </div>
     </div>
   </div>
@@ -26,21 +48,62 @@ export default {
     ...mapGetters('iiif', {
       manifestId: 'manifestId'
     }),
-    ...mapState({
-      activeImageId: (state) => state.ui.activeImageId
+    ...mapGetters('maps', {
+      mapsByImageId: 'mapsByImageId',
+      previousMapsByImageId: 'previousMapsByImageId'
     }),
-    viewerUrl: function () {
-      const baseUrl = `${VIEWER_URL}/#type=annotation&data=data:text/x-url,`
+    ...mapState({
+      activeMapId: (state) => state.ui.activeMapId,
+      activeImageId: (state) => state.ui.activeImageId,
+      apiMapsByImageId: (state) => state.api.mapsByImageId
+    }),
+    allMapsByImageId: function () {
+      return {
+        ...this.apiMapsByImageId,
+        ...this.previousMapsByImageId,
+        ...this.mapsByImageId
+      }
+    },
+    mapCountInManifest: function () {
+      return Object.values(this.allMapsByImageId).flat().length
+    },
+    mapCountInImage: function () {
+      return Object.values(this.mapsByImageId).flat().length
+    },
+    mapCountInMap: function () {
+      return Object.values(this.mapsByImageId)
+        .flat()
+        .filter((map) => map.id === this.activeMapId).length
+    },
+    viewerUrls: function () {
+      let viewerUrls = []
+
+      const viewerBaseUrl = `${VIEWER_URL}/#?image=${this.activeImageId}&map=${this.activeMapId}&type=annotation&data=data:text/x-url,`
       const annotationBaseUrl = ANNOTATIONS_URL
 
-      let annotationUrl
-      if (this.manifestId) {
-        annotationUrl = `${annotationBaseUrl}/manifests/${this.manifestId}`
-      } else {
-        annotationUrl = `${annotationBaseUrl}/images/${this.activeImageId}`
+      if (this.manifestId && this.mapCountInManifest) {
+        // TODO: check if manifest contains valid maps
+        const annotationUrl = `${annotationBaseUrl}/manifests/${this.manifestId}`
+        const viewerUrl = `${viewerBaseUrl}${encodeURIComponent(annotationUrl)}`
+        viewerUrls.push({
+          label: 'View all maps in collection',
+          url: viewerUrl
+        })
       }
 
-      return `${baseUrl}${encodeURIComponent(annotationUrl)}`
+      if (this.activeImageId && this.mapCountInImage) {
+        const annotationUrl = `${annotationBaseUrl}/images/${this.activeImageId}`
+        const viewerUrl = `${viewerBaseUrl}${encodeURIComponent(annotationUrl)}`
+        viewerUrls.push({ label: 'View current image', url: viewerUrl })
+      }
+
+      if (this.activeMapId && this.mapCountInImage > 1 && this.mapCountInMap) {
+        const annotationUrl = `${annotationBaseUrl}/maps/${this.activeMapId}`
+        const viewerUrl = `${viewerBaseUrl}${encodeURIComponent(annotationUrl)}`
+        viewerUrls.push({ label: 'View current map', url: viewerUrl })
+      }
+
+      return viewerUrls
     }
   }
 }
@@ -52,16 +115,27 @@ export default {
 }
 
 .container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 100%;
   height: 100%;
+}
+
+.container > div {
+  width: 100%;
+}
+
+.container > div:last-child {
+  padding-bottom: 10rem;
 }
 
 .container a,
 .container a:visited {
   text-decoration: underline;
   color: black;
+}
+
+code {
+  background: none;
+  color: black;
+  word-break: break-all;
 }
 </style>

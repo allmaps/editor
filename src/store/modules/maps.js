@@ -1,7 +1,5 @@
 import Vue from 'vue'
 
-import { ToastProgrammatic as Toast } from 'buefy'
-
 function makeMapActive(rootState, mapId, commit) {
   if (rootState.ui.activeMapId !== mapId) {
     commit('ui/setActiveMapId', { mapId }, { root: true })
@@ -24,8 +22,25 @@ function makeOtherMapActive(rootState, mapId, commit) {
   commit('ui/setActiveMapId', { mapId: otherMapId }, { root: true })
 }
 
+function groupMapsByImageId(mapsByMapId) {
+  let mapsByImageId = {}
+
+  for (let map of Object.values(mapsByMapId)) {
+    const imageId = map.image.id
+
+    if (!mapsByImageId[imageId]) {
+      mapsByImageId[imageId] = []
+    }
+
+    mapsByImageId[imageId].push(map)
+  }
+
+  return mapsByImageId
+}
+
 const state = () => ({
-  maps: {}
+  maps: {},
+  previousMaps: {}
 })
 
 const getters = {
@@ -33,10 +48,18 @@ const getters = {
     const activeMapId = rootState.ui.activeMapId
     const activeMap = state.maps[activeMapId]
     return activeMap
+  },
+
+  mapsByImageId: (state) => {
+    return groupMapsByImageId(state.maps)
+  },
+
+  previousMapsByImageId: (state) => {
+    return groupMapsByImageId(state.previousMaps)
   }
+
   // mapsForActiveImage: (state, getters, rootState) => {
   //   const activeImageId = rootState.ui.activeImageId
-
   //   return Object.keys(state.maps)
   //     .filter((id) => state.maps[id].image.id === activeImageId)
   //     .reduce((maps, id) => ({
@@ -47,20 +70,6 @@ const getters = {
 }
 
 const actions = {
-  undo() {
-    Toast.open({
-      message: 'Not yet implemented 😔',
-      type: 'is-danger'
-    })
-  },
-
-  redo() {
-    Toast.open({
-      message: 'Not yet implemented 😔',
-      type: 'is-danger'
-    })
-  },
-
   setMaps({ commit, rootState }, { maps, source }) {
     commit('setMaps', { maps, source })
 
@@ -193,6 +202,7 @@ const actions = {
 
 const mutations = {
   setMaps(state, { maps }) {
+    state.previousMaps = { ...state.previousMaps, ...state.maps }
     state.maps = maps
   },
 

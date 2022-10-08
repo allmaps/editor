@@ -1,16 +1,11 @@
 <template>
   <div id="app">
-    <div class="banner">
-      This website is not yet finished. Not everything will work as intended,
-      and some things will not work at all. Follow
-      <a href="https://twitter.com/bertspaan">@bertspaan</a> for updates.
-    </div>
-    <div class="main">
-      <Header />
+    <Header />
+    <div class="contents">
+      <Nav v-if="!showHome && !error" />
       <Error v-if="error" />
       <main v-else>
-        <!-- TODO: replace !$route.query.url with store.ui.loaded -->
-        <template v-if="$route.name === 'home' || !$route.query.url">
+        <template v-if="showHome">
           <Home />
         </template>
         <template v-else-if="$route.name === 'collection'">
@@ -39,6 +34,7 @@
 import { mapState, mapActions, mapGetters } from 'vuex'
 
 import Header from './components/Header.vue'
+import Nav from './components/Nav.vue'
 import Drawer from './components/Drawer.vue'
 import Sidebar from './components/Sidebar.vue'
 import Error from './components/Error.vue'
@@ -63,6 +59,7 @@ export default {
   name: 'app',
   components: {
     Header,
+    Nav,
     Drawer,
     Sidebar,
     Error,
@@ -77,7 +74,9 @@ export default {
       'setActiveImageId',
       'setActiveMapId',
       'toggleDrawer',
-      'setSidebarOpen'
+      'setSidebarOpen',
+      'setCallback',
+      'setProjectsUrl'
     ]),
 
     ...mapActions('maps', [
@@ -98,23 +97,15 @@ export default {
     ...mapActions('errors', ['setError']),
 
     initializeDoc: function () {
-      const source = 'ShareDB'
-
-      let message
-      if (!this.doc.type) {
-        this.doc.create({}, json1.type.name)
-        message = 'You’re editing a new map.'
-      } else {
-        message =
-          'Someone has started georeferencing this map, you can continue editing to improve their work.'
+      if (!this.doc) {
+        return
       }
 
-      message += ' All edits are automatically saved in the Allmaps database.'
+      const source = 'ShareDB'
 
-      this.$buefy.snackbar.open({
-        message,
-        position: 'is-top'
-      })
+      if (!this.doc.type) {
+        this.doc.create({}, json1.type.name)
+      }
 
       // TODO: we now have two versions of the maps data
       // 1 in the ShareDB doc, one in the Vuex store
@@ -124,16 +115,20 @@ export default {
 
       // either don't allow editing before share db is initialized,
       // or merge the 2 set of maps
-
       this.setMaps({ maps, source })
     },
     getDoc: function () {
       if (this.doc) {
-        this.doc.removeListener('op', this.remoteOperation)
-        this.doc.unsubscribe()
-        this.doc.destroy()
-      }
+        this.doc.destroy(() => {
+          this.setDoc()
+        })
 
+        this.doc = undefined
+      } else {
+        this.setDoc()
+      }
+    },
+    setDoc: function () {
       this.doc = this.connection.get('images', this.activeImageId)
 
       this.doc.subscribe(this.initializeDoc)
@@ -269,6 +264,12 @@ export default {
       this.$router.push({ name, query: this.$route.query })
     },
     keyPressHandler: function (event) {
+      const tagName = event.target.tagName.toLowerCase()
+
+      if (tagName === 'input' || tagName === 'textarea') {
+        return
+      }
+
       if (event.key === '[') {
         if (!this.activeImage || !this.activeImage.previousImageId) {
           return
@@ -278,7 +279,8 @@ export default {
           name: this.$route.name,
           query: {
             ...this.$route.query,
-            image: this.activeImage.previousImageId
+            image: this.activeImage.previousImageId,
+            map: this.activeMapId
           }
         })
       } else if (event.key === ']') {
@@ -338,7 +340,8 @@ export default {
         } else if (err.name === 'ZodError') {
           this.setError({
             type: 'iiif',
-            message: err.issues
+            message: 'Error parsing IIIF data',
+            details: err.issues
           })
         } else {
           this.setError({
@@ -352,6 +355,7 @@ export default {
   computed: {
     ...mapState({
       activeImageId: (state) => state.ui.activeImageId,
+      activeMapId: (state) => state.ui.activeMapId,
       maps: (state) => state.maps.maps
     }),
     ...mapGetters('ui', {
@@ -362,6 +366,9 @@ export default {
     ...mapGetters('errors', {
       error: 'error'
     }),
+    showHome: function () {
+      return this.$route.name === 'home' || !this.$route.query.url
+    },
     fullscreen: function () {
       return (
         this.$route.name === 'mask' ||
@@ -385,8 +392,15 @@ export default {
         this.setActiveImageId({ imageId })
       }
     },
+    '$route.query.map': function (mapId) {
+      // TODO maak het
+      // if (imageId && this.activeImageId !== imageId) {
+      //   this.setSidebarOpen({ open: false })
+      //   this.setActiveImageId({ imageId })
+      // }
+    },
     activeImageId: function () {
-      this.resetMaps()
+      // this.resetMaps()
       this.getDoc()
     }
   },
@@ -404,14 +418,20 @@ export default {
     this.connection = new ShareDB.Connection(this.rws)
 
     this.storeUnsubscribe = this.$store.subscribe(this.onStoreMutation)
+
+    this.setCallback(this.$route.query.callback)
+
+    // TODO: read projectsUrl from config
+    const projectsUrl = 'projects.json'
+    this.setProjectsUrl(projectsUrl)
   },
   beforeDestroy: function () {
     window.removeEventListener('keypress', this.keyPressHandler)
 
     this.storeUnsubscribe()
 
-    // TODO: check MaxListenersExceededWarning
     if (this.doc) {
+      this.doc.removeListener('op', this.remoteOperation)
       this.doc.destroy()
     }
 
@@ -456,18 +476,6 @@ main ol a {
   box-sizing: border-box;
 }
 
-.banner {
-  background-color: #e22d3f;
-  color: white;
-  padding: 0.5em;
-  font-size: 75%;
-}
-
-.banner a,
-.banner a:visited {
-  color: white;
-}
-
 #app {
   /* font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
     sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; */
@@ -484,7 +492,7 @@ main ol a {
   min-height: 100%;
 }
 
-.main {
+.contents {
   display: flex;
   flex-direction: column;
   width: 100%;

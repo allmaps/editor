@@ -1,7 +1,7 @@
 <template>
   <footer class="padding">
     <!-- <div class="drawer box column is-three-quarters-mobile is-two-thirds-tablet is-half-desktop is-one-third-widescreen"> -->
-    <div class="drawer box">
+    <div class="drawer box padding">
       <template v-if="drawerOpen">
         <Metadata v-if="drawerOpen === 'metadata'" />
         <Maps v-else-if="drawerOpen === 'maps'" />
@@ -10,8 +10,8 @@
       </template>
 
       <div class="base">
-        <div>
-          <h3 class="label">{{ label }}</h3>
+        <div class="padding">
+          <h3 v-if="label" class="label">{{ label }}</h3>
           <div class="select-image">
             <template v-if="activeImage && imageCount > 1">
               <span> Image {{ activeImage.index + 1 }}/{{ imageCount }} </span>
@@ -66,10 +66,6 @@
               :active="drawerOpen === 'annotation'"
               icon-right="code"
             />
-            <!-- <b-button
-              icon-right="undo" @click="undo" />
-            <b-button
-              icon-right="redo" @click="redo" /> -->
           </div>
         </div>
       </div>
@@ -92,8 +88,7 @@ export default {
     Annotation
   },
   methods: {
-    ...mapActions('ui', ['toggleDrawer']),
-    ...mapActions('maps', ['undo', 'redo'])
+    ...mapActions('ui', ['toggleDrawer'])
   },
   computed: {
     ...mapGetters('iiif', {
@@ -168,6 +163,6 @@ footer {
 
 .drawer-content {
   max-height: 300px;
-  overflow-y: auto;
+  /* overflow-y: auto; */
 }
 </style>

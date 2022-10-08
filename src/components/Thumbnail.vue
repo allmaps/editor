@@ -1,22 +1,28 @@
 <template>
-  <img v-if="singleImage" class="single" :src="image.getImageUrl(thumbnail)" />
+  <div v-if="singleImage" class="single-container">
+    <b-skeleton v-if="!loaded" active></b-skeleton>
+    <img
+      @load="onLoad"
+      @error="onError"
+      :class="{ single: true, loaded }"
+      :src="image.getImageUrl(thumbnail)"
+    />
+  </div>
   <div
     v-else
     class="tiled"
     :style="{
-      width: `${tilesWidth * scale}px`,
-      height: `${tilesHeight * scale}px`,
-      gridTemplateRows: `repeat(${rowCount}, auto)`,
-      gridTemplateColumns: `repeat(${columnCount}, auto)`
+      gridTemplateColumns: columnPercentages
+        .map((percentage) => `${percentage}%`)
+        .join(' '),
+      aspectRatio: `${tilesWidth} / ${tilesHeight}`,
+      left: `${(100 - (tilesWidth / tilesHeight) * 100) / 2}%`
     }"
   >
     <template v-for="(row, rowIndex) in thumbnail">
       <template v-for="(cell, columnIndex) in row">
         <img
           :src="image.getImageUrl(removeHeight(cell))"
-          :style="{
-            width: `${cell.size.width * scale}px`
-          }"
           :key="`${columnIndex},${rowIndex}`"
         />
       </template>
@@ -25,12 +31,21 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+
 import { Image } from '@allmaps/iiif-parser'
 
 export default {
   name: 'Thumbnail',
+  data: function () {
+    return {
+      loaded: false,
+      error: false
+    }
+  },
   props: {
     image: Image,
+    imageId: String,
     width: {
       type: Number,
       default: 200 * window.devicePixelRatio
@@ -46,13 +61,6 @@ export default {
         height: this.width
       })
     },
-    rowCount: function () {
-      return this.thumbnail.length
-    },
-    columnCount: function () {
-      const firstRow = this.thumbnail[0]
-      return firstRow.length
-    },
     tilesWidth: function () {
       const firstRow = this.thumbnail[0]
       return firstRow.reduce((acc, row) => acc + row.size.width, 0)
@@ -63,11 +71,13 @@ export default {
         0
       )
     },
-    scale: function () {
-      return this.width / Math.max(this.tilesWidth, this.tilesHeight)
+    columnPercentages: function () {
+      const firstRow = this.thumbnail[0]
+      return firstRow.map((row) => (row.size.width / this.tilesWidth) * 100)
     }
   },
   methods: {
+    ...mapActions('iiif', ['loadImageInfo']),
     removeHeight: function ({ region, size }) {
       return {
         region,
@@ -75,30 +85,52 @@ export default {
           width: size.width
         }
       }
+    },
+    onLoad: function () {
+      this.loaded = true
+    },
+    onError: function (err) {
+      if (this.image.embedded) {
+        this.loadImageInfo({ imageId: this.imageId })
+      } else {
+        // TODO: show error message
+        this.error = true
+      }
     }
   }
 }
 </script>
 
 <style scoped>
-img.single {
+.single-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.b-skeleton {
+  height: 100%;
+}
+
+.b-skeleton.is-animated > .b-skeleton-item {
+  height: 100%;
+}
+
+.single {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  visibility: hidden;
+  border-radius: 5px;
+}
+
+.single.loaded {
+  visibility: visible;
 }
 
 .tiled {
   display: grid;
-}
-
-/*
-.images li img.image {
-  width: 100%;
+  position: relative;
   height: 100%;
-  object-fit: cover;
-  max-height: 100%;
-  min-width: 100%;
-  object-fit: cover;
-  vertical-align: bottom;
-} */
+}
 </style>

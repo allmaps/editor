@@ -11,7 +11,7 @@
   "dependencies": {
     "@allmaps/annotation": "^1.0.0-beta.6",
     "@allmaps/id": "1.0.0-beta.5",
-    "@allmaps/iiif-parser": "1.0.0-beta.9",
+    "@allmaps/iiif-parser": "1.0.0-beta.14",
     "@allmaps/transform": "^1.0.0-beta.2",
     "buefy": "^0.9.7",
     "bulma": "^0.9.4",
@@ -21,21 +21,21 @@
     "ot-json1": "^1.0.1",
     "reconnecting-websocket": "^4.4.0",
     "regenerator-runtime": "^0.13.9",
-    "sharedb": "^1.7.0",
-    "vue": "^2.7.2",
-    "vue-router": "^3.4.9",
+    "sharedb": "^3.1.0",
+    "vue": "^2.7.10",
+    "vue-router": "^3.6.5",
     "vuex": "^3.6.2"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.18.2",
-    "@vue/cli-plugin-babel": "^5.0.7",
-    "@vue/cli-plugin-eslint": "^5.0.7",
-    "@vue/cli-service": "^5.0.7",
+    "@vue/cli-plugin-babel": "^5.0.8",
+    "@vue/cli-plugin-eslint": "^5.0.8",
+    "@vue/cli-service": "^5.0.8",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^7.20.0",
     "sass": "^1.32.8",
-    "sass-loader": "^10.1.1",
-    "vue-template-compiler": "^2.6.12"
+    "sass-loader": "^10.2.1",
+    "vue-template-compiler": "^2.7.10"
   },
   "repository": {
     "type": "git",

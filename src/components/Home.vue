@@ -8,7 +8,7 @@
     <form class="block">
       <b-field>
         <b-input
-          placeholder="IIIF manifest or image URL"
+          placeholder="IIIF Manifest or Image URL"
           expanded
           v-model="inputUrl"
           class="is-link"
@@ -137,5 +137,9 @@ export default {
 
 .icons img.present {
   opacity: 1;
+}
+
+a {
+  text-decoration: underline;
 }
 </style>
