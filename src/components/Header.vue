@@ -36,24 +36,26 @@
             <span>Return</span>
           </a>
         </div>
-        <b-field v-else class="header-url">
-          <b-input
-            ref="input"
-            placeholder="IIIF Manifest or Image URL"
-            expanded
-            type="search"
-            v-model="inputUrl"
-            @focus="onInputFocus"
-          />
-          <p class="control">
-            <b-button
-              native-type="submit"
-              type="is-primary"
-              @click="handleSubmit"
-              label="Load"
+        <form v-else class="header-url">
+          <b-field>
+            <b-input
+              ref="input"
+              placeholder="IIIF Manifest or Image URL"
+              expanded
+              type="search"
+              v-model="inputUrl"
+              @focus="onInputFocus"
             />
-          </p>
-        </b-field>
+            <p class="control">
+              <b-button
+                native-type="submit"
+                type="is-primary"
+                @click="handleSubmit"
+                label="Load"
+              />
+            </p>
+          </b-field>
+        </form>
       </template>
     </div>
 
