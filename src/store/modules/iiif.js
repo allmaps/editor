@@ -75,7 +75,9 @@ const actions = {
     }
 
     // TODO: set loading, make sure old images are not displayed
+    commit('ui/reset', undefined, { root: true })
     commit('maps/setMaps', { maps: {} }, { root: true })
+    commit('resetImagesById')
 
     const sourceIiif = await fetchJson(url)
     let parsedIiif = IIIF.parse(sourceIiif)
@@ -205,6 +207,10 @@ const mutations = {
     state.sourceIiif = sourceIiif
     state.parsedIiif = parsedIiif
     state.imagesById = imagesById
+  },
+
+  resetImagesById(state) {
+    state.imagesById = {}
   },
 
   setImage(state, { imageId, image }) {

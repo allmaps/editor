@@ -55,8 +55,13 @@ const getters = {
 }
 
 const actions = {
+  reset({ commit }) {
+    commit('reset')
+  },
+
   setActiveImageId({ commit, dispatch, rootState }, { imageId }) {
     if (!rootState.iiif.imagesById[imageId]) {
+      // return
       throw new Error(`Image ID does not exist in IIIF source: ${imageId}`)
     }
 
@@ -106,6 +111,14 @@ const actions = {
 }
 
 const mutations = {
+  reset(state) {
+    state.sidebarOpen = false
+    state.drawerOpen = undefined
+    state.lastError = undefined
+    state.activeImageId = undefined
+    state.activeMapId = undefined
+    state.loading = true
+  },
   setActiveImageId(state, { imageId }) {
     state.activeImageId = imageId
   },

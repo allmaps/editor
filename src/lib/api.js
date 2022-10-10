@@ -3,7 +3,13 @@ import { generateChecksum } from '@allmaps/id/browser'
 const API_URL = process.env.VUE_APP_API_URL
 
 export function fetchJson(url) {
-  return fetch(url).then((response) => response.json())
+  return fetch(url).then((response) => {
+    if (!response.ok) {
+      throw new Error(response.statusText)
+    }
+
+    return response.json()
+  })
 }
 
 export async function submitIiif(url, type, id, data) {
