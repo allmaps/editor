@@ -210,6 +210,10 @@ export default {
       }
     },
     onStoreMutation: function (mutation) {
+      if (!mutation.type.startsWith('maps/')) {
+        return
+      }
+
       if (mutation.payload.source === 'ShareDB') {
         return
       }
