@@ -67,6 +67,10 @@ export default {
       this.iiifSource.addFeature(feature)
     },
     onStoreMutation: function (mutation) {
+      if (!mutation || !mutation.payload) {
+        return
+      }
+
       if (mutation.payload.source === this.source) {
         return
       }

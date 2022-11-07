@@ -57,6 +57,10 @@ export default {
       'removeGcp'
     ]),
     onStoreMutation: function (mutation) {
+      if (!mutation || !mutation.payload) {
+        return
+      }
+
       if (!mutation.type.startsWith('maps/')) {
         return
       }
