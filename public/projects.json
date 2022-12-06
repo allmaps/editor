@@ -10,5 +10,9 @@
   {
     "label": "<strong>DigHimapper<strong>",
     "hostnames": ["dighimapper.eu"]
+  },
+  {
+    "label": "<strong>Gouda Tijdmaachine<strong>",
+    "hostnames": ["www.goudatijdmachine.nl"]
   }
 ]
