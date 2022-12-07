@@ -19,7 +19,7 @@ import IIIFInfo from 'ol/format/IIIFInfo'
 import { generateRandomId } from '@allmaps/id/browser'
 
 import { round } from '../lib/functions'
-import { deleteCondition } from '../lib/openlayers'
+import { deleteCondition, maskToPolygon } from '../lib/openlayers'
 
 export default {
   name: 'PixelMask',
@@ -60,7 +60,7 @@ export default {
     addFeature: function (map, index) {
       const feature = new Feature({
         index,
-        geometry: new Polygon(this.maskToPolygon(map.pixelMask))
+        geometry: new Polygon(maskToPolygon(map.pixelMask))
       })
 
       feature.setId(map.id)
@@ -96,7 +96,7 @@ export default {
       ) {
         const iiifFeature = this.iiifSource.getFeatureById(mapId)
         iiifFeature.setGeometry(
-          new Polygon(this.maskToPolygon(this.maps[mapId].pixelMask))
+          new Polygon(maskToPolygon(this.maps[mapId].pixelMask))
         )
       }
     },
@@ -258,14 +258,6 @@ export default {
             round(coordinate, 0)
           )
         )
-    },
-    maskToPolygon: function (pixelMask) {
-      return [
-        [
-          ...pixelMask.map((coordinate) => [coordinate[0], -coordinate[1]]),
-          [pixelMask[0][0], -pixelMask[0][1]]
-        ]
-      ]
     },
     featurePolygon: function (feature) {
       return this.polygonToMask(feature.getGeometry().getCoordinates())

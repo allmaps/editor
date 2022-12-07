@@ -57,3 +57,12 @@ export class TileLayerControl extends Control {
     this.updateTileSourceUrl()
   }
 }
+
+export function maskToPolygon(pixelMask) {
+  return [
+    [
+      ...pixelMask.map((coordinate) => [coordinate[0], -coordinate[1]]),
+      [pixelMask[0][0], -pixelMask[0][1]]
+    ]
+  ]
+}
