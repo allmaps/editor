@@ -161,7 +161,7 @@ ol.maps {
   padding: 0;
   list-style-type: none;
   font-size: 75%;
-  overflow: scroll;
+  overflow-y: auto;
 }
 
 ol li {
