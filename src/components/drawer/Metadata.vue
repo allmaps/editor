@@ -30,4 +30,8 @@ export default {
 .drawer-content {
   margin-bottom: 1rem;
 }
+
+.drawer-content.content {
+  overflow-y: auto;
+}
 </style>
