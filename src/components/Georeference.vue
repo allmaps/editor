@@ -13,7 +13,7 @@ import Feature from 'ol/Feature'
 import View from 'ol/View'
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'
 import { Draw, Modify } from 'ol/interaction'
-import { Point } from 'ol/geom'
+import { Point, Polygon } from 'ol/geom'
 import { GeoJSON } from 'ol/format'
 import { Vector as VectorSource } from 'ol/source'
 import Zoom from 'ol/control/Zoom'
@@ -25,7 +25,11 @@ import { fromLonLat } from 'ol/proj'
 
 import { generateRandomId } from '@allmaps/id/browser'
 
-import { deleteCondition, TileLayerControl } from '../lib/openlayers'
+import {
+  deleteCondition,
+  TileLayerControl,
+  maskToPolygon
+} from '../lib/openlayers'
 import { createFullImageMap } from '../lib/map'
 import { round } from '../lib/functions'
 
@@ -42,11 +46,13 @@ export default {
   watch: {
     activeMapId: function () {
       this.iiifSource.changed()
-      this.initalizeGCPs(this.activeMap)
+      this.initializeGCPs(this.activeMap)
+      this.initializePixelMask(this.activeMap)
     },
     activeImage: function () {
       this.updateImage(this.activeImage)
-      this.initalizeGCPs(this.activeMap)
+      this.initializeGCPs(this.activeMap)
+      this.initializePixelMask(this.activeMap)
     }
   },
   methods: {
@@ -157,7 +163,9 @@ export default {
       }
     },
     // prerender: function (event) {
-    //   if (this.maps.length === 0) {
+    //   const map = this.activeMap
+
+    //   if (!map || !map.pixelMask.length) {
     //     return
     //   }
 
@@ -165,7 +173,7 @@ export default {
     //   ctx.save()
     //   ctx.beginPath()
 
-    //   const contextMask = this.selectedMap.pixelMask
+    //   const contextMask = map.pixelMask
     //     .map((point) => this.iiifOl.getPixelFromCoordinate([point[0], -point[1]]))
 
     //   ctx.moveTo(contextMask[0][0], contextMask[0][1])
@@ -219,7 +227,7 @@ export default {
       this.singleIiifFeatures = []
       this.singleMapFeatures = []
     },
-    initalizeGCPs: function (map) {
+    initializeGCPs: function (map) {
       this.clearGcps()
 
       const gcps = (map && Object.values(map.gcps)) || []
@@ -290,6 +298,20 @@ export default {
           maxZoom: 18
         })
       }
+    },
+    initializePixelMask: function (map) {
+      this.iiifPixelMaskSource.clear()
+
+      if (!map || !map.pixelMask.length) {
+        return
+      }
+
+      const pixelMaskFeature = new Feature({
+        geometry: new Polygon(maskToPolygon(map.pixelMask))
+      })
+
+      pixelMaskFeature.setId(map.id)
+      this.iiifPixelMaskSource.addFeature(pixelMaskFeature)
     },
     iiifFeatureToPoint: function (feature) {
       const coordinate = feature.getGeometry().getCoordinates()
@@ -492,6 +514,14 @@ export default {
         padding: [90, 10, 90, 10]
       })
     },
+    pixelMaskStyle: function () {
+      return new Style({
+        stroke: new Stroke({
+          color: '#E10800',
+          width: 1.5
+        })
+      })
+    },
     gcpStyle: function (feature) {
       return new Style({
         stroke: new Stroke({
@@ -540,14 +570,20 @@ export default {
   mounted: function () {
     this.iiifLayer = new TileLayer()
     this.iiifSource = new VectorSource()
+    this.iiifPixelMaskSource = new VectorSource()
 
     this.iiifVector = new VectorLayer({
       source: this.iiifSource,
       style: this.gcpStyle
     })
 
+    this.iiifPixelMask = new VectorLayer({
+      source: this.iiifPixelMaskSource,
+      style: this.pixelMaskStyle
+    })
+
     this.iiifOl = new Map({
-      layers: [this.iiifLayer, this.iiifVector],
+      layers: [this.iiifLayer, this.iiifPixelMask, this.iiifVector],
       target: 'iiif'
     })
 
@@ -644,7 +680,8 @@ export default {
     this.storeUnsubscribe = this.$store.subscribe(this.onStoreMutation)
 
     this.updateImage(this.activeImage)
-    this.initalizeGCPs(this.activeMap)
+    this.initializeGCPs(this.activeMap)
+    this.initializePixelMask(this.activeMap)
   },
   beforeDestroy: function () {
     this.iiifSource.un('addfeature', this.onEdited)
