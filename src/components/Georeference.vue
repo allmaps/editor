@@ -98,6 +98,14 @@ export default {
         if (mapFeature) {
           this.mapSource.removeFeature(mapFeature)
         }
+
+        this.singleIiifFeatures = this.singleIiifFeatures.filter(
+          (feature) => feature && feature.getId() !== gcpId
+        )
+
+        this.singleMapFeatures = this.singleMapFeatures.filter(
+          (feature) => feature && feature.getId() !== gcpId
+        )
       } else if (
         mutation.type === 'maps/insertGcp' ||
         mutation.type === 'maps/replaceGcp'
@@ -122,7 +130,13 @@ export default {
             iiifFeature.setId(gcp.id)
 
             if (!gcp.world) {
-              this.singleIiifFeatures.push(iiifFeature)
+              if (
+                !this.singleIiifFeatures.some(
+                  (feature) => feature && feature.getId() === gcp.id
+                )
+              ) {
+                this.singleIiifFeatures.push(iiifFeature)
+              }
             }
 
             this.iiifSource.addFeature(iiifFeature)
@@ -154,7 +168,13 @@ export default {
             mapFeature.setId(gcp.id)
 
             if (!gcp.image) {
-              this.singleMapFeatures.push(mapFeature)
+              if (
+                !this.singleMapFeatures.some(
+                  (feature) => feature && feature.getId() === gcp.id
+                )
+              ) {
+                this.singleMapFeatures.push(mapFeature)
+              }
             }
 
             this.mapSource.addFeature(mapFeature)
@@ -216,6 +236,7 @@ export default {
 
       return {
         id: gcpId,
+        // TODO: order:
         image: iiifPoint,
         world: mapPoint
       }
@@ -230,6 +251,7 @@ export default {
     initializeGCPs: function (map) {
       this.clearGcps()
 
+      // TODO: order by order
       const gcps = (map && Object.values(map.gcps)) || []
 
       if (!gcps || gcps.length === 0) {
@@ -242,6 +264,7 @@ export default {
           if (coordinates) {
             const feature = new Feature({
               index,
+              // TODO: set properties order
               geometry: new Point([coordinates[0], -coordinates[1]])
             })
 
@@ -361,7 +384,7 @@ export default {
 
         feature.setId(gcpId)
 
-        const properties = feature.getProperties()
+        // TODO: set order
 
         let index
         if (event.target === this.iiifSource) {
