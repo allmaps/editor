@@ -4,49 +4,52 @@
 
     <div class="row">
       <span>Show annotation for:</span>
-    <b-field>
-      <b-radio-button
-        v-model="annotationLevel"
-        native-value="collection"
-        type="is-primary"
-      >
-        <span>Collection</span>
-      </b-radio-button>
-      <b-radio-button
-        v-model="annotationLevel"
-        native-value="image"
-        type="is-primary"
-      >
-        <span>Image</span>
-      </b-radio-button>
-      <b-radio-button
-        v-model="annotationLevel"
-        native-value="map"
-        type="is-primary"
-      >
-        Map
-      </b-radio-button>
-    </b-field>
+      <b-field>
+        <b-radio-button
+          v-if="iiifType !== 'image'"
+          v-model="annotationLevel"
+          native-value="manifest"
+          type="is-primary"
+        >
+          <span>Manifest</span>
+        </b-radio-button>
+        <b-radio-button
+          v-model="annotationLevel"
+          native-value="image"
+          type="is-primary"
+        >
+          <span>Image</span>
+        </b-radio-button>
+        <b-radio-button
+          v-model="annotationLevel"
+          native-value="map"
+          type="is-primary"
+        >
+          Map
+        </b-radio-button>
+      </b-field>
     </div>
 
     <div class="row">
       <span>Use annotation:</span>
 
-    <div class="block actions buttons">
-      <b-button @click="copy" icon-left="copy">Copy</b-button>
-      <b-button @click="download" icon-left="file-download">Download</b-button>
-      <a
-        target="_blank"
-        :href="annotationUrl"
-        class="button is-link"
-        type="button"
-      >
-        <span class="icon is-small">
-          <i class="fas fa-external-link-alt"></i>
-        </span>
-        <span>Open in new tab</span>
-      </a>
-    </div>
+      <div class="block actions buttons">
+        <b-button @click="copy" icon-left="copy">Copy</b-button>
+        <b-button @click="download" icon-left="file-download"
+          >Download</b-button
+        >
+        <a
+          target="_blank"
+          :href="annotationUrl"
+          class="button is-link"
+          type="button"
+        >
+          <span class="icon is-small">
+            <i class="fas fa-external-link-alt"></i>
+          </span>
+          <span>Open in new tab</span>
+        </a>
+      </div>
     </div>
   </div>
 </template>
@@ -67,6 +70,8 @@ export default {
   },
   computed: {
     ...mapState({
+      iiifId: (state) => state.iiif.id,
+      iiifType: (state) => state.iiif.type,
       activeMapId: (state) => state.ui.activeMapId,
       activeImageId: (state) => state.ui.activeImageId,
       apiMapsByImageId: (state) => state.api.mapsByImageId
@@ -84,7 +89,7 @@ export default {
     },
     maps: function () {
       let maps = []
-      if (this.annotationLevel === 'collection') {
+      if (this.annotationLevel === 'manifest') {
         maps = Object.values(this.allMapsByImageId).flat()
       } else if (this.annotationLevel === 'image') {
         maps = Object.values(this.mapsByImageId).flat()
@@ -115,10 +120,25 @@ export default {
     annotationUrl: function () {
       const annotationBaseUrl = ANNOTATIONS_URL
 
-      if (this.manifestId) {
-        return `${annotationBaseUrl}/manifests/${this.manifestId}`
-      } else {
+      if (this.annotationLevel === 'map') {
+        return `${annotationBaseUrl}/maps/${this.activeMapId}`
+      } else if (this.annotationLevel === 'image') {
         return `${annotationBaseUrl}/images/${this.activeImageId}`
+      } else if (this.annotationLevel === 'manifest') {
+        return `${annotationBaseUrl}/manifests/${this.iiifId}`
+      } else {
+        throw new Error(
+          `Can't create annotation URL for ${this.annotationLevel}`
+        )
+      }
+    },
+    id: function () {
+      if (this.annotationLevel === 'map') {
+        return this.activeMapId
+      } else if (this.annotationLevel === 'image') {
+        return this.activeImageId
+      } else {
+        return this.iiifId
       }
     }
   },
@@ -146,9 +166,7 @@ export default {
 
       a.href = dataUrl
 
-      // TODO: proper filename
-      // image.id
-      a.download = 'annotation.json'
+      a.download = `${this.annotationLevel}-${this.id}.georef-annotation.json`
       a.click()
       window.URL.revokeObjectURL(dataUrl)
 
