@@ -91,6 +91,10 @@ $colors: mergeColorMaps(
   --gray: #dddddd;
 }
 
+html {
+  overflow: auto;
+}
+
 .below-header {
   margin-top: 58px;
 }
