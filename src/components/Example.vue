@@ -12,7 +12,6 @@
         :image="parsedImage"
         @fetch-embedded="fetchImage"
         @error="onError"
-        @hond="hond"
       />
       <!-- <img :src="imageUrl" /> -->
     </router-link>
@@ -40,7 +39,8 @@
           }"
         >
           Georeference this IIIF resource</router-link
-        > →
+        >
+        →
       </div>
     </div>
   </li>
