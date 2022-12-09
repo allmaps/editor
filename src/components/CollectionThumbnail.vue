@@ -5,7 +5,7 @@
       @load="onLoad"
       @error="onError"
       :class="{ single: true, loaded }"
-      :src="getImageUrl(thumbnail)"
+      :src="image.getImageUrl(thumbnail)"
     />
   </div>
   <div
@@ -22,7 +22,7 @@
     <template v-for="(row, rowIndex) in thumbnail">
       <template v-for="(cell, columnIndex) in row">
         <img
-          :src="getImageUrl(removeHeight(cell))"
+          :src="image.getImageUrl(removeHeight(cell))"
           :key="`${columnIndex},${rowIndex}`"
         />
       </template>
@@ -31,17 +31,23 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+
 import { Image } from '@allmaps/iiif-parser'
 
+// TODO: use Thumbnail component!
+
 export default {
-  name: 'Thumbnail',
+  name: 'CollectionThumbnail',
   data: function () {
     return {
-      loaded: false
+      loaded: false,
+      error: false
     }
   },
   props: {
     image: Image,
+    imageId: String,
     width: {
       type: Number,
       default: 200 * window.devicePixelRatio
@@ -73,13 +79,7 @@ export default {
     }
   },
   methods: {
-    getImageUrl: function (imageRequest) {
-      try {
-        return this.image.getImageUrl(imageRequest)
-      } catch (err) {
-        this.$emit('error')
-      }
-    },
+    ...mapActions('iiif', ['loadImageInfo']),
     removeHeight: function ({ region, size }) {
       return {
         region,
@@ -93,9 +93,10 @@ export default {
     },
     onError: function (err) {
       if (this.image.embedded) {
-        this.$emit('fetch-embedded')
+        this.loadImageInfo({ imageId: this.imageId })
       } else {
-        this.$emit('error')
+        // TODO: show error message
+        this.error = true
       }
     }
   }

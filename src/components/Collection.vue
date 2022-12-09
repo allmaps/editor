@@ -19,7 +19,7 @@
             }"
             @dblclick.native="goToMask(imageId)"
           >
-            <Thumbnail :imageId="imageId" :image="image.parsedImage" />
+            <CollectionThumbnail :imageId="imageId" :image="image.parsedImage" />
             <!-- TODO: add label, or index -->
             <!-- <span v-if="image.label">{{ image.label }}</span> -->
           </router-link>
@@ -45,12 +45,12 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 
-import Thumbnail from './Thumbnail.vue'
+import CollectionThumbnail from './CollectionThumbnail.vue'
 
 export default {
   name: 'Collection',
   components: {
-    Thumbnail
+    CollectionThumbnail
   },
   computed: {
     ...mapState({

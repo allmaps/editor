@@ -87,6 +87,10 @@ export default {
 </script>
 
 <style scoped>
+a {
+  text-decoration: underline;
+}
+
 .sidebar-title {
   display: flex;
   justify-content: space-between;
