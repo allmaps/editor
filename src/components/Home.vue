@@ -1,32 +1,34 @@
 <template>
-  <div class="container below-header content section">
-    <p class="block">
-      Start georeferencing an image by typing the URL of a IIIF Manifest or IIIF
-      Image URL in the input box:
-    </p>
+  <div class="below-header">
+    <div class="container content section">
+      <p class="block">
+        Start georeferencing an image by typing the URL of a IIIF Manifest or
+        IIIF Image URL in the input box:
+      </p>
 
-    <form class="block">
-      <b-field>
-        <b-input
-          placeholder="IIIF Manifest or Image URL"
-          expanded
-          v-model="inputUrl"
-          class="is-link"
-          type="search"
-          autofocus="autofocus"
-        >
-        </b-input>
-        <p class="control">
-          <b-button
-            @click="handleSubmit"
-            native-type="submit"
-            type="is-primary"
-            label="Load"
-          />
-        </p>
-      </b-field>
-    </form>
-    <Examples />
+      <form class="block">
+        <b-field>
+          <b-input
+            placeholder="IIIF Manifest or Image URL"
+            expanded
+            v-model="inputUrl"
+            class="is-link"
+            type="search"
+            autofocus="autofocus"
+          >
+          </b-input>
+          <p class="control">
+            <b-button
+              @click="handleSubmit"
+              native-type="submit"
+              type="is-primary"
+              label="Load"
+            />
+          </p>
+        </b-field>
+      </form>
+      <Examples />
+    </div>
   </div>
 </template>
 

@@ -54,5 +54,8 @@ export default {
 ul {
   list-style-type: none;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
 }
 </style>

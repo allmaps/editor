@@ -80,6 +80,7 @@ export default {
       }
     },
     onError: function () {
+      console.error('Error fetching and parsing example: ', this.parsedImage.uri)
       this.parsedCorrectly = false
     }
   },
@@ -107,7 +108,7 @@ export default {
       this.imageUrl = imageUrl
       this.parsedCorrectly = true
     } catch (err) {
-      console.error('Error fetching and parsing example: ', url)
+      this.onError()
     }
   }
 }
