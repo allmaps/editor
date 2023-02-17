@@ -84,7 +84,8 @@ export default {
       return {
         url: this.$route.query.url,
         image: this.$route.query.image,
-        map: this.$route.query.map
+        map: this.$route.query.map,
+        userBaseMapUrl: this.$route.query.userBaseMapUrl
       }
     }
   },
