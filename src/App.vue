@@ -76,7 +76,8 @@ export default {
       'toggleDrawer',
       'setSidebarOpen',
       'setCallback',
-      'setProjectsUrl'
+      'setProjectsUrl',
+      'setUserBaseMapUrl'
     ]),
 
     ...mapActions('maps', [
@@ -432,6 +433,11 @@ export default {
     // TODO: read projectsUrl from config
     const projectsUrl = 'projects.json'
     this.setProjectsUrl(projectsUrl)
+
+    window.setUserBaseMapUrl = (url) => {
+      this.setUserBaseMapUrl(url)
+      return 'Done!'
+    }
   },
   beforeDestroy: function () {
     window.removeEventListener('keypress', this.keyPressHandler)

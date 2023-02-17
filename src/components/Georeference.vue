@@ -53,6 +53,9 @@ export default {
       this.updateImage(this.activeImage)
       this.initializeGCPs(this.activeMap)
       this.initializePixelMask(this.activeMap)
+    },
+    userBaseMapUrl: function () {
+      this.tileLayerControl.setUserBaseMapUrl(this.userBaseMapUrl)
     }
   },
   methods: {
@@ -584,7 +587,8 @@ export default {
       activeMap: 'activeMap'
     }),
     ...mapGetters('ui', {
-      activeImage: 'activeImage'
+      activeImage: 'activeImage',
+      userBaseMapUrl: 'userBaseMapUrl'
     }),
     source: function () {
       return this.$options.name
@@ -636,14 +640,14 @@ export default {
       }
     }
 
+    this.tileLayerControl = new TileLayerControl({
+      tileLayer: this.mapLayer,
+      userBaseMapUrl: this.userBaseMapUrl
+    })
+
     this.mapOl = new Map({
       layers: [this.mapLayer, this.mapVector],
-      controls: [
-        new Zoom(),
-        new TileLayerControl({
-          tileLayer: this.mapLayer
-        })
-      ],
+      controls: [new Zoom(), this.tileLayerControl],
       target: 'map',
       view: new View({
         center: fromLonLat([0, 0]),

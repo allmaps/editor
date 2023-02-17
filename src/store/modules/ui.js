@@ -8,7 +8,8 @@ const state = () => ({
   activeMapId: undefined,
   loading: false,
   projects: [],
-  callback: undefined
+  callback: undefined,
+  userBaseMapUrl: undefined
 })
 
 const getters = {
@@ -51,6 +52,10 @@ const getters = {
         }
       }
     }
+  },
+
+  userBaseMapUrl: (state) => {
+    return state.userBaseMapUrl
   }
 }
 
@@ -107,6 +112,10 @@ const actions = {
 
     const projects = await fetchJson(url)
     commit('setProjects', { projects })
+  },
+
+  setUserBaseMapUrl({commit}, url) {
+    commit('setUserBaseMapUrl', { url })
   }
 }
 
@@ -136,6 +145,9 @@ const mutations = {
   },
   setCallback(state, { callback }) {
     state.callback = callback
+  },
+  setUserBaseMapUrl(state, {url}) {
+    state.userBaseMapUrl = url
   }
 }
 
