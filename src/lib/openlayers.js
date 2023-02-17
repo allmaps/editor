@@ -44,6 +44,21 @@ export class TileLayerControl extends Control {
     this.updateTileSourceUrl()
 
     button.addEventListener('click', this.handleClick.bind(this), false)
+
+    if (options.userBaseMapUrl) {
+      this.setUserBaseMapUrl(options.userBaseMapUrl)
+    }
+  }
+
+  setUserBaseMapUrl(url) {
+    this.tileSources[2] = {
+      url,
+      attribution: '',
+      icon: 'terminal'
+    }
+
+    this.tileSourceIndex = 2
+    this.updateTileSourceUrl()
   }
 
   updateTileSourceUrl() {
@@ -53,7 +68,7 @@ export class TileLayerControl extends Control {
   }
 
   handleClick() {
-    this.tileSourceIndex = (this.tileSourceIndex + 1) % 2
+    this.tileSourceIndex = (this.tileSourceIndex + 1) % this.tileSources.length
     this.updateTileSourceUrl()
   }
 }
