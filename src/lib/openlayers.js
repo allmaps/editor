@@ -51,14 +51,16 @@ export class TileLayerControl extends Control {
   }
 
   setUserBaseMapUrl(url) {
-    this.tileSources[2] = {
-      url,
-      attribution: '',
-      icon: 'terminal'
-    }
+    if (url) {
+      this.tileSources[2] = {
+        url,
+        attribution: '',
+        icon: 'terminal'
+      }
 
-    this.tileSourceIndex = 2
-    this.updateTileSourceUrl()
+      this.tileSourceIndex = 2
+      this.updateTileSourceUrl()
+    }
   }
 
   updateTileSourceUrl() {

@@ -408,6 +408,11 @@ export default {
       //   this.setActiveImageId({ imageId })
       // }
     },
+    '$route.query.userBaseMapUrl': function (url) {
+      if (url) {
+        this.setUserBaseMapUrl(url)
+      }
+    },
     activeImageId: function () {
       // this.resetMaps()
       this.getDoc()
@@ -437,6 +442,12 @@ export default {
     window.setUserBaseMapUrl = (url) => {
       this.setUserBaseMapUrl(url)
       return 'Done!'
+    }
+
+    const userBaseMapUrl = this.$route.query.userBaseMapUrl
+
+    if (userBaseMapUrl) {
+      this.setUserBaseMapUrl(userBaseMapUrl)
     }
   },
   beforeDestroy: function () {
