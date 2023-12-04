@@ -11,7 +11,7 @@
       <div class="map">
         <div class="index">
           <div class="thumbnail">
-            <svg v-if="hasPixelMask(map)" :viewBox="thumbnailViewbox(map)">
+            <svg v-if="hasResourceMask(map)" :viewBox="thumbnailViewbox(map)">
               <polygon :points="thumbnailPolygonPoints(map)" />
             </svg>
             <span>{{ index + 1 }}</span>
@@ -34,32 +34,32 @@
               </span>
             </div>
             <span class="gcp-coordinates">
-              <template v-if="gcp.image">
-                <span class="gcp-image-coordinate">{{
-                  printImageCoordinate(gcp.image[0])
+              <template v-if="gcp.resource">
+                <span class="gcp-resource-coordinate">{{
+                  printResourceCoordinate(gcp.resource[0])
                 }}</span>
-                <span class="gcp-image-coordinate">{{
-                  printImageCoordinate(gcp.image[1])
+                <span class="gcp-resource-coordinate">{{
+                  printResourceCoordinate(gcp.resource[1])
                 }}</span>
               </template>
               <template v-else>
                 <!-- TODO: create placeholder -->
-                <span class="gcp-image-coordinate"></span>
-                <span class="gcp-image-coordinate"></span>
+                <span class="gcp-resource-coordinate"></span>
+                <span class="gcp-resource-coordinate"></span>
               </template>
 
-              <template v-if="gcp.world">
-                <span class="gcp-world-coordinate">{{
-                  printWorldCoordinate(gcp.world[0])
+              <template v-if="gcp.geo">
+                <span class="gcp-geo-coordinate">{{
+                  printGeoCoordinate(gcp.geo[0])
                 }}</span>
-                <span class="gcp-world-coordinate">{{
-                  printWorldCoordinate(gcp.world[1])
+                <span class="gcp-geo-coordinate">{{
+                  printGeoCoordinate(gcp.geo[1])
                 }}</span>
               </template>
               <template v-else>
                 <!-- TODO: create placeholder -->
-                <span class="gcp-world-coordinate"></span>
-                <span class="gcp-world-coordinate"></span>
+                <span class="gcp-geo-coordinate"></span>
+                <span class="gcp-geo-coordinate"></span>
               </template>
             </span>
           </div>
@@ -83,21 +83,21 @@ import { round } from '../../lib/functions'
 export default {
   name: 'Maps',
   methods: {
-    printImageCoordinate: function (coordinate) {
-      return coordinate
+    printResourceCoordinate: function (coordinate) {
+      return round(coordinate, 0)
     },
-    printWorldCoordinate: function (coordinate) {
+    printGeoCoordinate: function (coordinate) {
       return round(coordinate, 5)
     },
-    hasPixelMask: function (map) {
-      return map && map.pixelMask && map.pixelMask.length > 0
+    hasResourceMask: function (map) {
+      return map && map.resourceMask && map.resourceMask.length > 0
     },
     hasGcps: function (map) {
       return map && map.gcps && Object.keys(map.gcps).length > 0
     },
     maskExtent: function (map) {
-      const xs = map.pixelMask.map((point) => point[0])
-      const ys = map.pixelMask.map((point) => point[1])
+      const xs = map.resourceMask.map((point) => point[0])
+      const ys = map.resourceMask.map((point) => point[1])
 
       const minX = Math.min(...xs)
       const maxX = Math.max(...xs)
@@ -130,7 +130,7 @@ export default {
       const maskDimensions = this.maskDimensions(map)
       const scaleFactor = maxHeight / Math.max(...maskDimensions)
 
-      const points = map.pixelMask.map((point) => [
+      const points = map.resourceMask.map((point) => [
         (point[0] - maskExtent[0][0]) * scaleFactor,
         (point[1] - maskExtent[1][0]) * scaleFactor
       ])
@@ -261,11 +261,11 @@ ol li {
   font-family: monospace;
 }
 
-.gcp .gcp-image-coordinate {
+.gcp .gcp-resource-coordinate {
   width: 3.5em;
 }
 
-.gcp .gcp-world-coordinate {
+.gcp .gcp-geo-coordinate {
   width: 6em;
 }
 </style>

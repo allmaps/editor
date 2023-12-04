@@ -19,9 +19,12 @@
             }"
             @dblclick.native="goToMask(imageId)"
           >
-            <CollectionThumbnail :imageId="imageId" :image="image.parsedImage" />
-            <!-- TODO: add label, or index -->
-            <!-- <span v-if="image.label">{{ image.label }}</span> -->
+            <Thumbnail
+              :imageId="imageId"
+              :image="image.parsedImage"
+              @fetch-embedded="onFetchEmbedded"
+              @error="onError"
+            />
           </router-link>
           <div class="border"></div>
           <div class="icons">
@@ -32,7 +35,7 @@
             />
             <img
               alt="Image contains masked map"
-              :class="{ present: hasPixelMask(imageId) }"
+              :class="{ present: hasResourceMask(imageId) }"
               src="../assets/icon-masked.svg"
             />
           </div>
@@ -43,14 +46,14 @@
 </template>
 
 <script>
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 
-import CollectionThumbnail from './CollectionThumbnail.vue'
+import Thumbnail from './Thumbnail.vue'
 
 export default {
   name: 'Collection',
   components: {
-    CollectionThumbnail
+    Thumbnail
   },
   computed: {
     ...mapState({
@@ -66,6 +69,18 @@ export default {
     })
   },
   methods: {
+    ...mapActions('iiif', ['loadImageInfo']),
+    onFetchEmbedded: async function (imageId) {
+      if (imageId) {
+        this.loadImageInfo({ imageId })
+      }
+    },
+    onError: function () {
+      console.error(
+        'Error fetching and parsing collection thumbnail: ',
+        this.imageId
+      )
+    },
     goToMask(imageId) {
       this.$router.push({
         name: 'mask',
@@ -95,9 +110,9 @@ export default {
       const maps = this.mapsForImageId(imageId)
       return maps.some((map) => map.gcps && Object.keys(map.gcps).length)
     },
-    hasPixelMask: function (imageId) {
+    hasResourceMask: function (imageId) {
       const maps = this.mapsForImageId(imageId)
-      return maps.some((map) => map.pixelMask && map.pixelMask.length)
+      return maps.some((map) => map.resourceMask && map.resourceMask.length)
     }
   }
 }

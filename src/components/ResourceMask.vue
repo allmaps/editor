@@ -16,13 +16,13 @@ import { Fill, Stroke, Style, Text } from 'ol/style'
 import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 
-import { generateRandomId } from '@allmaps/id/browser'
+import { generateRandomId } from '@allmaps/id'
 
 import { round } from '../lib/functions'
 import { deleteCondition, maskToPolygon } from '../lib/openlayers'
 
 export default {
-  name: 'PixelMask',
+  name: 'ResourceMask',
   data: function () {
     return {
       dimensions: undefined
@@ -31,10 +31,10 @@ export default {
   watch: {
     activeMapId: function () {
       this.updateStyles()
-      this.initializePixelMasks(this.maps)
+      this.initializeResourceMasks(this.maps)
     },
     activeImage: function () {
-      this.initializePixelMasks(this.maps)
+      this.initializeResourceMasks(this.maps)
       this.updateImage(this.activeImage)
     }
   },
@@ -53,14 +53,14 @@ export default {
   methods: {
     ...mapActions('maps', [
       'insertMap',
-      'insertPixelMaskPoint',
-      'removePixelMaskPoint',
-      'replacePixelMaskPoint'
+      'insertResourceMaskPoint',
+      'removeResourceMaskPoint',
+      'replaceResourceMaskPoint'
     ]),
     addFeature: function (map, index) {
       const feature = new Feature({
         index,
-        geometry: new Polygon(maskToPolygon(map.pixelMask))
+        geometry: new Polygon(maskToPolygon(map.resourceMask))
       })
 
       feature.setId(map.id)
@@ -89,14 +89,14 @@ export default {
         }
       } else if (
         [
-          'maps/insertPixelMaskPoint',
-          'maps/replacePixelMaskPoint',
-          'maps/removePixelMaskPoint'
+          'maps/insertResourceMaskPoint',
+          'maps/replaceResourceMaskPoint',
+          'maps/removeResourceMaskPoint'
         ].includes(mutation.type)
       ) {
         const iiifFeature = this.iiifSource.getFeatureById(mapId)
         iiifFeature.setGeometry(
-          new Polygon(maskToPolygon(this.maps[mapId].pixelMask))
+          new Polygon(maskToPolygon(this.maps[mapId].resourceMask))
         )
       }
     },
@@ -108,7 +108,7 @@ export default {
     updateStyles: function () {
       this.iiifVector.setStyle(this.maskStyle)
     },
-    initializePixelMasks: function (maps) {
+    initializeResourceMasks: function (maps) {
       this.iiifSource.clear()
 
       if (maps) {
@@ -133,21 +133,21 @@ export default {
         return {
           index,
           operation: 'insert',
-          pixelMaskPoint: newPolygon[index]
+          resourceMaskPoint: newPolygon[index]
         }
       } else if (oldPolygon.length > newPolygon.length) {
         // point removed
         return {
           index,
           operation: 'remove',
-          pixelMaskPoint: oldPolygon[index]
+          resourceMaskPoint: oldPolygon[index]
         }
       } else if (index < minLength) {
         // point updated
         return {
           index,
           operation: 'replace',
-          pixelMaskPoint: newPolygon[index]
+          resourceMaskPoint: newPolygon[index]
         }
       }
     },
@@ -168,14 +168,17 @@ export default {
 
         this.insertMap({
           mapId,
-          image: {
+          resource: {
             id: this.activeImage.imageId,
             uri: this.activeImage.parsedImage.uri,
             width: this.activeImage.parsedImage.width,
             height: this.activeImage.parsedImage.height,
-            type: this.activeImage.parsedImage.majorVersion === 2 ? 'ImageService2' : 'ImageService3'
+            type:
+              this.activeImage.parsedImage.majorVersion === 2
+                ? 'ImageService2'
+                : 'ImageService3'
           },
-          pixelMask: this.featurePolygon(feature),
+          resourceMask: this.featurePolygon(feature),
           source: this.source
         })
       } else if (event.type === 'modifystart') {
@@ -199,20 +202,20 @@ export default {
           this.featurePolygon(feature)
         )
         if (diff) {
-          const { operation, index, pixelMaskPoint } = diff
+          const { operation, index, resourceMaskPoint } = diff
           const payload = {
             mapId,
             index,
-            pixelMaskPoint,
+            resourceMaskPoint,
             source: this.source
           }
 
           if (operation === 'insert') {
-            this.insertPixelMaskPoint(payload)
+            this.insertResourceMaskPoint(payload)
           } else if (operation === 'replace') {
-            this.replacePixelMaskPoint(payload)
+            this.replaceResourceMaskPoint(payload)
           } else if (operation === 'remove') {
-            this.removePixelMaskPoint(payload)
+            this.removeResourceMaskPoint(payload)
           }
         }
 
@@ -325,7 +328,7 @@ export default {
     this.storeUnsubscribe = this.$store.subscribe(this.onStoreMutation)
 
     this.updateImage(this.activeImage)
-    this.initializePixelMasks(this.maps)
+    this.initializeResourceMasks(this.maps)
     this.updateStyles()
   },
   beforeDestroy: function () {

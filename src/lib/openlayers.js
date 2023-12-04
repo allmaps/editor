@@ -75,11 +75,11 @@ export class TileLayerControl extends Control {
   }
 }
 
-export function maskToPolygon(pixelMask) {
+export function maskToPolygon(resourceMask) {
   return [
     [
-      ...pixelMask.map((coordinate) => [coordinate[0], -coordinate[1]]),
-      [pixelMask[0][0], -pixelMask[0][1]]
+      ...resourceMask.map((coordinate) => [coordinate[0], -coordinate[1]]),
+      [resourceMask[0][0], -resourceMask[0][1]]
     ]
   ]
 }

@@ -23,7 +23,7 @@ import IIIF from 'ol/source/IIIF'
 import IIIFInfo from 'ol/format/IIIFInfo'
 import { fromLonLat } from 'ol/proj'
 
-import { generateRandomId } from '@allmaps/id/browser'
+import { generateRandomId } from '@allmaps/id'
 
 import {
   deleteCondition,
@@ -47,12 +47,12 @@ export default {
     activeMapId: function () {
       this.iiifSource.changed()
       this.initializeGCPs(this.activeMap)
-      this.initializePixelMask(this.activeMap)
+      this.initializeResourceMask(this.activeMap)
     },
     activeImage: function () {
       this.updateImage(this.activeImage)
       this.initializeGCPs(this.activeMap)
-      this.initializePixelMask(this.activeMap)
+      this.initializeResourceMask(this.activeMap)
     },
     userBaseMapUrl: function () {
       this.tileLayerControl.setUserBaseMapUrl(this.userBaseMapUrl)
@@ -116,8 +116,8 @@ export default {
         const iiifFeature = this.iiifSource.getFeatureById(gcpId)
         const mapFeature = this.mapSource.getFeatureById(gcpId)
 
-        if (gcp.image) {
-          const coordinates = gcp.image
+        if (gcp.resource) {
+          const coordinates = gcp.resource
           if (iiifFeature) {
             iiifFeature
               .getGeometry()
@@ -132,7 +132,7 @@ export default {
 
             iiifFeature.setId(gcp.id)
 
-            if (!gcp.world) {
+            if (!gcp.geo) {
               if (
                 !this.singleIiifFeatures.some(
                   (feature) => feature && feature.getId() === gcp.id
@@ -146,8 +146,8 @@ export default {
           }
         }
 
-        if (gcp.world) {
-          const coordinates = gcp.world
+        if (gcp.geo) {
+          const coordinates = gcp.geo
           if (mapFeature) {
             mapFeature.getGeometry().setCoordinates(fromLonLat(coordinates))
           } else {
@@ -170,7 +170,7 @@ export default {
 
             mapFeature.setId(gcp.id)
 
-            if (!gcp.image) {
+            if (!gcp.resource) {
               if (
                 !this.singleMapFeatures.some(
                   (feature) => feature && feature.getId() === gcp.id
@@ -188,7 +188,7 @@ export default {
     // prerender: function (event) {
     //   const map = this.activeMap
 
-    //   if (!map || !map.pixelMask.length) {
+    //   if (!map || !map.resourceMask.length) {
     //     return
     //   }
 
@@ -196,7 +196,7 @@ export default {
     //   ctx.save()
     //   ctx.beginPath()
 
-    //   const contextMask = map.pixelMask
+    //   const contextMask = map.resourceMask
     //     .map((point) => this.iiifOl.getPixelFromCoordinate([point[0], -point[1]]))
 
     //   ctx.moveTo(contextMask[0][0], contextMask[0][1])
@@ -240,8 +240,8 @@ export default {
       return {
         id: gcpId,
         // TODO: order:
-        image: iiifPoint,
-        world: mapPoint
+        resource: iiifPoint,
+        geo: mapPoint
       }
     },
     clearGcps: function () {
@@ -263,7 +263,7 @@ export default {
 
       const iiifFeatures = gcps
         .map((gcp, index) => {
-          const coordinates = gcp.image
+          const coordinates = gcp.resource
           if (coordinates) {
             const feature = new Feature({
               index,
@@ -273,7 +273,7 @@ export default {
 
             feature.setId(gcp.id)
 
-            if (!gcp.world) {
+            if (!gcp.geo) {
               this.singleIiifFeatures.push(feature)
             }
 
@@ -284,7 +284,7 @@ export default {
 
       const mapFeatures = gcps
         .map((gcp, index) => {
-          const coordinates = gcp.world
+          const coordinates = gcp.geo
 
           if (coordinates) {
             const feature = new GeoJSON().readFeature(
@@ -304,7 +304,7 @@ export default {
 
             feature.setId(gcp.id)
 
-            if (!gcp.image) {
+            if (!gcp.resource) {
               this.singleMapFeatures.push(feature)
             }
 
@@ -325,19 +325,19 @@ export default {
         })
       }
     },
-    initializePixelMask: function (map) {
-      this.iiifPixelMaskSource.clear()
+    initializeResourceMask: function (map) {
+      this.iiifResourceMaskSource.clear()
 
-      if (!map || !map.pixelMask.length) {
+      if (!map || !map.resourceMask.length) {
         return
       }
 
-      const pixelMaskFeature = new Feature({
-        geometry: new Polygon(maskToPolygon(map.pixelMask))
+      const resourceMaskFeature = new Feature({
+        geometry: new Polygon(maskToPolygon(map.resourceMask))
       })
 
-      pixelMaskFeature.setId(map.id)
-      this.iiifPixelMaskSource.addFeature(pixelMaskFeature)
+      resourceMaskFeature.setId(map.id)
+      this.iiifResourceMaskSource.addFeature(resourceMaskFeature)
     },
     iiifFeatureToPoint: function (feature) {
       const coordinate = feature.getGeometry().getCoordinates()
@@ -412,13 +412,19 @@ export default {
           }
         } else {
           const map = await createFullImageMap(this.activeImage)
-          const { id: mapId, image, pixelMask } = map
+          const { id: mapId, resource, resourceMask } = map
 
           const gcps = {
             [gcpId]: gcp
           }
 
-          this.insertMap({ mapId, image, pixelMask, gcps, source: this.source })
+          this.insertMap({
+            mapId,
+            resource,
+            resourceMask,
+            gcps,
+            source: this.source
+          })
         }
       } else if (event.type === 'modifyend') {
         const mapId = this.activeMapId
@@ -482,11 +488,11 @@ export default {
 
       //   const mapId = this.activeMapId || await createRandomId()
 
-      //   let pixelMask
-      //   if (this.activeMap && this.activeMap.pixelMask && this.activeMap.pixelMask.length) {
-      //     pixelMask = this.activeMap.pixelMask
+      //   let resourceMask
+      //   if (this.activeMap && this.activeMap.resourceMask && this.activeMap.resourceMask.length) {
+      //     resourceMask = this.activeMap.resourceMask
       //   } else {
-      //     pixelMask = [
+      //     resourceMask = [
       //       [0, 0],
       //       [0, imageDimensions[1]],
       //       imageDimensions,
@@ -499,7 +505,7 @@ export default {
       //     id: mapId,
       //     gcps,
       //     imageId,
-      //     pixelMask
+      //     resourceMask
       //   }
 
       //   if (this.activeMapId) {
@@ -540,7 +546,7 @@ export default {
         padding: [90, 10, 90, 10]
       })
     },
-    pixelMaskStyle: function () {
+    resourceMaskStyle: function () {
       return new Style({
         stroke: new Stroke({
           color: '#E10800',
@@ -597,20 +603,20 @@ export default {
   mounted: function () {
     this.iiifLayer = new TileLayer()
     this.iiifSource = new VectorSource()
-    this.iiifPixelMaskSource = new VectorSource()
+    this.iiifResourceMaskSource = new VectorSource()
 
     this.iiifVector = new VectorLayer({
       source: this.iiifSource,
       style: this.gcpStyle
     })
 
-    this.iiifPixelMask = new VectorLayer({
-      source: this.iiifPixelMaskSource,
-      style: this.pixelMaskStyle
+    this.iiifResourceMask = new VectorLayer({
+      source: this.iiifResourceMaskSource,
+      style: this.resourceMaskStyle
     })
 
     this.iiifOl = new Map({
-      layers: [this.iiifLayer, this.iiifPixelMask, this.iiifVector],
+      layers: [this.iiifLayer, this.iiifResourceMask, this.iiifVector],
       target: 'iiif'
     })
 
@@ -708,7 +714,7 @@ export default {
 
     this.updateImage(this.activeImage)
     this.initializeGCPs(this.activeMap)
-    this.initializePixelMask(this.activeMap)
+    this.initializeResourceMask(this.activeMap)
   },
   beforeDestroy: function () {
     this.iiifSource.un('addfeature', this.onEdited)
