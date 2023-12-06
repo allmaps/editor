@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 dependencies:
   '@allmaps/annotation':
     specifier: ^1.0.0-beta.6
@@ -8,8 +12,8 @@ dependencies:
     specifier: 1.0.0-beta.5
     version: 1.0.0-beta.5
   '@allmaps/iiif-parser':
-    specifier: 1.0.0-beta.23
-    version: 1.0.0-beta.23
+    specifier: 1.0.0-beta.28
+    version: 1.0.0-beta.28
   '@allmaps/transform':
     specifier: ^1.0.0-beta.2
     version: 1.0.0-beta.2
@@ -102,9 +106,8 @@ packages:
     engines: {node: ^14.13.1 || >=16.0.0}
     dev: false
 
-  /@allmaps/iiif-parser@1.0.0-beta.23:
-    resolution: {integrity: sha512-E4e+oVHM5W6GPF+SaHnjgVADJ9S1c604JoVr99ptLxTtq9FD4Aiwhw8rb0+oj5YRu5bZeUXB7xUBhaT3yKzWMg==}
-    engines: {node: ^14.13.1 || >=16.0.0}
+  /@allmaps/iiif-parser@1.0.0-beta.28:
+    resolution: {integrity: sha512-Ht4WDuWNvjWTGI7aH9NfhYi9CKnh5u+zNMNWoROryonN8cAFXR0aWJUpmP4PBNfbI8YIM7sgjJYSVg0fyangdw==}
     dependencies:
       zod: 3.21.4
     dev: false
