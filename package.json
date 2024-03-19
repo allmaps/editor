@@ -9,9 +9,9 @@
     "deploy": "npm run build; push-dir --dir=dist --branch=gh-pages --cleanup"
   },
   "dependencies": {
-    "@allmaps/annotation": "^1.0.0-beta.19",
-    "@allmaps/id": "1.0.0-beta.19",
-    "@allmaps/iiif-parser": "1.0.0-beta.28",
+    "@allmaps/annotation": "^1.0.0-beta.26",
+    "@allmaps/id": "1.0.0-beta.26",
+    "@allmaps/iiif-parser": "1.0.0-beta.36",
     "buefy": "^0.9.7",
     "bulma": "^0.9.4",
     "core-js": "^3.8.2",

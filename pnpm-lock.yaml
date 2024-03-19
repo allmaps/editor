@@ -6,14 +6,14 @@ settings:
 
 dependencies:
   '@allmaps/annotation':
-    specifier: ^1.0.0-beta.19
-    version: 1.0.0-beta.19
+    specifier: ^1.0.0-beta.26
+    version: 1.0.0-beta.26
   '@allmaps/id':
-    specifier: 1.0.0-beta.19
-    version: 1.0.0-beta.19
+    specifier: 1.0.0-beta.26
+    version: 1.0.0-beta.26
   '@allmaps/iiif-parser':
-    specifier: 1.0.0-beta.28
-    version: 1.0.0-beta.28
+    specifier: 1.0.0-beta.36
+    version: 1.0.0-beta.36
   buefy:
     specifier: ^0.9.7
     version: 0.9.19(vue@2.7.10)
@@ -97,21 +97,28 @@ packages:
       js-message: 1.0.7
     dev: true
 
-  /@allmaps/annotation@1.0.0-beta.19:
-    resolution: {integrity: sha512-tk56HtGTfcpAdO0p26g5FEhWzYpK0LyzvSE5ckBZFixntg8jT6x49J17z/sXsXTLON6uimGuizOlj1cYpPreDQ==}
+  /@allmaps/annotation@1.0.0-beta.26:
+    resolution: {integrity: sha512-1gVsLXL8mYwf0qW4tIxqDi9Mg4jUcEzeAwvqrRH55Js6RNxZfzGAPLIRdHgu/TBMUxKlJ2tuv3WyUpXfspJHSA==}
     dependencies:
-      zod: 3.21.4
+      zod: 3.22.4
     dev: false
 
-  /@allmaps/id@1.0.0-beta.19:
-    resolution: {integrity: sha512-mxb3a82jY0Tn5iX0DDsSf6lgpE4CP1jjA4j3LbAOcdlzcegl6d0VYbANVJ9K8sbLnxkZVv4yTKAC2pGDwgv/3Q==}
+  /@allmaps/id@1.0.0-beta.26:
+    resolution: {integrity: sha512-VmQLtJuBThFlPdKmb+5BzDvWguOlSLQQyJNFwqCp/09/PfPRVDia4fma/NJE3K3dKEvGacB6xiUOvIoVDAAlqw==}
     engines: {node: '>=v19.0.0'}
+    dependencies:
+      '@allmaps/types': 1.0.0-beta.12
     dev: false
 
-  /@allmaps/iiif-parser@1.0.0-beta.28:
-    resolution: {integrity: sha512-Ht4WDuWNvjWTGI7aH9NfhYi9CKnh5u+zNMNWoROryonN8cAFXR0aWJUpmP4PBNfbI8YIM7sgjJYSVg0fyangdw==}
+  /@allmaps/iiif-parser@1.0.0-beta.36:
+    resolution: {integrity: sha512-sXOuwSeyOGRBEaYBqTyAIPPPolFO0pDN6WvPvup5m7A82TBRfErpwVwcCqHd+kyncRV1E5/Y3/zkyJIyEurU9A==}
     dependencies:
-      zod: 3.21.4
+      '@allmaps/types': 1.0.0-beta.12
+      zod: 3.22.4
+    dev: false
+
+  /@allmaps/types@1.0.0-beta.12:
+    resolution: {integrity: sha512-8avn1itc/46DRSaOJFaOiPltGwdqTdp4PFR2FKAxWCp8DuADGwleJKh4f+5dhoePdFasLNMJAPnyGqISpctXjw==}
     dev: false
 
   /@ampproject/remapping@2.1.2:
@@ -7220,6 +7227,6 @@ packages:
       strip-indent: 2.0.0
     dev: true
 
-  /zod@3.21.4:
-    resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
+  /zod@3.22.4:
+    resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
     dev: false
