@@ -26,7 +26,7 @@ function groupMapsByImageId(mapsByMapId) {
   let mapsByImageId = {}
 
   for (let map of Object.values(mapsByMapId)) {
-    const imageId = map.image.id
+    const imageId = map.resource.id
 
     if (!mapsByImageId[imageId]) {
       mapsByImageId[imageId] = []
@@ -87,13 +87,13 @@ const actions = {
 
   insertMap(
     { commit, rootState },
-    { mapId, pixelMask = [], gcps = {}, image, source }
+    { mapId, resourceMask = [], gcps = {}, resource, source }
   ) {
     const map = {
-      version: 1,
+      version: 2,
       id: mapId,
-      image,
-      pixelMask,
+      resource,
+      resourceMask,
       gcps
     }
 
@@ -106,40 +106,40 @@ const actions = {
     commit('removeMap', { mapId, source })
   },
 
-  insertPixelMaskPoint(
+  insertResourceMaskPoint(
     { state, commit, rootState },
-    { mapId, index, pixelMaskPoint, source }
+    { mapId, index, resourceMaskPoint, source }
   ) {
     if (!state.maps[mapId]) {
       throw new Error(`Map ${mapId} does not exist`)
     }
 
-    commit('insertPixelMaskPoint', {
+    commit('insertResourceMaskPoint', {
       mapId,
       index,
-      pixelMaskPoint,
+      resourceMaskPoint,
       source
     })
 
     makeMapActive(rootState, mapId, commit)
   },
 
-  replacePixelMaskPoint(
+  replaceResourceMaskPoint(
     { commit, rootState },
-    { mapId, index, pixelMaskPoint, source }
+    { mapId, index, resourceMaskPoint, source }
   ) {
-    commit('replacePixelMaskPoint', {
+    commit('replaceResourceMaskPoint', {
       mapId,
       index,
-      pixelMaskPoint,
+      resourceMaskPoint,
       source
     })
 
     makeMapActive(rootState, mapId, commit)
   },
 
-  removePixelMaskPoint({ commit, rootState }, { mapId, index, source }) {
-    commit('removePixelMaskPoint', {
+  removeResourceMaskPoint({ commit, rootState }, { mapId, index, source }) {
+    commit('removeResourceMaskPoint', {
       mapId,
       index,
       source
@@ -227,11 +227,11 @@ const mutations = {
     // delete state.maps[mapId]
   },
 
-  insertPixelMaskPoint(state, { mapId, index, pixelMaskPoint }) {
+  insertResourceMaskPoint(state, { mapId, index, resourceMaskPoint }) {
     const map = state.maps[mapId]
 
-    const pixelMask = map.pixelMask
-    pixelMask.splice(index, 0, pixelMaskPoint)
+    const resourceMask = map.resourceMask
+    resourceMask.splice(index, 0, resourceMaskPoint)
 
     Vue.set(state.maps, mapId, map)
 
@@ -242,9 +242,9 @@ const mutations = {
     // }
   },
 
-  replacePixelMaskPoint(state, { mapId, index, pixelMaskPoint }) {
+  replaceResourceMaskPoint(state, { mapId, index, resourceMaskPoint }) {
     const map = state.maps[mapId]
-    map.pixelMask[index] = pixelMaskPoint
+    map.resourceMask[index] = resourceMaskPoint
 
     Vue.set(state.maps, mapId, map)
 
@@ -255,9 +255,9 @@ const mutations = {
     // }
   },
 
-  removePixelMaskPoint(state, { mapId, index }) {
+  removeResourceMaskPoint(state, { mapId, index }) {
     const map = state.maps[mapId]
-    map.pixelMask.splice(index, 1)
+    map.resourceMask.splice(index, 1)
 
     Vue.set(state.maps, mapId, map)
 

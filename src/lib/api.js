@@ -1,4 +1,4 @@
-import { generateChecksum } from '@allmaps/id/browser'
+import { generateChecksum } from '@allmaps/id'
 
 const API_URL = process.env.VUE_APP_API_URL
 

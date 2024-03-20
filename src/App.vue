@@ -12,7 +12,7 @@
           <Collection />
         </template>
         <template v-else-if="$route.name === 'mask'">
-          <PixelMask />
+          <ResourceMask />
         </template>
         <template v-else-if="$route.name === 'georeference'">
           <Georeference />
@@ -42,16 +42,19 @@ import Error from './components/Error.vue'
 import Home from './components/Home.vue'
 import Collection from './components/Collection.vue'
 import Georeference from './components/Georeference.vue'
-import PixelMask from './components/PixelMask.vue'
+import ResourceMask from './components/ResourceMask.vue'
 import Results from './components/Results.vue'
 
 const WS_API_URL = process.env.VUE_APP_WS_API_URL
 
 import ReconnectingWebSocket from 'reconnecting-websocket'
 import ShareDB from 'sharedb/lib/client'
+import diffMatchPatch from 'diff-match-patch'
+import jsondiff from 'json0-ot-diff'
 const json1 = require('ot-json1')
 
 import { parseOperations } from './lib/json1-operations.js'
+import { convertToMaps2 } from './lib/map.js'
 
 const serverUrl = process.env.VUE_APP_SERVER_URL
 
@@ -66,7 +69,7 @@ export default {
     Home,
     Collection,
     Georeference,
-    PixelMask,
+    ResourceMask,
     Results
   },
   methods: {
@@ -85,9 +88,9 @@ export default {
       'resetMaps',
       'insertMap',
       'removeMap',
-      'insertPixelMaskPoint',
-      'removePixelMaskPoint',
-      'replacePixelMaskPoint',
+      'insertResourceMaskPoint',
+      'removeResourceMaskPoint',
+      'replaceResourceMaskPoint',
       'insertGcp',
       'replaceGcp',
       'removeGcp'
@@ -113,10 +116,16 @@ export default {
       // This needs to be merged into one!
       // For now:
       const maps = JSON.parse(JSON.stringify(this.doc.data))
+      const maps2 = convertToMaps2(maps)
+      const ops = jsondiff(maps, maps2, diffMatchPatch, json1)
+
+      if (ops) {
+        this.doc.submitOp(ops)
+      }
 
       // either don't allow editing before share db is initialized,
       // or merge the 2 set of maps
-      this.setMaps({ maps, source })
+      this.setMaps({ maps: maps2, source })
     },
     getDoc: function () {
       if (this.doc) {
@@ -145,39 +154,39 @@ export default {
 
         operations.forEach(({ mapId, type, key, instructions }) => {
           if (type === 'map' && instructions.i) {
-            const { image, pixelMask, gcps } = instructions.i
+            const { resource, resourceMask, gcps } = instructions.i
             this.insertMap({
               mapId,
-              image,
-              pixelMask,
+              resource,
+              resourceMask,
               gcps,
               source
             })
           } else if (type === 'map' && instructions.r) {
             this.removeMap({ mapId, source })
-          } else if (type === 'pixelMask') {
+          } else if (type === 'resourceMask') {
             const index = key
-            const pixelMaskPoint = instructions.i
+            const resourceMaskPoint = instructions.i
 
-            if (instructions.r && pixelMaskPoint) {
-              this.replacePixelMaskPoint({
+            if (instructions.r && resourceMaskPoint) {
+              this.replaceResourceMaskPoint({
                 mapId,
                 index,
-                pixelMaskPoint,
+                resourceMaskPoint,
                 source
               })
-            } else if (pixelMaskPoint) {
-              this.insertPixelMaskPoint({
+            } else if (resourceMaskPoint) {
+              this.insertResourceMaskPoint({
                 mapId,
                 index,
-                pixelMaskPoint,
+                resourceMaskPoint,
                 source
               })
             } else if (instructions.r) {
-              this.removePixelMaskPoint({
+              this.removeResourceMaskPoint({
                 mapId,
                 index,
-                pixelMaskPoint,
+                resourceMaskPoint,
                 source
               })
             }
@@ -233,30 +242,34 @@ export default {
       } else if (mutation.type === 'maps/removeMap') {
         const { mapId } = mutation.payload
         this.doc.submitOp(json1.removeOp([mapId]))
-      } else if (mutation.type === 'maps/insertPixelMaskPoint') {
-        const { mapId, index, pixelMaskPoint } = mutation.payload
+      } else if (mutation.type === 'maps/insertResourceMaskPoint') {
+        const { mapId, index, resourceMaskPoint } = mutation.payload
         this.doc.submitOp(
-          json1.insertOp([mapId, 'pixelMask', index], pixelMaskPoint)
+          json1.insertOp([mapId, 'resourceMask', index], resourceMaskPoint)
         )
-      } else if (mutation.type === 'maps/removePixelMaskPoint') {
-        const { mapId, index, pixelMaskPoint } = mutation.payload
+      } else if (mutation.type === 'maps/removeResourceMaskPoint') {
+        const { mapId, index, resourceMaskPoint } = mutation.payload
         this.doc.submitOp(
-          json1.removeOp([mapId, 'pixelMask', index], pixelMaskPoint)
+          json1.removeOp([mapId, 'resourceMask', index], resourceMaskPoint)
         )
-      } else if (mutation.type === 'maps/replacePixelMaskPoint') {
-        const { mapId, index, pixelMaskPoint } = mutation.payload
+      } else if (mutation.type === 'maps/replaceResourceMaskPoint') {
+        const { mapId, index, resourceMaskPoint } = mutation.payload
         // TODO: replace true with oldVal
         this.doc.submitOp(
-          json1.replaceOp([mapId, 'pixelMask', index], true, pixelMaskPoint)
+          json1.replaceOp(
+            [mapId, 'resourceMask', index],
+            true,
+            resourceMaskPoint
+          )
         )
       } else if (mutation.type === 'maps/insertGcp') {
         const { mapId, gcpId, gcp } = mutation.payload
-        // if (gcp.image && gcp.world) {
+        // if (gcp.resource && gcp.geo) {
         this.doc.submitOp(json1.insertOp([mapId, 'gcps', gcpId], { ...gcp }))
         // }
       } else if (mutation.type === 'maps/replaceGcp') {
         const { mapId, gcpId, gcp } = mutation.payload
-        // if (gcp.image && gcp.world) {
+        // if (gcp.resource && gcp.geo) {
         // TODO: replace true with oldVal
         this.doc.submitOp(
           json1.replaceOp([mapId, 'gcps', gcpId], true, { ...gcp })
@@ -264,7 +277,7 @@ export default {
         // }
       } else if (mutation.type === 'maps/removeGcp') {
         const { mapId, gcpId, gcp } = mutation.payload
-        // if (gcp.image && gcp.world) {
+        // if (gcp.resource && gcp.geo) {
         this.doc.submitOp(json1.removeOp([mapId, 'gcps', gcpId]))
         // }
       }

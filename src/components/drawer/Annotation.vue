@@ -104,11 +104,19 @@ export default {
     annotation: function () {
       const viewableMaps = this.maps
         .map((map) => ({
-          // version: 1,
-          ...map,
+          '@context': 'https://schemas.allmaps.org/map/2/context.json',
+          id: this.getMapId(map),
+          type: 'GeoreferencedMap',
+          resource: {
+            id: this.getResourceId(map.resource),
+            width: map.resource.width,
+            height: map.resource.height,
+            type: map.resource.type
+          },
           gcps: Object.values(map.gcps).filter(
-            ({ image, world }) => image && world
-          )
+            ({ resource, geo }) => resource && geo
+          ),
+          resourceMask: map.resourceMask
         }))
         .filter(this.mapIsViewable)
 
@@ -143,6 +151,20 @@ export default {
     }
   },
   methods: {
+    getMapId: function (map) {
+      if (map.id.startsWith('http')) {
+        return map.id
+      } else {
+        return `${ANNOTATIONS_URL}/maps/${map.id}`
+      }
+    },
+    getResourceId: function (resource) {
+      if (resource.id.startsWith('http')) {
+        return resource.id
+      } else {
+        return resource.uri
+      }
+    },
     mapIsViewable: function (map) {
       return map.gcps.length >= 3
     },
@@ -166,7 +188,7 @@ export default {
 
       a.href = dataUrl
 
-      a.download = `${this.annotationLevel}-${this.id}.georef-annotation.json`
+      a.download = `${this.annotationLevel}-${this.id}.georeference-annotation.json`
       a.click()
       window.URL.revokeObjectURL(dataUrl)
 

@@ -10,10 +10,9 @@
     >
       <Thumbnail
         :image="parsedImage"
-        @fetch-embedded="fetchImage"
+        @fetch-embedded="onFetchEmbedded"
         @error="onError"
       />
-      <!-- <img :src="imageUrl" /> -->
     </router-link>
     <div class="links">
       <div>
@@ -64,12 +63,11 @@ export default {
   data: function () {
     return {
       parsedCorrectly: false,
-      parsedImage: undefined,
-      imageUrl: undefined
+      parsedImage: undefined
     }
   },
   methods: {
-    fetchImage: async function () {
+    onFetchEmbedded: async function () {
       try {
         const url = `${this.parsedImage.uri}/info.json`
         const iiifData = await fetchJson(url)
@@ -80,7 +78,7 @@ export default {
       }
     },
     onError: function () {
-      console.error('Error fetching and parsing example: ', this.parsedImage.uri)
+      console.error('Error fetching and parsing example: ', this.example.url)
       this.parsedCorrectly = false
     }
   },
@@ -100,12 +98,7 @@ export default {
         parsedImage = parsedIiif
       }
 
-      const thumbnail = parsedImage.getThumbnail({ width: 200, height: 200 })
-      const imageUrl = parsedImage.getImageUrl(thumbnail)
-
       this.parsedImage = parsedImage
-
-      this.imageUrl = imageUrl
       this.parsedCorrectly = true
     } catch (err) {
       this.onError()

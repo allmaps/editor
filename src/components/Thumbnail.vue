@@ -2,6 +2,7 @@
   <div v-if="singleImage" class="single-container">
     <b-skeleton v-if="!loaded" active></b-skeleton>
     <img
+      v-if="thumbnail"
       @load="onLoad"
       @error="onError"
       :class="{ single: true, loaded }"
@@ -21,10 +22,7 @@
   >
     <template v-for="(row, rowIndex) in thumbnail">
       <template v-for="(cell, columnIndex) in row">
-        <img
-          :src="getImageUrl(removeHeight(cell))"
-          :key="`${columnIndex},${rowIndex}`"
-        />
+        <img :src="getImageUrl(cell)" :key="`${columnIndex},${rowIndex}`" />
       </template>
     </template>
   </div>
@@ -37,25 +35,26 @@ export default {
   name: 'Thumbnail',
   data: function () {
     return {
-      loaded: false
+      loaded: false,
+      thumbnail: undefined
     }
   },
   props: {
+    imageId: String,
     image: Image,
     width: {
       type: Number,
       default: 200 * window.devicePixelRatio
     }
   },
+  watch: {
+    image: function () {
+      this.updateThumbnail()
+    }
+  },
   computed: {
     singleImage: function () {
       return !Array.isArray(this.thumbnail)
-    },
-    thumbnail: function () {
-      return this.image.getThumbnail({
-        width: this.width,
-        height: this.width
-      })
     },
     tilesWidth: function () {
       const firstRow = this.thumbnail[0]
@@ -73,19 +72,21 @@ export default {
     }
   },
   methods: {
+    updateThumbnail: function () {
+      try {
+        this.thumbnail = this.image.getThumbnail({
+          width: this.width,
+          height: this.width
+        })
+      } catch (err) {
+        this.$emit('error', err)
+      }
+    },
     getImageUrl: function (imageRequest) {
       try {
         return this.image.getImageUrl(imageRequest)
       } catch (err) {
-        this.$emit('error')
-      }
-    },
-    removeHeight: function ({ region, size }) {
-      return {
-        region,
-        size: {
-          width: size.width
-        }
+        this.$emit('error', err)
       }
     },
     onLoad: function () {
@@ -93,10 +94,17 @@ export default {
     },
     onError: function (err) {
       if (this.image.embedded) {
-        this.$emit('fetch-embedded')
+        this.$emit('fetch-embedded', this.imageId)
       } else {
         this.$emit('error')
       }
+    }
+  },
+  mounted: async function () {
+    if (this.image.embedded) {
+      this.$emit('fetch-embedded', this.imageId)
+    } else {
+      this.updateThumbnail()
     }
   }
 }

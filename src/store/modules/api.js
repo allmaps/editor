@@ -18,7 +18,7 @@ const mutations = {
     state.mapsByImageId = {}
 
     for (let map of maps) {
-      const imageId = map.image.id
+      const imageId = map.resource.id
 
       if (!state.mapsByImageId[imageId]) {
         state.mapsByImageId[imageId] = []

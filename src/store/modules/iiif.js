@@ -2,7 +2,7 @@ import Vue from 'vue'
 
 import { router } from '../../main.js'
 
-import { generateId } from '@allmaps/id/browser'
+import { generateId } from '@allmaps/id'
 import { IIIF, Image } from '@allmaps/iiif-parser'
 
 import { fetchJson, submitIiif } from '../../lib/api.js'
@@ -90,7 +90,7 @@ const actions = {
 
     if (type === 'image') {
       parsedImages = [parsedIiif]
-      apiUrl = `${API_URL}/images/${id}`
+      apiUrl = `${API_URL}/images/${id}/maps`
     } else if (type === 'manifest') {
       parsedImages = parsedIiif.canvases.map((canvas) => canvas.image)
       apiUrl = `${API_URL}/manifests/${id}/maps`
@@ -102,7 +102,7 @@ const actions = {
 
     // Wait for API for precess new IIIF URL
     setTimeout(() => {
-      dispatch('api/fetchMaps', { url: apiUrl }, {root: true})
+      dispatch('api/fetchMaps', { url: apiUrl }, { root: true })
     }, 2000)
 
     let imageIds = []
